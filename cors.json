@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["*"],
+    "origin": ["https://platamais.web.app", "https://platamais.firebaseapp.com"],
     "method": ["GET"],
     "maxAgeSeconds": 3600
   }
