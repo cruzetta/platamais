@@ -283,7 +283,7 @@
         window.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
         modal.addEventListener('click', (e) => e.target === modal && closeModal());
         
-        // --- SCRIPT DO LEITOR DE ÁUDIO SIMPLIFICADO ---
+        // --- SCRIPT DO LEITOR DE ÁUDIO MELHORADO ---
         document.addEventListener('DOMContentLoaded', () => {
             const audio = document.getElementById('podcast-audio');
             const playPauseBtn = document.getElementById('play-pause-btn');
@@ -292,21 +292,59 @@
             const progressBar = document.getElementById('progress-bar');
             const currentTimeEl = document.getElementById('current-time');
             const durationEl = document.getElementById('duration');
+            const audioStatus = document.getElementById('audio-status');
 
             playPauseBtn.addEventListener('click', () => {
                 if (audio.paused) {
-                    audio.play();
-                    playPauseBtn.innerHTML = pauseIcon;
+                    audio.play().catch(e => {
+                         // A reprodução pode falhar se o usuário não interagiu com a página
+                         console.error("Erro ao tentar reproduzir o áudio:", e);
+                         audioStatus.innerHTML = `<span class="text-red-500">Falha ao iniciar a reprodução. Interaja com a página e tente novamente.</span>`;
+                    });
                 } else {
                     audio.pause();
-                    playPauseBtn.innerHTML = playIcon;
                 }
+            });
+
+            audio.addEventListener('playing', () => {
+                playPauseBtn.innerHTML = pauseIcon;
+            });
+
+            audio.addEventListener('pause', () => {
+                playPauseBtn.innerHTML = playIcon;
             });
             
             audio.addEventListener('error', (e) => {
-                console.error("Erro no elemento de áudio:", e);
-                const audioStatus = document.getElementById('audio-status');
-                audioStatus.innerHTML = '<span class="text-red-500">Erro ao carregar o áudio.</span>';
+                console.error("Erro detalhado no elemento de áudio:", e);
+                console.dir(audio.error); // Mostra o objeto de erro completo no console
+
+                let errorMessage = "Erro ao carregar o áudio.";
+                
+                if (audio.error) {
+                    switch (audio.error.code) {
+                        case audio.error.MEDIA_ERR_ABORTED:
+                            errorMessage += " A busca foi abortada.";
+                            break;
+                        case audio.error.MEDIA_ERR_NETWORK:
+                            errorMessage += " Erro de rede. Verifique sua conexão.";
+                            break;
+                        case audio.error.MEDIA_ERR_DECODE:
+                            errorMessage += " Erro na decodificação do arquivo.";
+                            break;
+                        case audio.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                            errorMessage += " Formato de áudio não suportado.";
+                            break;
+                        default:
+                            errorMessage += " Ocorreu um erro desconhecido.";
+                            break;
+                    }
+                }
+                // A mensagem de erro de CORS geralmente aparece no console principal do navegador, não aqui.
+                // Um erro de rede (MEDIA_ERR_NETWORK) é um forte indicador de um problema de CORS.
+                errorMessage += "<br><b>Verifique o console do navegador (F12) para possíveis erros de CORS.</b>";
+
+                audioStatus.innerHTML = `<span class="text-red-500">${errorMessage}</span>`;
+                playPauseBtn.disabled = true; // Desabilita o botão em caso de erro
             });
 
             audio.addEventListener('timeupdate', () => {
