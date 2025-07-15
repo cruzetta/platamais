@@ -152,6 +152,9 @@
                 userEmailDisplay.textContent = user.email;
                 fetchProducts(); 
                 
+                // CORREÇÃO: Renderiza os ícones estáticos (como o botão '+') depois que o app é iniciado.
+                lucide.createIcons();
+
                 // --- LÓGICA DO MODAL ---
                 const openModal = () => {
                     productModal.classList.remove('hidden');
@@ -227,6 +230,7 @@
                             `;
                             productsListContainer.innerHTML += productCard;
                         });
+                        // CORREÇÃO: Renderiza os ícones dinâmicos dos cards de produtos.
                         lucide.createIcons();
                     } catch (error) {
                         console.error("Erro ao buscar produtos: ", error);
@@ -241,8 +245,6 @@
                 });
             }
         });
-
-        lucide.createIcons();
     </script>
 </body>
 </html>
