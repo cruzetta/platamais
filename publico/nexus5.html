@@ -22,8 +22,192 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
 
-    <!-- Alpine.js Core -->
+    <!-- Alpine.js Core - 'defer' é crucial para garantir que o DOM esteja pronto antes da execução -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Alpine Component Definition - Movido para o <head> para garantir o carregamento correto -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('pageEditor', () => ({
+                isReady: false,
+                isSaving: false,
+                toast: { show: false, message: '', type: 'success' },
+                pageData: {}, // Começa vazio e carrega da estrutura padrão/Firebase
+                
+                // Estrutura de dados padrão com todo o conteúdo original
+                defaultPageData: {
+                    hero: {
+                        visible: true,
+                        headline1: { value: 'O Fim do Bloqueio Criativo.', visible: true },
+                        headline2: { value: 'O Início da Sua Obra-Prima.', visible: true },
+                        paragraph: { value: 'A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.', visible: true },
+                        videoUrl: { value: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ', visible: true },
+                        ctaButtonText: { value: 'QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA', visible: true },
+                        ctaLink: { value: 'https://pay.hotmart.com/', visible: true },
+                    },
+                    problem: {
+                        visible: true,
+                        title: { value: 'Sua criatividade está presa?', visible: true },
+                        points: [
+                            { title: 'Horas Perdidas', desc: 'Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.', visible: true },
+                            { title: 'Workflow Quebrado', desc: 'Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.', visible: true },
+                            { title: 'Ideias no Limbo', desc: 'Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.', visible: true }
+                        ]
+                    },
+                    solution: {
+                        visible: true,
+                        imageUrl: { value: 'https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine', visible: true },
+                        title: { value: "Apresentando o <span class='gradient-text'>Aura Engine</span>", visible: true },
+                        description: { value: 'Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.', visible: true },
+                        features: [
+                            { title: 'Síntese Neural', desc: 'Descreva o som que você imagina e nossa IA o materializa em segundos.', visible: true },
+                            { title: 'Fluxo Unificado', desc: 'Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.', visible: true },
+                            { title: 'Biblioteca Infinita', desc: 'Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.', visible: true }
+                        ]
+                    },
+                    testimonials: {
+                        visible: true,
+                        title: { value: 'Não acredite apenas na nossa palavra.', visible: true },
+                        items: [
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ', name: 'DJ Alex Groove', role: 'Artista Internacional', text: '"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."', visible: true },
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora', name: 'Juliana Reis', role: 'Produtora Musical (Gold Certified)', text: '"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."', visible: true },
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker', name: 'Léo "Beats" Costa', role: 'Beatmaker & Sound Designer', text: '"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."', visible: true }
+                        ]
+                    },
+                    offer: {
+                        visible: true,
+                        title: { value: 'Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som', visible: true },
+                        subtitle: { value: 'Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.', visible: true },
+                        oldPrice: { value: 'De R$1.297,00', visible: true },
+                        price: { value: '12x de R$79,90', visible: true },
+                        fullPrice: { value: 'ou R$797 à vista no PIX', visible: true },
+                        bonusTitle: { value: 'COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):', visible: true },
+                        bonuses: [
+                            { text: 'Masterclass "Sound Design Avançado".', visible: true },
+                            { text: 'Pacote de Samples "Analog Dreams" (Valor R$297).', visible: true },
+                            { text: 'Acesso Vitalício à Comunidade VIP de Produtores.', visible: true }
+                        ],
+                        ctaButtonText: { value: 'QUERO GARANTIR MEU ACESSO COM DESCONTO', visible: true },
+                    },
+                    guarantee: {
+                        visible: true,
+                        imageUrl: { value: 'https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS', visible: true },
+                        title: { value: 'Garantia Blindada de 30 Dias', visible: true },
+                        text: { value: 'O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.', visible: true },
+                    },
+                    faq: {
+                        visible: true,
+                        title: { value: 'Perguntas Frequentes', visible: true },
+                        items: [
+                            { q: 'Para quem é o Aura Engine?', a: 'O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.', visible: true },
+                            { q: 'Preciso de um computador potente?', a: 'Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.', visible: true },
+                            { q: 'Como recebo o acesso?', a: 'O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.', visible: true }
+                        ]
+                    }
+                },
+
+                pageRef: null,
+
+                init() {
+                    this.pageData = JSON.parse(JSON.stringify(this.defaultPageData)); // Cópia profunda
+                    this.pageRef = db.collection('pages').doc('nexus5_granular_expanded');
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            this.loadPageData().then(() => {
+                                this.isReady = true;
+                                this.$nextTick(() => lucide.createIcons());
+                            });
+                        } else {
+                            window.location.href = 'login.html';
+                        }
+                    });
+                },
+
+                async loadPageData() {
+                    try {
+                        const doc = await this.pageRef.get();
+                        if (doc.exists) {
+                            const firestoreData = doc.data();
+                            this.pageData = this.mergeDeep(JSON.parse(JSON.stringify(this.defaultPageData)), firestoreData);
+                        } else {
+                            // Se o documento não existe, salva a estrutura padrão para começar
+                            await this.savePageData(false); 
+                        }
+                    } catch (error) {
+                        console.error("Erro ao carregar dados:", error);
+                        this.showToast('Não foi possível carregar os dados.', 'error');
+                    }
+                },
+
+                async savePageData(showNotification = true) {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+                    try {
+                        await this.pageRef.set(this.pageData);
+                        if (showNotification) this.showToast('Alterações salvas com sucesso!', 'success');
+                    } catch (error) {
+                        console.error("Erro ao salvar:", error);
+                        this.showToast('Erro ao salvar.', 'error');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                
+                addItem(sectionName, key) {
+                    const section = this.pageData[sectionName];
+                    if (section && Array.isArray(section[key])) {
+                        const firstItem = this.defaultPageData[sectionName][key][0];
+                        const newItem = JSON.parse(JSON.stringify(firstItem)); // Cópia profunda
+                        // Reseta os valores para strings vazias
+                        Object.keys(newItem).forEach(prop => {
+                            if(prop !== 'visible') newItem[prop] = '';
+                        });
+                        newItem.visible = true;
+                        section[key].push(newItem);
+                    }
+                },
+
+                removeItem(sectionName, key, index) {
+                    const section = this.pageData[sectionName];
+                    if (section && Array.isArray(section[key])) {
+                        section[key].splice(index, 1);
+                    }
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
+                // Função para mesclar dados do Firebase com a estrutura padrão, garantindo que novos campos sejam adicionados
+                mergeDeep(target, source) {
+                    const isObject = (obj) => obj && typeof obj === 'object' && !Array.isArray(obj);
+                    const output = { ...target };
+                    if (isObject(target) && isObject(source)) {
+                        Object.keys(source).forEach(key => {
+                            if (isObject(source[key])) {
+                                if (!(key in target))
+                                    Object.assign(output, { [key]: source[key] });
+                                else
+                                    output[key] = this.mergeDeep(target[key], source[key]);
+                            } else if (Array.isArray(source[key])) {
+                                output[key] = [];
+                                source[key].forEach((item, index) => {
+                                    const targetItem = target[key] && target[key][index] ? target[key][index] : {};
+                                    output[key][index] = this.mergeDeep(targetItem, item);
+                                });
+                            } else {
+                                Object.assign(output, { [key]: source[key] });
+                            }
+                        });
+                    }
+                    return output;
+                }
+            }));
+        });
+    </script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -34,19 +218,16 @@
         .btn-remove { @apply text-red-500 hover:text-red-700 transition-colors; }
         [x-cloak] { display: none !important; }
         
-        /* Toggle Switch Styles */
         .toggle-bg:after { content: ''; @apply absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-5 w-5 transition shadow-sm; }
         input:checked + .toggle-bg:after { @apply transform translate-x-full; }
         input:checked + .toggle-bg { @apply bg-indigo-600 border-indigo-600; }
 
-        /* Granular Visibility Toggle */
         .visibility-toggle { @apply cursor-pointer text-gray-400 hover:text-indigo-600 transition-colors; }
         .field-group.is-hidden .label, 
         .field-group.is-hidden .input, 
         .field-group.is-hidden .textarea { @apply opacity-50; }
         .field-group.is-hidden .visibility-toggle { @apply text-gray-300; }
 
-        /* Preview Pane Styles */
         .preview-pane {
             background-color: #000000; color: #E0E0E0;
             background-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.98)), url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
@@ -58,13 +239,13 @@
         .ui-panel { background-color: rgba(10, 10, 10, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
-<body x-data="pageEditor" x-init="init()" class="bg-gray-100">
+<body x-data="pageEditor" class="bg-gray-100" x-cloak>
 
-    <div x-show="!isReady" x-cloak class="flex items-center justify-center h-screen">
-        <p class="text-lg text-gray-600">Carregando editor completo...</p>
+    <div x-show="!isReady" class="flex items-center justify-center h-screen">
+        <p class="text-lg text-gray-600">A carregar editor...</p>
     </div>
 
-    <div x-show="isReady" x-cloak>
+    <div x-show="isReady">
         <!-- Header -->
         <header class="bg-white shadow-md sticky top-0 z-30">
             <div class="max-w-full mx-auto py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -520,188 +701,5 @@
         <!-- Toast Notification -->
         <div x-show="toast.show" x-transition class="fixed bottom-5 right-5 text-white py-2 px-5 rounded-lg shadow-lg" :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'" x-text="toast.message" x-cloak></div>
     </div>
-    
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('pageEditor', () => ({
-                isReady: false,
-                isSaving: false,
-                toast: { show: false, message: '', type: 'success' },
-                pageData: {}, // Start with empty and load from default structure
-                
-                // Default structure with all fields and original content
-                defaultPageData: {
-                    hero: {
-                        visible: true,
-                        headline1: { value: 'O Fim do Bloqueio Criativo.', visible: true },
-                        headline2: { value: 'O Início da Sua Obra-Prima.', visible: true },
-                        paragraph: { value: 'A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.', visible: true },
-                        videoUrl: { value: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ', visible: true },
-                        ctaButtonText: { value: 'QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA', visible: true },
-                        ctaLink: { value: 'https://pay.hotmart.com/', visible: true },
-                    },
-                    problem: {
-                        visible: true,
-                        title: { value: 'Sua criatividade está presa?', visible: true },
-                        points: [
-                            { title: 'Horas Perdidas', desc: 'Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.', visible: true },
-                            { title: 'Workflow Quebrado', desc: 'Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.', visible: true },
-                            { title: 'Ideias no Limbo', desc: 'Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.', visible: true }
-                        ]
-                    },
-                    solution: {
-                        visible: true,
-                        imageUrl: { value: 'https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine', visible: true },
-                        title: { value: "Apresentando o <span class='gradient-text'>Aura Engine</span>", visible: true },
-                        description: { value: 'Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.', visible: true },
-                        features: [
-                            { title: 'Síntese Neural', desc: 'Descreva o som que você imagina e nossa IA o materializa em segundos.', visible: true },
-                            { title: 'Fluxo Unificado', desc: 'Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.', visible: true },
-                            { title: 'Biblioteca Infinita', desc: 'Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.', visible: true }
-                        ]
-                    },
-                    testimonials: {
-                        visible: true,
-                        title: { value: 'Não acredite apenas na nossa palavra.', visible: true },
-                        items: [
-                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ', name: 'DJ Alex Groove', role: 'Artista Internacional', text: '"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."', visible: true },
-                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora', name: 'Juliana Reis', role: 'Produtora Musical (Gold Certified)', text: '"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."', visible: true },
-                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker', name: 'Léo "Beats" Costa', role: 'Beatmaker & Sound Designer', text: '"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."', visible: true }
-                        ]
-                    },
-                    offer: {
-                        visible: true,
-                        title: { value: 'Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som', visible: true },
-                        subtitle: { value: 'Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.', visible: true },
-                        oldPrice: { value: 'De R$1.297,00', visible: true },
-                        price: { value: '12x de R$79,90', visible: true },
-                        fullPrice: { value: 'ou R$797 à vista no PIX', visible: true },
-                        bonusTitle: { value: 'COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):', visible: true },
-                        bonuses: [
-                            { text: 'Masterclass "Sound Design Avançado".', visible: true },
-                            { text: 'Pacote de Samples "Analog Dreams" (Valor R$297).', visible: true },
-                            { text: 'Acesso Vitalício à Comunidade VIP de Produtores.', visible: true }
-                        ],
-                        ctaButtonText: { value: 'QUERO GARANTIR MEU ACESSO COM DESCONTO', visible: true },
-                    },
-                    guarantee: {
-                        visible: true,
-                        imageUrl: { value: 'https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS', visible: true },
-                        title: { value: 'Garantia Blindada de 30 Dias', visible: true },
-                        text: { value: 'O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.', visible: true },
-                    },
-                    faq: {
-                        visible: true,
-                        title: { value: 'Perguntas Frequentes', visible: true },
-                        items: [
-                            { q: 'Para quem é o Aura Engine?', a: 'O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.', visible: true },
-                            { q: 'Preciso de um computador potente?', a: 'Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.', visible: true },
-                            { q: 'Como recebo o acesso?', a: 'O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.', visible: true }
-                        ]
-                    }
-                },
-
-                db: null,
-                pageRef: null,
-
-                init() {
-                    this.pageData = JSON.parse(JSON.stringify(this.defaultPageData)); // Deep copy
-                    this.db = firebase.firestore();
-                    this.pageRef = this.db.collection('pages').doc('nexus5_granular_expanded');
-                    firebase.auth().onAuthStateChanged(user => {
-                        if (user) {
-                            this.loadPageData().then(() => {
-                                this.isReady = true;
-                                this.$nextTick(() => lucide.createIcons());
-                            });
-                        } else {
-                            window.location.href = 'login.html';
-                        }
-                    });
-                },
-
-                async loadPageData() {
-                    try {
-                        const doc = await this.pageRef.get();
-                        if (doc.exists) {
-                            const firestoreData = doc.data();
-                            this.pageData = this.mergeDeep(this.defaultPageData, firestoreData);
-                        } else {
-                            await this.savePageData(false); 
-                        }
-                    } catch (error) {
-                        console.error("Erro ao carregar dados:", error);
-                        this.showToast('Não foi possível carregar os dados.', 'error');
-                    }
-                },
-
-                async savePageData(showNotification = true) {
-                    if (this.isSaving) return;
-                    this.isSaving = true;
-                    try {
-                        await this.pageRef.set(this.pageData);
-                        if (showNotification) this.showToast('Alterações salvas com sucesso!', 'success');
-                    } catch (error) {
-                        console.error("Erro ao salvar:", error);
-                        this.showToast('Erro ao salvar.', 'error');
-                    } finally {
-                        this.isSaving = false;
-                    }
-                },
-                
-                addItem(sectionName, key) {
-                    const section = this.pageData[sectionName];
-                    if (section && Array.isArray(section[key])) {
-                        const firstItem = this.defaultPageData[sectionName][key][0];
-                        const newItem = JSON.parse(JSON.stringify(firstItem)); // Deep copy
-                        // Reset values to empty strings
-                        Object.keys(newItem).forEach(prop => {
-                            if(prop !== 'visible') newItem[prop] = '';
-                        });
-                        newItem.visible = true;
-                        section[key].push(newItem);
-                    }
-                },
-
-                removeItem(sectionName, key, index) {
-                    const section = this.pageData[sectionName];
-                    if (section && Array.isArray(section[key])) {
-                        section[key].splice(index, 1);
-                    }
-                },
-
-                showToast(message, type = 'success') {
-                    this.toast.message = message;
-                    this.toast.type = type;
-                    this.toast.show = true;
-                    setTimeout(() => this.toast.show = false, 3000);
-                },
-
-                mergeDeep(target, source) {
-                    const isObject = (obj) => obj && typeof obj === 'object' && !Array.isArray(obj);
-                    const output = { ...target };
-                    if (isObject(target) && isObject(source)) {
-                        Object.keys(source).forEach(key => {
-                            if (isObject(source[key])) {
-                                if (!(key in target))
-                                    Object.assign(output, { [key]: source[key] });
-                                else
-                                    output[key] = this.mergeDeep(target[key], source[key]);
-                            } else if (Array.isArray(source[key])) {
-                                output[key] = [];
-                                source[key].forEach((item, index) => {
-                                    const targetItem = target[key] && target[key][index] ? target[key][index] : {};
-                                    output[key][index] = this.mergeDeep(targetItem, item);
-                                });
-                            } else {
-                                Object.assign(output, { [key]: source[key] });
-                            }
-                        });
-                    }
-                    return output;
-                }
-            }));
-        });
-    </script>
 </body>
 </html>

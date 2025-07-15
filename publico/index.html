@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Engine - Sua Obra-Prima Começa Agora</title>
+    <title>Plata+ | Seu Portal de Produtos</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,298 +17,109 @@
     <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.js"></script>
 
     <style>
-        /* Estilos customizados para a página com tema Estúdio */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(255, 0, 255, 0.4); }
-            50% { box-shadow: 0 0 35px rgba(0, 255, 255, 0.7), 0 0 45px rgba(255, 0, 255, 0.6); }
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #E0E0E0;
-            /* NOVO FUNDO: Imagem de um estúdio de produção musical */
-            background-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.98)), url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-color: #111827; /* bg-gray-900 */
         }
-        .cta-button {
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 255, 255, 0.7);
-            animation: pulse-glow 3s infinite ease-in-out;
-        }
-        .cta-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            filter: brightness(1.2);
-        }
-        .gradient-text {
-            background: linear-gradient(90deg, #00F0FF, #D400FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
-            overflow: hidden;
-            border-radius: 1rem;
-            border: 2px solid #4F46E5;
-            box-shadow: 0 0 40px rgba(79, 70, 229, 0.6);
-        }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .ui-panel {
-            background-color: rgba(10, 10, 10, 0.7);
+        .card {
+            background-color: rgba(31, 41, 55, 0.7); /* bg-gray-800 com transparência */
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .ui-panel:hover {
-            border-color: #00F0FF;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        .card:hover {
+            border-color: #4f46e5; /* indigo-600 */
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+        .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .card:hover .card-bg {
+            opacity: 0.2;
+            transform: scale(1.05);
+        }
+        .card-content {
+            position: relative;
+            z-index: 10;
+        }
+        .btn-portal {
+            transition: all 0.3s ease;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased text-white">
 
-    <!-- Hero Section -->
-    <section class="py-12 md:py-24 px-4 text-center">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-4xl md:text-6xl font-black tracking-tighter mb-4">O Fim do <span class="gradient-text">Bloqueio Criativo</span>.</h1>
-            <h2 class="text-4xl md:text-6xl font-black tracking-tighter mb-6">O Início da Sua Obra-Prima.</h2>
-            <p class="text-lg md:text-xl max-w-2xl mx-auto text-gray-300 mb-8">
-                A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.
-            </p>
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-black tracking-tighter">Bem-vindo ao seu <span class="text-indigo-400">Universo Criativo</span></h1>
+            <p class="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Explore os produtos que vão transformar suas ideias em realidade e suas emoções em poder.</p>
+        </header>
 
-            <!-- Video de Vendas -->
-            <div class="video-container max-w-3xl mx-auto mb-10">
-                <!-- SUBSTITUA O 'embed/VIDEO_ID' PELO LINK EMBED DO SEU VÍDEO (YOUTUBE, VIMEO, ETC) -->
-                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
-            </div>
+        <main class="w-full max-w-5xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-            <!-- Call to Action (CTA) Principal -->
-            <a href="#oferta" class="cta-button inline-block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-xl py-4 px-10 rounded-lg">
-                QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA
-            </a>
-            <p class="text-gray-400 mt-3 text-sm">Vagas limitadas. Oferta exclusiva de lançamento.</p>
-        </div>
-    </section>
-
-    <!-- Seção do Problema -->
-    <section class="py-16 md:py-20 px-4">
-        <div class="max-w-5xl mx-auto text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">Sua criatividade está presa?</h2>
-            <p class="text-lg text-gray-300 mb-12">Se você é produtor ou DJ, provavelmente já sentiu isso na pele...</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Pain Point 1 -->
-                <div class="ui-panel p-8 rounded-xl">
-                    <i data-lucide="clock" class="w-12 h-12 mx-auto mb-4 text-cyan-400"></i>
-                    <h3 class="text-xl font-bold mb-2">Horas Perdidas</h3>
-                    <p class="text-gray-400">Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.</p>
-                </div>
-                <!-- Pain Point 2 -->
-                <div class="ui-panel p-8 rounded-xl">
-                    <i data-lucide="puzzle" class="w-12 h-12 mx-auto mb-4 text-purple-400"></i>
-                    <h3 class="text-xl font-bold mb-2">Workflow Quebrado</h3>
-                    <p class="text-gray-400">Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.</p>
-                </div>
-                <!-- Pain Point 3 -->
-                <div class="ui-panel p-8 rounded-xl">
-                    <i data-lucide="lightbulb-off" class="w-12 h-12 mx-auto mb-4 text-pink-400"></i>
-                    <h3 class="text-xl font-bold mb-2">Ideias no Limbo</h3>
-                    <p class="text-gray-400">Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Seção da Solução (Apresentação do Produto) -->
-    <section class="py-16 md:py-20 px-4 bg-black bg-opacity-30">
-        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12 ui-panel p-8 rounded-2xl">
-            <div class="md:w-1/2">
-                <!-- SUBSTITUA PELA IMAGEM DO SEU PRODUTO/SOFTWARE -->
-                <img src="https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine" alt="Interface do Aura Engine" class="rounded-2xl shadow-2xl shadow-cyan-500/20">
-            </div>
-            <div class="md:w-1/2 text-center md:text-left">
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Apresentando o <span class="gradient-text">Aura Engine</span></h2>
-                <p class="text-lg text-gray-300 mb-6">
-                    Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.
-                </p>
-                <ul class="space-y-4 text-left">
-                    <li class="flex items-start">
-                        <i data-lucide="brain-circuit" class="w-6 h-6 mr-3 mt-1 text-cyan-400 flex-shrink-0"></i>
-                        <span><strong class="text-white">Síntese Neural:</strong> Descreva o som que você imagina e nossa IA o materializa em segundos.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i data-lucide="layers" class="w-6 h-6 mr-3 mt-1 text-purple-400 flex-shrink-0"></i>
-                        <span><strong class="text-white">Fluxo Unificado:</strong> Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i data-lucide="library" class="w-6 h-6 mr-3 mt-1 text-pink-400 flex-shrink-0"></i>
-                        <span><strong class="text-white">Biblioteca Infinita:</strong> Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- Seção de Prova Social (Testemunhos) -->
-    <section class="py-16 md:py-20 px-4">
-        <div class="max-w-5xl mx-auto text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-12">Não acredite apenas na nossa palavra.</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                <!-- Testemunho 1 -->
-                <div class="ui-panel p-6 rounded-xl">
-                    <img src="https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ" alt="Foto do DJ Alex" class="w-16 h-16 rounded-full mb-4 border-2 border-cyan-500">
-                    <p class="text-gray-300 mb-4">"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."</p>
-                    <h4 class="font-bold text-white">DJ Alex Groove</h4>
-                    <p class="text-sm text-gray-500">Artista Internacional</p>
-                </div>
-                <!-- Testemunho 2 -->
-                <div class="ui-panel p-6 rounded-xl">
-                    <img src="https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora" alt="Foto da produtora" class="w-16 h-16 rounded-full mb-4 border-2 border-purple-500">
-                    <h4 class="font-bold text-white">Juliana Reis</h4>
-                    <p class="text-sm text-gray-500">Produtora Musical (Gold Certified)</p>
-                    <p class="text-gray-300 mt-4">"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."</p>
-                </div>
-                <!-- Testemunho 3 -->
-                <div class="ui-panel p-6 rounded-xl">
-                    <img src="https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker" alt="Foto do beatmaker" class="w-16 h-16 rounded-full mb-4 border-2 border-pink-500">
-                    <h4 class="font-bold text-white">Léo "Beats" Costa</h4>
-                    <p class="text-sm text-gray-500">Beatmaker & Sound Designer</p>
-                    <p class="text-gray-300 mt-4">"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Seção da Oferta (Preço e Bônus) -->
-    <section id="oferta" class="py-16 md:py-20 px-4">
-        <div class="max-w-3xl mx-auto text-center ui-panel border-2 border-purple-500 rounded-2xl p-8 md:p-12 shadow-2xl shadow-purple-500/30">
-            <h2 class="text-3xl md:text-4xl font-black mb-4">Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som</h2>
-            <p class="text-lg text-gray-300 mb-6">Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.</p>
-            
-            <div class="bg-black p-6 rounded-lg mb-6 border border-gray-700">
-                <p class="text-xl text-gray-500 line-through">De R$1.297,00</p>
-                <p class="text-2xl text-white">Por apenas</p>
-                <p class="text-5xl md:text-7xl font-extrabold text-white my-2">12x de R$79,90</p>
-                <p class="text-xl text-white">ou R$797 à vista no PIX</p>
-            </div>
-
-            <div class="text-left bg-gray-900 bg-opacity-50 p-6 rounded-lg mb-8 border border-gray-700">
-                <h3 class="text-xl font-bold text-center mb-4">COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):</h3>
-                <ul class="space-y-3">
-                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i> <strong>Bônus #1:</strong> Masterclass "Sound Design Avançado".</li>
-                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i> <strong>Bônus #2:</strong> Pacote de Samples "Analog Dreams" (Valor R$297).</li>
-                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i> <strong>Bônus #3:</strong> Acesso Vitalício à Comunidade VIP de Produtores.</li>
-                </ul>
-            </div>
-            
-            <!-- CTA Secundário -->
-            <a href="#oferta" class="cta-button w-full block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-2xl py-5 px-10 rounded-lg mb-4">
-                QUERO GARANTIR MEU ACESSO COM DESCONTO
-            </a>
-            <p class="text-gray-400 text-sm">Compra 100% segura. Acesso imediato.</p>
-        </div>
-    </section>
-
-    <!-- Seção de Garantia -->
-    <section class="py-16 px-4">
-        <div class="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-8 ui-panel p-8 rounded-2xl">
-            <div class="flex-shrink-0">
-                <img src="https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS" alt="Selo de Garantia de 30 dias" class="w-32 h-32 rounded-full border-4 border-cyan-400">
-            </div>
-            <div>
-                <h3 class="text-2xl font-bold mb-2">Garantia Blindada de 30 Dias</h3>
-                <p class="text-gray-400">
-                    O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="py-16 md:py-20 px-4">
-        <div class="max-w-3xl mx-auto">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Perguntas Frequentes</h2>
-            <div class="space-y-4" x-data="{ open: 'q1' }">
-                <!-- Pergunta 1 -->
-                <div class="ui-panel rounded-lg">
-                    <button @click="open = open === 'q1' ? '' : 'q1'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center">
-                        <span>Para quem é o Aura Engine?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q1'}"></i>
-                    </button>
-                    <div x-show="open === 'q1'" x-transition class="p-5 pt-0 text-gray-400">
-                        O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.
+                <!-- Card 1: Aura Engine / Nexus 5 -->
+                <a href="aura-engine.html" class="card rounded-2xl p-8 block">
+                    <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                    <div class="card-content flex flex-col h-full">
+                        <div>
+                            <h2 class="text-3xl font-bold text-cyan-300">Aura Engine</h2>
+                            <p class="text-gray-300 mt-2 mb-6">A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.</p>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="btn-portal inline-flex items-center bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg">
+                                Acessar Página
+                                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <!-- Pergunta 2 -->
-                <div class="ui-panel rounded-lg">
-                    <button @click="open = open === 'q2' ? '' : 'q2'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center">
-                        <span>Preciso de um computador potente?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q2'}"></i>
-                    </button>
-                    <div x-show="open === 'q2'" x-transition class="p-5 pt-0 text-gray-400">
-                        Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.
-                    </div>
-                </div>
-                <!-- Pergunta 3 -->
-                <div class="ui-panel rounded-lg">
-                    <button @click="open = open === 'q3' ? '' : 'q3'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center">
-                        <span>Como recebo o acesso?</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q3'}"></i>
-                    </button>
-                    <div x-show="open === 'q3'" x-transition class="p-5 pt-0 text-gray-400">
-                        O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="text-center py-8 px-4 border-t border-gray-900">
-        <p class="text-gray-500">&copy; 2024 Aura Engine. Todos os direitos reservados.</p>
-        <p class="text-gray-600 text-sm mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook. Depois que você sair do Facebook, a responsabilidade não é deles e sim do nosso site.</p>
-    </footer>
+                </a>
 
-    <!-- Alpine.js para interatividade do FAQ -->
-    <script src="//unpkg.com/alpinejs" defer></script>
+                <!-- Card 2: Resolva ou Reclama -->
+                <a href="resolvaoureclama.html" class="card rounded-2xl p-8 block">
+                    <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4c85?auto=format&fit=crop&q=80&w=2070');"></div>
+                    <div class="card-content flex flex-col h-full">
+                        <div>
+                            <h2 class="text-3xl font-bold text-yellow-400">Resolva ou Reclama?</h2>
+                            <p class="text-gray-300 mt-2 mb-6">O manual prático para parar de reagir com base na emoção e começar a agir com base na resolução.</p>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="btn-portal inline-flex items-center bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg">
+                                Conhecer o Livro
+                                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </main>
+
+        <footer class="text-center mt-12">
+             <a href="login.html" class="text-gray-500 hover:text-indigo-400 transition-colors">Acesso Administrativo</a>
+            <p class="text-gray-600 text-sm mt-4">&copy; 2024 Plata+. Todos os direitos reservados.</p>
+        </footer>
+
+    </div>
+
     <script>
-        lucide.createIcons();
-    </script>
-
-    <!-- Firebase SDKs (Software Development Kits) -->
-    <!-- Estes são os "telefones" que conectam seu site aos serviços do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
-
-    <!-- A sua configuração do Firebase -->
-    <script src="firebase-config.js"></script>
-
-    <!-- O seu script customizado para interagir com o Firebase -->
-    <script>
-      // Este código serve para testar se a conexão com o Firebase funcionou.
-      // Você poderá ver as mensagens no console do seu navegador.
-      try {
-        console.log("Firebase App foi configurado com sucesso:", app);
-        console.log("Serviço Firestore está pronto:", db);
-        console.log("Serviço Storage está pronto:", storage);
-      } catch (e) {
-        console.error("Ocorreu um erro ao inicializar o Firebase:", e);
-      }
+        // É uma boa prática executar este script após o DOM estar totalmente carregado
+        // para garantir que a biblioteca lucide esteja disponível.
+        document.addEventListener('DOMContentLoaded', (event) => {
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>
