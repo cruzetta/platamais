@@ -31,7 +31,11 @@
         .cta-button:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4); }
         .audio-player-container { background-color: #1f2937; border: 1px solid #374151; }
         #play-pause-btn .fa-play, #play-pause-btn .fa-pause { transition: transform 0.2s; }
-        #play-pause-btn:hover .fa-play, #play-pause-btn:hover .fa-pause { transform: scale(1.1); }
+        #play-pause-btn:hover:not(:disabled) .fa-play, #play-pause-btn:hover:not(:disabled) .fa-pause { transform: scale(1.1); }
+        #play-pause-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
         #progress-bar { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #374151; outline: none; border-radius: 3px; transition: background 0.3s; }
         #progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #facc15; cursor: pointer; border-radius: 50%; border: 2px solid #1f2937; }
         #progress-bar::-moz-range-thumb { width: 18px; height: 18px; background: #facc15; cursor: pointer; border-radius: 50%; border: 2px solid #1f2937; }
@@ -114,7 +118,7 @@
                     <div class="w-full">
                         <div class="text-left">
                             <p class="font-bold text-lg text-white">Resumo em Áudio do Livro</p>
-                            <p class="text-sm text-gray-400">Ouça os principais conceitos de "Resolve ou Reclama?".</p>
+                            <p id="audio-status" class="text-sm text-gray-400">Ouça os principais conceitos de "Resolve ou Reclama?".</p>
                         </div>
                         <div class="flex items-center space-x-3 mt-2">
                             <span id="current-time" class="text-xs text-gray-400">0:00</span>
@@ -124,7 +128,8 @@
                     </div>
                 </div>
             </div>
-            <audio id="podcast-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="metadata"></audio>
+            <!-- Áudio com o link direto fornecido pelo utilizador -->
+            <audio id="podcast-audio" src="https://firebasestorage.googleapis.com/v0/b/platamais.appspot.com/o/Resolve%20ou%20Reclama_%20Como%20Treinar%20Suas%20Emo%C3%A7%C3%B5es%20e%20Agir%20Diante%20da%20Adversidade.mp3?alt=media&token=0001fa53-d1d8-428a-ad77-95c32a4714aa" preload="metadata"></audio>
         </div>
     </section>
 
@@ -244,6 +249,10 @@
         </div>
     </div>
 
+    <!-- Firebase SDKs - Removidos os desnecessários para esta página -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="firebase-config.js"></script>
+
     <script>
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
@@ -274,53 +283,62 @@
         window.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
         modal.addEventListener('click', (e) => e.target === modal && closeModal());
         
-        const audio = document.getElementById('podcast-audio');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = '<i class="fas fa-play"></i>';
-        const pauseIcon = '<i class="fas fa-pause"></i>';
-        const progressBar = document.getElementById('progress-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationEl = document.getElementById('duration');
+        // --- SCRIPT DO LEITOR DE ÁUDIO SIMPLIFICADO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const audio = document.getElementById('podcast-audio');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = '<i class="fas fa-play"></i>';
+            const pauseIcon = '<i class="fas fa-pause"></i>';
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeEl = document.getElementById('current-time');
+            const durationEl = document.getElementById('duration');
 
-        playPauseBtn.addEventListener('click', () => {
-            if (audio.paused) {
-                audio.play();
-                playPauseBtn.innerHTML = pauseIcon;
-            } else {
-                audio.pause();
+            playPauseBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                    playPauseBtn.innerHTML = pauseIcon;
+                } else {
+                    audio.pause();
+                    playPauseBtn.innerHTML = playIcon;
+                }
+            });
+            
+            audio.addEventListener('error', (e) => {
+                console.error("Erro no elemento de áudio:", e);
+                const audioStatus = document.getElementById('audio-status');
+                audioStatus.innerHTML = '<span class="text-red-500">Erro ao carregar o áudio.</span>';
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                const progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) * 100 : 0;
+                progressBar.value = progress;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            });
+
+            audio.addEventListener('loadedmetadata', () => {
+                durationEl.textContent = formatTime(audio.duration);
+            });
+
+            progressBar.addEventListener('input', () => {
+                if(audio.duration > 0) {
+                    const time = (progressBar.value / 100) * audio.duration;
+                    audio.currentTime = time;
+                }
+            });
+            
+            audio.addEventListener('ended', () => {
                 playPauseBtn.innerHTML = playIcon;
+                progressBar.value = 0;
+                audio.currentTime = 0;
+            });
+
+            function formatTime(seconds) {
+                if (isNaN(seconds) || seconds < 0) return "0:00";
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
             }
         });
-
-        audio.addEventListener('timeupdate', () => {
-            const progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) * 100 : 0;
-            progressBar.value = progress;
-            currentTimeEl.textContent = formatTime(audio.currentTime);
-        });
-
-        audio.addEventListener('loadedmetadata', () => {
-            durationEl.textContent = formatTime(audio.duration);
-        });
-
-        progressBar.addEventListener('input', () => {
-            if(audio.duration > 0) {
-                const time = (progressBar.value / 100) * audio.duration;
-                audio.currentTime = time;
-            }
-        });
-        
-        audio.addEventListener('ended', () => {
-            playPauseBtn.innerHTML = playIcon;
-            progressBar.value = 0;
-            audio.currentTime = 0;
-        });
-
-        function formatTime(seconds) {
-            if (isNaN(seconds) || seconds < 0) return "0:00";
-            const minutes = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-        }
     </script>
 
 </body>
