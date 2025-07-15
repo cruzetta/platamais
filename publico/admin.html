@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Esconde o corpo da página até que a verificação de auth seja feita, para evitar "piscar" */
+            display: none; 
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-container {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased">
+
+    <!-- ===== Seção do Dashboard ===== -->
+    <div id="dashboard-section">
+        <header class="bg-white shadow-md sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">Meus Produtos</h1>
+                <div class="flex items-center">
+                    <span id="user-email" class="text-gray-600 mr-4 hidden sm:block"></span>
+                    <button id="add-product-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center transition-colors">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                        Novo Produto
+                    </button>
+                    <button id="logout-button" class="ml-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Os produtos do Firestore serão inseridos aqui -->
+                </div>
+                 <div id="loading-indicator" class="text-center py-10">
+                    <p class="text-gray-500">Carregando produtos...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== Modal para Adicionar/Editar Produto ===== -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-30 modal-overlay opacity-0">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto modal-container transform scale-95">
+            <form id="product-form" class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-bold">Adicionar Novo Produto</h2>
+                    <button type="button" id="close-modal-button" class="text-gray-500 hover:text-gray-800">&times;</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold border-b pb-2 mb-4">Informações Principais</h3>
+                        <div class="mb-4">
+                            <label for="productName" class="block text-sm font-medium text-gray-700">Nome do Produto</label>
+                            <input type="text" id="productName" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ex: Aura Engine">
+                        </div>
+                        <div class="mb-4">
+                            <label for="headline" class="block text-sm font-medium text-gray-700">Título Principal (Headline)</label>
+                            <input type="text" id="headline" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="O Fim do Bloqueio Criativo.">
+                        </div>
+                         <div class="mb-4">
+                            <label for="videoUrl" class="block text-sm font-medium text-gray-700">URL do Vídeo (Embed)</label>
+                            <input type="text" id="videoUrl" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold border-b pb-2 mb-4">Oferta</h3>
+                        <div class="mb-4">
+                            <label for="price" class="block text-sm font-medium text-gray-700">Preço (Ex: 12x de 79,90)</label>
+                            <input type="text" id="price" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div class="mb-4">
+                            <label for="fullPrice" class="block text-sm font-medium text-gray-700">Preço à vista (Ex: ou R$797 à vista)</label>
+                            <input type="text" id="fullPrice" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div class="mb-4">
+                            <label for="ctaLink" class="block text-sm font-medium text-gray-700">Link de Pagamento (Hotmart, etc)</label>
+                            <input type="url" id="ctaLink" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="https://pay.hotmart.com/...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button type="button" id="cancel-button" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md mr-3 hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- INICIALIZAÇÃO E REFERÊNCIAS ---
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            
+            // --- GUARDA DE AUTENTICAÇÃO ---
+            // Esta é a parte mais importante: ela protege a página.
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // Se o usuário está logado, mostra o conteúdo da página e inicia a aplicação.
+                    document.body.style.display = 'block';
+                    initializeApp(user);
+                } else {
+                    // Se não está logado, redireciona para a página de login.
+                    window.location.href = 'login.html';
+                }
+            });
+
+            function initializeApp(user) {
+                // Referências do HTML
+                const userEmailDisplay = document.getElementById('user-email');
+                const logoutButton = document.getElementById('logout-button');
+                const addProductButton = document.getElementById('add-product-button');
+                const productModal = document.getElementById('product-modal');
+                const closeModalButton = document.getElementById('close-modal-button');
+                const cancelButton = document.getElementById('cancel-button');
+                const productForm = document.getElementById('product-form');
+                const productsListContainer = document.getElementById('products-list');
+                const loadingIndicator = document.getElementById('loading-indicator');
+
+                userEmailDisplay.textContent = user.email;
+                fetchProducts(); 
+                
+                // --- LÓGICA DO MODAL ---
+                const openModal = () => {
+                    productModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        productModal.classList.remove('opacity-0');
+                        productModal.querySelector('.modal-container').classList.remove('scale-95');
+                    }, 10);
+                };
+                const closeModal = () => {
+                    productModal.querySelector('.modal-container').classList.add('scale-95');
+                    productModal.classList.add('opacity-0');
+                    setTimeout(() => {
+                        productModal.classList.add('hidden');
+                        productForm.reset();
+                    }, 300);
+                };
+
+                addProductButton.addEventListener('click', openModal);
+                closeModalButton.addEventListener('click', closeModal);
+                cancelButton.addEventListener('click', closeModal);
+
+                // --- LÓGICA DO FIRESTORE (CRUD) ---
+                productForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const productData = {
+                        name: document.getElementById('productName').value,
+                        headline: document.getElementById('headline').value,
+                        videoUrl: document.getElementById('videoUrl').value,
+                        price: document.getElementById('price').value,
+                        fullPrice: document.getElementById('fullPrice').value,
+                        ctaLink: document.getElementById('ctaLink').value,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        ownerUid: user.uid // Salva o ID do usuário que criou o produto
+                    };
+
+                    db.collection('products').add(productData)
+                        .then(() => {
+                            closeModal();
+                            fetchProducts();
+                        })
+                        .catch(error => console.error("Erro ao salvar produto: ", error));
+                });
+
+                async function fetchProducts() {
+                    loadingIndicator.style.display = 'block';
+                    productsListContainer.innerHTML = '';
+
+                    try {
+                        const querySnapshot = await db.collection('products')
+                                                      .where('ownerUid', '==', user.uid) // Busca apenas produtos do usuário logado
+                                                      .orderBy('createdAt', 'desc')
+                                                      .get();
+                        loadingIndicator.style.display = 'none';
+                        
+                        if (querySnapshot.empty) {
+                            productsListContainer.innerHTML = `<p class="text-gray-500 col-span-full text-center">Nenhum produto encontrado. Clique em "Novo Produto" para começar.</p>`;
+                            return;
+                        }
+
+                        querySnapshot.forEach(doc => {
+                            const product = doc.data();
+                            const productCard = `
+                                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                                    <div>
+                                        <h3 class="font-bold text-lg mb-2">${product.name}</h3>
+                                        <p class="text-sm text-gray-500 mb-4">${product.headline}</p>
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
+                                        <button class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded">Editar</button>
+                                        <button class="text-sm bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-1 px-3 rounded">Excluir</button>
+                                    </div>
+                                </div>
+                            `;
+                            productsListContainer.innerHTML += productCard;
+                        });
+                        lucide.createIcons();
+                    } catch (error) {
+                        console.error("Erro ao buscar produtos: ", error);
+                        loadingIndicator.style.display = 'none';
+                        productsListContainer.innerHTML = `<p class="text-red-500 col-span-full text-center">Não foi possível carregar os produtos.</p>`;
+                    }
+                }
+                
+                // --- LÓGICA DE LOGOUT ---
+                logoutButton.addEventListener('click', () => {
+                    auth.signOut().catch(error => console.error('Erro ao sair:', error));
+                });
+            }
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
