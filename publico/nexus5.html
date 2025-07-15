@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor Visual - Nexus 5</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <!-- Alpine.js Logic -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('pageEditor', () => ({
+                isReady: false,
+                isSaving: false,
+                toast: { show: false, message: '' },
+                pageData: {
+                    hero: {
+                        headline1: 'O Fim do Bloqueio Criativo.',
+                        headline2: 'O Início da Sua Obra-Prima.',
+                        paragraph: 'A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.',
+                        videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ',
+                        ctaButtonText: 'QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA',
+                        ctaLink: 'https://pay.hotmart.com/'
+                    },
+                    problem: {
+                        title: 'Sua criatividade está presa?',
+                        p1_title: 'Horas Perdidas',
+                        p1_desc: 'Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.',
+                        p2_title: 'Workflow Quebrado',
+                        p2_desc: 'Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.',
+                        p3_title: 'Ideias no Limbo',
+                        p3_desc: 'Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.'
+                    },
+                    solution: {
+                        imageUrl: 'https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine',
+                        title: "Apresentando o <span class='gradient-text'>Aura Engine</span>",
+                        description: 'Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.',
+                        f1_title: 'Síntese Neural',
+                        f1_desc: 'Descreva o som que você imagina e nossa IA o materializa em segundos.',
+                        f2_title: 'Fluxo Unificado',
+                        f2_desc: 'Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.',
+                        f3_title: 'Biblioteca Infinita',
+                        f3_desc: 'Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.'
+                    },
+                    testimonials: {
+                        title: 'Não acredite apenas na nossa palavra.',
+                        t1_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ',
+                        t1_name: 'DJ Alex Groove',
+                        t1_role: 'Artista Internacional',
+                        t1_text: '"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."',
+                        t2_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora',
+                        t2_name: 'Juliana Reis',
+                        t2_role: 'Produtora Musical (Gold Certified)',
+                        t2_text: '"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."',
+                        t3_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker',
+                        t3_name: 'Léo "Beats" Costa',
+                        t3_role: 'Beatmaker & Sound Designer',
+                        t3_text: '"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."'
+                    },
+                    offer: {
+                        title: 'Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som',
+                        subtitle: 'Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.',
+                        oldPrice: 'De R$1.297,00',
+                        price: '12x de R$79,90',
+                        fullPrice: 'ou R$797 à vista no PIX',
+                        bonusTitle: 'COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):',
+                        bonus1: 'Masterclass "Sound Design Avançado".',
+                        bonus2: 'Pacote de Samples "Analog Dreams" (Valor R$297).',
+                        bonus3: 'Acesso Vitalício à Comunidade VIP de Produtores.',
+                        ctaButtonText: 'QUERO GARANTIR MEU ACESSO COM DESCONTO'
+                    },
+                    guarantee: {
+                        imageUrl: 'https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS',
+                        title: 'Garantia Blindada de 30 Dias',
+                        text: 'O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.'
+                    },
+                    faq: {
+                        title: 'Perguntas Frequentes',
+                        q1: 'Para quem é o Aura Engine?',
+                        a1: 'O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.',
+                        q2: 'Preciso de um computador potente?',
+                        a2: 'Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.',
+                        q3: 'Como recebo o acesso?',
+                        a3: 'O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.'
+                    }
+                },
+                db: null,
+                pageRef: null,
+                init() {
+                    this.db = firebase.firestore();
+                    this.pageRef = this.db.collection('pages').doc('nexus5');
+                    firebase.auth().onAuthStateChanged(user => {
+                        if (user) {
+                            this.loadAndInitializeData().then(() => {
+                                this.isReady = true;
+                                this.$nextTick(() => lucide.createIcons());
+                            });
+                        } else {
+                            window.location.href = 'login.html';
+                        }
+                    });
+                },
+                async loadAndInitializeData() {
+                    try {
+                        const doc = await this.pageRef.get();
+                        if (doc.exists) {
+                            const firestoreData = doc.data();
+                            for (const section in this.pageData) {
+                                if (firestoreData[section]) {
+                                    this.pageData[section] = { ...this.pageData[section], ...firestoreData[section] };
+                                }
+                            }
+                        } else {
+                            await this.savePageData(false);
+                        }
+                    } catch (error) {
+                        console.error("Erro ao carregar/inicializar dados:", error);
+                        alert('Não foi possível carregar os dados. Verifique o console.');
+                    }
+                },
+                async savePageData(showNotification = true) {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+                    try {
+                        await this.pageRef.set(this.pageData, { merge: true });
+                        if (showNotification) this.showToast('Alterações salvas com sucesso!');
+                    } catch (error) {
+                        console.error("Erro ao salvar:", error);
+                        this.showToast('Erro ao salvar.');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                showToast(message) {
+                    this.toast.message = message;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                }
+            }));
+        });
+    </script>
+    
+    <!-- Alpine.js Core -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .label { @apply block text-sm font-medium text-gray-700 mb-1; }
+        .input { @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm; }
+        .textarea { @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm; }
+        [x-cloak] { display: none !important; }
+        
+        /* Estilos do Preview para simular o front-end */
+        .preview-pane {
+            background-color: #000000;
+            color: #E0E0E0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.98)), url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #00F0FF, #D400FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .video-container {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+            border-radius: 1rem; border: 2px solid #4F46E5;
+            box-shadow: 0 0 40px rgba(79, 70, 229, 0.6);
+        }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .ui-panel {
+            background-color: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body x-data="pageEditor" x-init="init()" class="bg-gray-100">
+
+    <div x-show="!isReady" x-cloak class="flex items-center justify-center h-screen">
+        <p class="text-lg text-gray-600">Carregando editor visual...</p>
+    </div>
+
+    <div x-show="isReady" x-cloak>
+        <!-- Cabeçalho Fixo -->
+        <header class="bg-white shadow-md sticky top-0 z-30">
+            <div class="max-w-full mx-auto py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-gray-900">Editor Visual</h1>
+                <div class="flex items-center space-x-4">
+                     <a href="admin.html" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">&larr; Voltar</a>
+                    <button @click="savePageData()" :disabled="isSaving" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center">
+                        <i data-lucide="save" class="w-5 h-5 mr-2"></i>
+                        <span x-show="!isSaving">Salvar</span>
+                        <span x-show="isSaving">Salvando...</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Layout Principal: Editor | Preview -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 h-screen">
+            
+            <!-- Coluna da Esquerda: Formulário de Edição -->
+            <div class="lg:col-span-1 p-6 overflow-y-auto" style="height: calc(100vh - 68px);">
+                <div class="space-y-6">
+                    <!-- Seção Hero -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">1. Seção Principal</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">Título 1</label><input type="text" x-model="pageData.hero.headline1" class="input"></div>
+                            <div><label class="label">Título 2</label><input type="text" x-model="pageData.hero.headline2" class="input"></div>
+                            <div><label class="label">Parágrafo</label><textarea x-model="pageData.hero.paragraph" rows="3" class="textarea"></textarea></div>
+                            <div><label class="label">URL do Vídeo</label><input type="text" x-model="pageData.hero.videoUrl" class="input"></div>
+                            <div><label class="label">Texto do Botão</label><input type="text" x-model="pageData.hero.ctaButtonText" class="input"></div>
+                            <div><label class="label">Link do Botão</label><input type="url" x-model="pageData.hero.ctaLink" class="input"></div>
+                        </div>
+                    </div>
+
+                    <!-- Seção Problema -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">2. Seção "Problema"</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.problem.title" class="input"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div><label class="label">Dor 1: Título</label><input type="text" x-model="pageData.problem.p1_title" class="input"></div>
+                                <div class="md:col-span-2"><label class="label">Dor 1: Descrição</label><input type="text" x-model="pageData.problem.p1_desc" class="input"></div>
+                                <div><label class="label">Dor 2: Título</label><input type="text" x-model="pageData.problem.p2_title" class="input"></div>
+                                <div class="md:col-span-2"><label class="label">Dor 2: Descrição</label><input type="text" x-model="pageData.problem.p2_desc" class="input"></div>
+                                <div><label class="label">Dor 3: Título</label><input type="text" x-model="pageData.problem.p3_title" class="input"></div>
+                                <div class="md:col-span-2"><label class="label">Dor 3: Descrição</label><input type="text" x-model="pageData.problem.p3_desc" class="input"></div>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Seção Solução -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">3. Seção "Solução"</h3>
+                         <div class="space-y-4">
+                            <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.solution.imageUrl" class="input"></div>
+                            <div><label class="label">Título</label><input type="text" x-model="pageData.solution.title" class="input"></div>
+                            <div><label class="label">Descrição</label><textarea x-model="pageData.solution.description" rows="4" class="textarea"></textarea></div>
+                            <h4 class="font-semibold pt-2">Benefícios:</h4>
+                            <div><label class="label">Benefício 1: Título</label><input type="text" x-model="pageData.solution.f1_title" class="input"></div>
+                            <div><label class="label">Benefício 1: Descrição</label><input type="text" x-model="pageData.solution.f1_desc" class="input"></div>
+                            <div><label class="label">Benefício 2: Título</label><input type="text" x-model="pageData.solution.f2_title" class="input"></div>
+                            <div><label class="label">Benefício 2: Descrição</label><input type="text" x-model="pageData.solution.f2_desc" class="input"></div>
+                            <div><label class="label">Benefício 3: Título</label><input type="text" x-model="pageData.solution.f3_title" class="input"></div>
+                            <div><label class="label">Benefício 3: Descrição</label><input type="text" x-model="pageData.solution.f3_desc" class="input"></div>
+                         </div>
+                    </div>
+                    <!-- Seção Depoimentos -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">4. Seção "Prova Social"</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.testimonials.title" class="input"></div>
+                            <div class="border-t pt-4">
+                                <h4 class="font-semibold">Depoimento 1</h4>
+                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t1_image" class="input"></div>
+                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t1_name" class="input"></div>
+                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t1_role" class="input"></div>
+                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t1_text" rows="3" class="textarea"></textarea></div>
+                            </div>
+                            <div class="border-t pt-4">
+                                <h4 class="font-semibold">Depoimento 2</h4>
+                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t2_image" class="input"></div>
+                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t2_name" class="input"></div>
+                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t2_role" class="input"></div>
+                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t2_text" rows="3" class="textarea"></textarea></div>
+                            </div>
+                            <div class="border-t pt-4">
+                                <h4 class="font-semibold">Depoimento 3</h4>
+                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t3_image" class="input"></div>
+                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t3_name" class="input"></div>
+                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t3_role" class="input"></div>
+                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t3_text" rows="3" class="textarea"></textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Seção Oferta -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">5. Seção "Oferta"</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">Título</label><input type="text" x-model="pageData.offer.title" class="input"></div>
+                            <div><label class="label">Subtítulo</label><input type="text" x-model="pageData.offer.subtitle" class="input"></div>
+                            <div><label class="label">Preço Antigo (riscado)</label><input type="text" x-model="pageData.offer.oldPrice" class="input"></div>
+                            <div><label class="label">Preço Parcelado</label><input type="text" x-model="pageData.offer.price" class="input"></div>
+                            <div><label class="label">Preço à Vista</label><input type="text" x-model="pageData.offer.fullPrice" class="input"></div>
+                            <div><label class="label">Título dos Bônus</label><input type="text" x-model="pageData.offer.bonusTitle" class="input"></div>
+                            <div><label class="label">Bônus 1</label><input type="text" x-model="pageData.offer.bonus1" class="input"></div>
+                            <div><label class="label">Bônus 2</label><input type="text" x-model="pageData.offer.bonus2" class="input"></div>
+                            <div><label class="label">Bônus 3</label><input type="text" x-model="pageData.offer.bonus3" class="input"></div>
+                            <div><label class="label">Texto do Botão Final</label><input type="text" x-model="pageData.offer.ctaButtonText" class="input"></div>
+                        </div>
+                    </div>
+                    <!-- Seção Garantia -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">6. Seção "Garantia"</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">URL da Imagem (Selo)</label><input type="text" x-model="pageData.guarantee.imageUrl" class="input"></div>
+                            <div><label class="label">Título</label><input type="text" x-model="pageData.guarantee.title" class="input"></div>
+                            <div><label class="label">Texto</label><textarea x-model="pageData.guarantee.text" rows="4" class="textarea"></textarea></div>
+                        </div>
+                    </div>
+                    <!-- Seção FAQ -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg border-b pb-2 mb-4">7. Seção "FAQ"</h3>
+                        <div class="space-y-4">
+                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.faq.title" class="input"></div>
+                            <div class="border-t pt-4">
+                                <div><label class="label">Pergunta 1</label><input type="text" x-model="pageData.faq.q1" class="input"></div>
+                                <div><label class="label">Resposta 1</label><textarea x-model="pageData.faq.a1" rows="3" class="textarea"></textarea></div>
+                            </div>
+                             <div class="border-t pt-4">
+                                <div><label class="label">Pergunta 2</label><input type="text" x-model="pageData.faq.q2" class="input"></div>
+                                <div><label class="label">Resposta 2</label><textarea x-model="pageData.faq.a2" rows="3" class="textarea"></textarea></div>
+                            </div>
+                             <div class="border-t pt-4">
+                                <div><label class="label">Pergunta 3</label><input type="text" x-model="pageData.faq.q3" class="input"></div>
+                                <div><label class="label">Resposta 3</label><textarea x-model="pageData.faq.a3" rows="3" class="textarea"></textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna da Direita: Pré-visualização ao Vivo -->
+            <div class="lg:col-span-1 preview-pane overflow-y-auto" style="height: calc(100vh - 68px);">
+                <div class="p-4">
+                    <!-- Preview da Seção Hero -->
+                    <section class="py-12 text-center">
+                        <h1 class="text-4xl md:text-5xl font-black tracking-tighter mb-4" x-text="pageData.hero.headline1"></h1>
+                        <h2 class="text-4xl md:text-5xl font-black tracking-tighter mb-6" x-text="pageData.hero.headline2"></h2>
+                        <p class="text-lg max-w-2xl mx-auto text-gray-300 mb-8" x-text="pageData.hero.paragraph"></p>
+                        <div class="video-container max-w-2xl mx-auto mb-10">
+                            <iframe :src="pageData.hero.videoUrl" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <a href="#" class="inline-block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-xl py-4 px-10 rounded-lg" x-text="pageData.hero.ctaButtonText"></a>
+                    </section>
+                    
+                    <!-- Preview da Seção Problema -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-4xl mx-auto text-center">
+                            <h2 class="text-3xl font-bold mb-4" x-text="pageData.problem.title"></h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="clock" class="w-10 h-10 mx-auto mb-3 text-cyan-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p1_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p1_desc"></p></div>
+                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="puzzle" class="w-10 h-10 mx-auto mb-3 text-purple-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p2_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p2_desc"></p></div>
+                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="lightbulb-off" class="w-10 h-10 mx-auto mb-3 text-pink-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p3_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p3_desc"></p></div>
+                            </div>
+                        </div>
+                    </section>
+
+                     <!-- Preview da Seção Solução -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 ui-panel p-8 rounded-2xl">
+                            <div class="md:w-1/2"><img :src="pageData.solution.imageUrl" class="rounded-2xl shadow-2xl shadow-cyan-500/20"></div>
+                            <div class="md:w-1/2 text-center md:text-left">
+                                <h2 class="text-3xl font-bold mb-4" x-html="pageData.solution.title"></h2>
+                                <p class="text-lg text-gray-300 mb-6" x-text="pageData.solution.description"></p>
+                                <ul class="space-y-4 text-left">
+                                    <li class="flex items-start"><i data-lucide="brain-circuit" class="w-6 h-6 mr-3 mt-1 text-cyan-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f1_title+':'"></strong> <span x-text="pageData.solution.f1_desc"></span></span></li>
+                                    <li class="flex items-start"><i data-lucide="layers" class="w-6 h-6 mr-3 mt-1 text-purple-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f2_title+':'"></strong> <span x-text="pageData.solution.f2_desc"></span></span></li>
+                                    <li class="flex items-start"><i data-lucide="library" class="w-6 h-6 mr-3 mt-1 text-pink-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f3_title+':'"></strong> <span x-text="pageData.solution.f3_desc"></span></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Preview da Seção Depoimentos -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-5xl mx-auto text-center">
+                            <h2 class="text-3xl font-bold mb-12" x-text="pageData.testimonials.title"></h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t1_image" class="w-16 h-16 rounded-full mb-4 border-2 border-cyan-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t1_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t1_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t1_text"></p></div>
+                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t2_image" class="w-16 h-16 rounded-full mb-4 border-2 border-purple-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t2_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t2_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t2_text"></p></div>
+                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t3_image" class="w-16 h-16 rounded-full mb-4 border-2 border-pink-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t3_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t3_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t3_text"></p></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Preview da Seção Oferta -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-3xl mx-auto text-center ui-panel border-2 border-purple-500 rounded-2xl p-8 md:p-12">
+                            <h2 class="text-3xl font-black mb-4" x-html="pageData.offer.title"></h2>
+                            <p class="text-lg text-gray-300 mb-6" x-text="pageData.offer.subtitle"></p>
+                            <div class="bg-black p-6 rounded-lg mb-6 border border-gray-700">
+                                <p class="text-xl text-gray-500 line-through" x-text="pageData.offer.oldPrice"></p>
+                                <p class="text-2xl text-white">Por apenas</p>
+                                <p class="text-5xl font-extrabold text-white my-2" x-text="pageData.offer.price"></p>
+                                <p class="text-xl text-white" x-text="pageData.offer.fullPrice"></p>
+                            </div>
+                            <div class="text-left bg-gray-900 bg-opacity-50 p-6 rounded-lg mb-8 border border-gray-700">
+                                <h3 class="text-xl font-bold text-center mb-4" x-html="pageData.offer.bonusTitle"></h3>
+                                <ul class="space-y-3">
+                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus1"></strong></li>
+                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus2"></strong></li>
+                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus3"></strong></li>
+                                </ul>
+                            </div>
+                            <a href="#" class="w-full block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-2xl py-5 px-10 rounded-lg mb-4" x-text="pageData.offer.ctaButtonText"></a>
+                        </div>
+                    </section>
+
+                    <!-- Preview da Seção Garantia -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-8 ui-panel p-8 rounded-2xl">
+                            <div class="flex-shrink-0"><img :src="pageData.guarantee.imageUrl" class="w-32 h-32 rounded-full border-4 border-cyan-400"></div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-2" x-text="pageData.guarantee.title"></h3>
+                                <p class="text-gray-400" x-text="pageData.guarantee.text"></p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Preview da Seção FAQ -->
+                    <section class="py-16 px-4">
+                        <div class="max-w-3xl mx-auto" x-data="{ open: 'q1' }">
+                            <h2 class="text-3xl font-bold text-center mb-12" x-text="pageData.faq.title"></h2>
+                            <div class="space-y-4">
+                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q1' ? '' : 'q1'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q1"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q1'}"></i></button><div x-show="open === 'q1'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a1"></div></div>
+                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q2' ? '' : 'q2'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q2"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q2'}"></i></button><div x-show="open === 'q2'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a2"></div></div>
+                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q3' ? '' : 'q3'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q3"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q3'}"></i></button><div x-show="open === 'q3'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a3"></div></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast de Notificação -->
+        <div x-show="toast.show" x-transition class="fixed bottom-5 right-5 bg-green-600 text-white py-2 px-5 rounded-lg shadow-lg" x-text="toast.message"></div>
+    </div>
+    
+</body>
+</html>
