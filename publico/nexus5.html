@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor Visual - Nexus 5</title>
+    <title>Editor Visual com Controle Granular - Nexus 5</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,140 +22,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
 
-    <!-- Alpine.js Logic -->
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('pageEditor', () => ({
-                isReady: false,
-                isSaving: false,
-                toast: { show: false, message: '' },
-                pageData: {
-                    hero: {
-                        headline1: 'O Fim do Bloqueio Criativo.',
-                        headline2: 'O Início da Sua Obra-Prima.',
-                        paragraph: 'A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.',
-                        videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ',
-                        ctaButtonText: 'QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA',
-                        ctaLink: 'https://pay.hotmart.com/'
-                    },
-                    problem: {
-                        title: 'Sua criatividade está presa?',
-                        p1_title: 'Horas Perdidas',
-                        p1_desc: 'Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.',
-                        p2_title: 'Workflow Quebrado',
-                        p2_desc: 'Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.',
-                        p3_title: 'Ideias no Limbo',
-                        p3_desc: 'Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.'
-                    },
-                    solution: {
-                        imageUrl: 'https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine',
-                        title: "Apresentando o <span class='gradient-text'>Aura Engine</span>",
-                        description: 'Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.',
-                        f1_title: 'Síntese Neural',
-                        f1_desc: 'Descreva o som que você imagina e nossa IA o materializa em segundos.',
-                        f2_title: 'Fluxo Unificado',
-                        f2_desc: 'Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.',
-                        f3_title: 'Biblioteca Infinita',
-                        f3_desc: 'Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.'
-                    },
-                    testimonials: {
-                        title: 'Não acredite apenas na nossa palavra.',
-                        t1_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ',
-                        t1_name: 'DJ Alex Groove',
-                        t1_role: 'Artista Internacional',
-                        t1_text: '"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."',
-                        t2_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora',
-                        t2_name: 'Juliana Reis',
-                        t2_role: 'Produtora Musical (Gold Certified)',
-                        t2_text: '"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."',
-                        t3_image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker',
-                        t3_name: 'Léo "Beats" Costa',
-                        t3_role: 'Beatmaker & Sound Designer',
-                        t3_text: '"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."'
-                    },
-                    offer: {
-                        title: 'Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som',
-                        subtitle: 'Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.',
-                        oldPrice: 'De R$1.297,00',
-                        price: '12x de R$79,90',
-                        fullPrice: 'ou R$797 à vista no PIX',
-                        bonusTitle: 'COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):',
-                        bonus1: 'Masterclass "Sound Design Avançado".',
-                        bonus2: 'Pacote de Samples "Analog Dreams" (Valor R$297).',
-                        bonus3: 'Acesso Vitalício à Comunidade VIP de Produtores.',
-                        ctaButtonText: 'QUERO GARANTIR MEU ACESSO COM DESCONTO'
-                    },
-                    guarantee: {
-                        imageUrl: 'https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS',
-                        title: 'Garantia Blindada de 30 Dias',
-                        text: 'O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.'
-                    },
-                    faq: {
-                        title: 'Perguntas Frequentes',
-                        q1: 'Para quem é o Aura Engine?',
-                        a1: 'O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.',
-                        q2: 'Preciso de um computador potente?',
-                        a2: 'Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.',
-                        q3: 'Como recebo o acesso?',
-                        a3: 'O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.'
-                    }
-                },
-                db: null,
-                pageRef: null,
-                init() {
-                    this.db = firebase.firestore();
-                    this.pageRef = this.db.collection('pages').doc('nexus5');
-                    firebase.auth().onAuthStateChanged(user => {
-                        if (user) {
-                            this.loadAndInitializeData().then(() => {
-                                this.isReady = true;
-                                this.$nextTick(() => lucide.createIcons());
-                            });
-                        } else {
-                            window.location.href = 'login.html';
-                        }
-                    });
-                },
-                async loadAndInitializeData() {
-                    try {
-                        const doc = await this.pageRef.get();
-                        if (doc.exists) {
-                            const firestoreData = doc.data();
-                            for (const section in this.pageData) {
-                                if (firestoreData[section]) {
-                                    this.pageData[section] = { ...this.pageData[section], ...firestoreData[section] };
-                                }
-                            }
-                        } else {
-                            await this.savePageData(false);
-                        }
-                    } catch (error) {
-                        console.error("Erro ao carregar/inicializar dados:", error);
-                        alert('Não foi possível carregar os dados. Verifique o console.');
-                    }
-                },
-                async savePageData(showNotification = true) {
-                    if (this.isSaving) return;
-                    this.isSaving = true;
-                    try {
-                        await this.pageRef.set(this.pageData, { merge: true });
-                        if (showNotification) this.showToast('Alterações salvas com sucesso!');
-                    } catch (error) {
-                        console.error("Erro ao salvar:", error);
-                        this.showToast('Erro ao salvar.');
-                    } finally {
-                        this.isSaving = false;
-                    }
-                },
-                showToast(message) {
-                    this.toast.message = message;
-                    this.toast.show = true;
-                    setTimeout(() => this.toast.show = false, 3000);
-                }
-            }));
-        });
-    </script>
-    
     <!-- Alpine.js Core -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -164,288 +30,678 @@
         .label { @apply block text-sm font-medium text-gray-700 mb-1; }
         .input { @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm; }
         .textarea { @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm; }
+        .btn-add { @apply mt-4 w-full text-center bg-green-100 text-green-800 hover:bg-green-200 font-semibold py-2 px-4 rounded-md flex items-center justify-center text-sm transition-colors; }
+        .btn-remove { @apply text-red-500 hover:text-red-700 transition-colors; }
         [x-cloak] { display: none !important; }
         
-        /* Estilos do Preview para simular o front-end */
+        /* Toggle Switch Styles */
+        .toggle-bg:after { content: ''; @apply absolute top-0.5 left-0.5 bg-white border border-gray-300 rounded-full h-5 w-5 transition shadow-sm; }
+        input:checked + .toggle-bg:after { @apply transform translate-x-full; }
+        input:checked + .toggle-bg { @apply bg-indigo-600 border-indigo-600; }
+
+        /* Granular Visibility Toggle */
+        .visibility-toggle { @apply cursor-pointer text-gray-400 hover:text-indigo-600 transition-colors; }
+        .field-group.is-hidden .label, 
+        .field-group.is-hidden .input, 
+        .field-group.is-hidden .textarea { @apply opacity-50; }
+        .field-group.is-hidden .visibility-toggle { @apply text-gray-300; }
+
+        /* Preview Pane Styles */
         .preview-pane {
-            background-color: #000000;
-            color: #E0E0E0;
+            background-color: #000000; color: #E0E0E0;
             background-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.98)), url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
-        .gradient-text {
-            background: linear-gradient(90deg, #00F0FF, #D400FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .video-container {
-            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
-            border-radius: 1rem; border: 2px solid #4F46E5;
-            box-shadow: 0 0 40px rgba(79, 70, 229, 0.6);
-        }
+        .gradient-text { background: linear-gradient(90deg, #00F0FF, #D400FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 1rem; border: 2px solid #4F46E5; box-shadow: 0 0 40px rgba(79, 70, 229, 0.6); }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .ui-panel {
-            background-color: rgba(10, 10, 10, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .ui-panel { background-color: rgba(10, 10, 10, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body x-data="pageEditor" x-init="init()" class="bg-gray-100">
 
     <div x-show="!isReady" x-cloak class="flex items-center justify-center h-screen">
-        <p class="text-lg text-gray-600">Carregando editor visual...</p>
+        <p class="text-lg text-gray-600">Carregando editor completo...</p>
     </div>
 
     <div x-show="isReady" x-cloak>
-        <!-- Cabeçalho Fixo -->
+        <!-- Header -->
         <header class="bg-white shadow-md sticky top-0 z-30">
             <div class="max-w-full mx-auto py-3 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                <h1 class="text-xl font-bold text-gray-900">Editor Visual</h1>
+                <h1 class="text-xl font-bold text-gray-900">Editor Visual Granular</h1>
                 <div class="flex items-center space-x-4">
-                     <a href="admin.html" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">&larr; Voltar</a>
-                    <button @click="savePageData()" :disabled="isSaving" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center">
+                     <a href="admin.html" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">&larr; Voltar ao Painel</a>
+                    <button @click="savePageData()" :disabled="isSaving" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center transition-colors disabled:opacity-50">
                         <i data-lucide="save" class="w-5 h-5 mr-2"></i>
-                        <span x-show="!isSaving">Salvar</span>
+                        <span x-show="!isSaving">Salvar Alterações</span>
                         <span x-show="isSaving">Salvando...</span>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Layout Principal: Editor | Preview -->
+        <!-- Main Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-2 h-screen">
             
-            <!-- Coluna da Esquerda: Formulário de Edição -->
+            <!-- Editor Column -->
             <div class="lg:col-span-1 p-6 overflow-y-auto" style="height: calc(100vh - 68px);">
                 <div class="space-y-6">
-                    <!-- Seção Hero -->
+                    
+                    <!-- Section: Hero -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">1. Seção Principal</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">Título 1</label><input type="text" x-model="pageData.hero.headline1" class="input"></div>
-                            <div><label class="label">Título 2</label><input type="text" x-model="pageData.hero.headline2" class="input"></div>
-                            <div><label class="label">Parágrafo</label><textarea x-model="pageData.hero.paragraph" rows="3" class="textarea"></textarea></div>
-                            <div><label class="label">URL do Vídeo</label><input type="text" x-model="pageData.hero.videoUrl" class="input"></div>
-                            <div><label class="label">Texto do Botão</label><input type="text" x-model="pageData.hero.ctaButtonText" class="input"></div>
-                            <div><label class="label">Link do Botão</label><input type="url" x-model="pageData.hero.ctaLink" class="input"></div>
+                        <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Hero</h3>
+                            <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.hero.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.hero.visible" x-transition class="space-y-4 mt-4">
+                            <!-- headline1 -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.headline1.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título 1</label>
+                                    <i @click="pageData.hero.headline1.visible = !pageData.hero.headline1.visible" class="visibility-toggle" :data-lucide="pageData.hero.headline1.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.hero.headline1.value" class="input">
+                            </div>
+                            <!-- headline2 -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.headline2.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título 2</label>
+                                    <i @click="pageData.hero.headline2.visible = !pageData.hero.headline2.visible" class="visibility-toggle" :data-lucide="pageData.hero.headline2.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.hero.headline2.value" class="input">
+                            </div>
+                            <!-- paragraph -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.paragraph.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Parágrafo</label>
+                                    <i @click="pageData.hero.paragraph.visible = !pageData.hero.paragraph.visible" class="visibility-toggle" :data-lucide="pageData.hero.paragraph.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <textarea x-model="pageData.hero.paragraph.value" rows="3" class="textarea"></textarea>
+                            </div>
+                            <!-- videoUrl -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.videoUrl.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">URL do Vídeo</label>
+                                    <i @click="pageData.hero.videoUrl.visible = !pageData.hero.videoUrl.visible" class="visibility-toggle" :data-lucide="pageData.hero.videoUrl.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.hero.videoUrl.value" class="input">
+                            </div>
+                            <!-- ctaButtonText -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.ctaButtonText.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Texto do Botão de Ação</label>
+                                    <i @click="pageData.hero.ctaButtonText.visible = !pageData.hero.ctaButtonText.visible" class="visibility-toggle" :data-lucide="pageData.hero.ctaButtonText.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.hero.ctaButtonText.value" class="input">
+                            </div>
+                             <!-- ctaLink -->
+                            <div class="field-group" :class="{'is-hidden': !pageData.hero.ctaLink.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Link do Botão de Ação</label>
+                                    <i @click="pageData.hero.ctaLink.visible = !pageData.hero.ctaLink.visible" class="visibility-toggle" :data-lucide="pageData.hero.ctaLink.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.hero.ctaLink.value" class="input">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Seção Problema -->
+                    <!-- Section: Problem -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">2. Seção "Problema"</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.problem.title" class="input"></div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div><label class="label">Dor 1: Título</label><input type="text" x-model="pageData.problem.p1_title" class="input"></div>
-                                <div class="md:col-span-2"><label class="label">Dor 1: Descrição</label><input type="text" x-model="pageData.problem.p1_desc" class="input"></div>
-                                <div><label class="label">Dor 2: Título</label><input type="text" x-model="pageData.problem.p2_title" class="input"></div>
-                                <div class="md:col-span-2"><label class="label">Dor 2: Descrição</label><input type="text" x-model="pageData.problem.p2_desc" class="input"></div>
-                                <div><label class="label">Dor 3: Título</label><input type="text" x-model="pageData.problem.p3_title" class="input"></div>
-                                <div class="md:col-span-2"><label class="label">Dor 3: Descrição</label><input type="text" x-model="pageData.problem.p3_desc" class="input"></div>
+                        <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Problema</h3>
+                            <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.problem.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.problem.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.problem.title.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título da Seção</label>
+                                    <i @click="pageData.problem.title.visible = !pageData.problem.title.visible" class="visibility-toggle" :data-lucide="pageData.problem.title.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.problem.title.value" class="input">
                             </div>
+                            
+                            <h4 class="font-semibold pt-2">Pontos do Problema</h4>
+                            <template x-for="(item, index) in pageData.problem.points" :key="index">
+                                <div class="border-t pt-4 mt-4 space-y-2 field-group" :class="{'is-hidden': !item.visible}">
+                                    <div class="flex justify-between items-center">
+                                        <h5 class="font-semibold" x-text="`Ponto #${index + 1}`"></h5>
+                                        <div class="flex items-center space-x-3">
+                                            <i @click="item.visible = !item.visible" class="visibility-toggle" :data-lucide="item.visible ? 'eye' : 'eye-off'"></i>
+                                            <button @click="removeItem('problem', 'points', index)" class="btn-remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div><label class="label">Título do Ponto</label><input type="text" x-model="item.title" class="input"></div>
+                                    <div><label class="label">Descrição</label><input type="text" x-model="item.desc" class="input"></div>
+                                </div>
+                            </template>
+                            <button @click="addItem('problem', 'points')" class="btn-add"><i data-lucide="plus" class="w-4 h-4 mr-2"></i>Adicionar Ponto</button>
                         </div>
                     </div>
-                     <!-- Seção Solução -->
+
+                    <!-- Section: Solution -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">3. Seção "Solução"</h3>
-                         <div class="space-y-4">
-                            <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.solution.imageUrl" class="input"></div>
-                            <div><label class="label">Título</label><input type="text" x-model="pageData.solution.title" class="input"></div>
-                            <div><label class="label">Descrição</label><textarea x-model="pageData.solution.description" rows="4" class="textarea"></textarea></div>
-                            <h4 class="font-semibold pt-2">Benefícios:</h4>
-                            <div><label class="label">Benefício 1: Título</label><input type="text" x-model="pageData.solution.f1_title" class="input"></div>
-                            <div><label class="label">Benefício 1: Descrição</label><input type="text" x-model="pageData.solution.f1_desc" class="input"></div>
-                            <div><label class="label">Benefício 2: Título</label><input type="text" x-model="pageData.solution.f2_title" class="input"></div>
-                            <div><label class="label">Benefício 2: Descrição</label><input type="text" x-model="pageData.solution.f2_desc" class="input"></div>
-                            <div><label class="label">Benefício 3: Título</label><input type="text" x-model="pageData.solution.f3_title" class="input"></div>
-                            <div><label class="label">Benefício 3: Descrição</label><input type="text" x-model="pageData.solution.f3_desc" class="input"></div>
-                         </div>
-                    </div>
-                    <!-- Seção Depoimentos -->
-                    <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">4. Seção "Prova Social"</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.testimonials.title" class="input"></div>
-                            <div class="border-t pt-4">
-                                <h4 class="font-semibold">Depoimento 1</h4>
-                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t1_image" class="input"></div>
-                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t1_name" class="input"></div>
-                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t1_role" class="input"></div>
-                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t1_text" rows="3" class="textarea"></textarea></div>
+                         <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Solução</h3>
+                            <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.solution.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.solution.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.solution.imageUrl.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">URL da Imagem</label>
+                                    <i @click="pageData.solution.imageUrl.visible = !pageData.solution.imageUrl.visible" class="visibility-toggle" :data-lucide="pageData.solution.imageUrl.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.solution.imageUrl.value" class="input">
                             </div>
-                            <div class="border-t pt-4">
-                                <h4 class="font-semibold">Depoimento 2</h4>
-                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t2_image" class="input"></div>
-                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t2_name" class="input"></div>
-                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t2_role" class="input"></div>
-                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t2_text" rows="3" class="textarea"></textarea></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.solution.title.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título da Seção</label>
+                                    <i @click="pageData.solution.title.visible = !pageData.solution.title.visible" class="visibility-toggle" :data-lucide="pageData.solution.title.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.solution.title.value" class="input">
                             </div>
-                            <div class="border-t pt-4">
-                                <h4 class="font-semibold">Depoimento 3</h4>
-                                <div><label class="label">URL da Imagem</label><input type="text" x-model="pageData.testimonials.t3_image" class="input"></div>
-                                <div><label class="label">Nome</label><input type="text" x-model="pageData.testimonials.t3_name" class="input"></div>
-                                <div><label class="label">Cargo/Título</label><input type="text" x-model="pageData.testimonials.t3_role" class="input"></div>
-                                <div><label class="label">Texto</label><textarea x-model="pageData.testimonials.t3_text" rows="3" class="textarea"></textarea></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.solution.description.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Descrição</label>
+                                    <i @click="pageData.solution.description.visible = !pageData.solution.description.visible" class="visibility-toggle" :data-lucide="pageData.solution.description.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <textarea x-model="pageData.solution.description.value" rows="3" class="textarea"></textarea>
                             </div>
+
+                            <h4 class="font-semibold pt-2">Benefícios</h4>
+                            <template x-for="(item, index) in pageData.solution.features" :key="index">
+                                <div class="border-t pt-4 mt-4 space-y-2 field-group" :class="{'is-hidden': !item.visible}">
+                                    <div class="flex justify-between items-center">
+                                        <h5 class="font-semibold" x-text="`Benefício #${index + 1}`"></h5>
+                                        <div class="flex items-center space-x-3">
+                                            <i @click="item.visible = !item.visible" class="visibility-toggle" :data-lucide="item.visible ? 'eye' : 'eye-off'"></i>
+                                            <button @click="removeItem('solution', 'features', index)" class="btn-remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div><label class="label">Título do Benefício</label><input type="text" x-model="item.title" class="input"></div>
+                                    <div><label class="label">Descrição</label><input type="text" x-model="item.desc" class="input"></div>
+                                </div>
+                            </template>
+                            <button @click="addItem('solution', 'features')" class="btn-add"><i data-lucide="plus" class="w-4 h-4 mr-2"></i>Adicionar Benefício</button>
                         </div>
                     </div>
-                    <!-- Seção Oferta -->
+
+                    <!-- Section: Testimonials -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">5. Seção "Oferta"</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">Título</label><input type="text" x-model="pageData.offer.title" class="input"></div>
-                            <div><label class="label">Subtítulo</label><input type="text" x-model="pageData.offer.subtitle" class="input"></div>
-                            <div><label class="label">Preço Antigo (riscado)</label><input type="text" x-model="pageData.offer.oldPrice" class="input"></div>
-                            <div><label class="label">Preço Parcelado</label><input type="text" x-model="pageData.offer.price" class="input"></div>
-                            <div><label class="label">Preço à Vista</label><input type="text" x-model="pageData.offer.fullPrice" class="input"></div>
-                            <div><label class="label">Título dos Bônus</label><input type="text" x-model="pageData.offer.bonusTitle" class="input"></div>
-                            <div><label class="label">Bônus 1</label><input type="text" x-model="pageData.offer.bonus1" class="input"></div>
-                            <div><label class="label">Bônus 2</label><input type="text" x-model="pageData.offer.bonus2" class="input"></div>
-                            <div><label class="label">Bônus 3</label><input type="text" x-model="pageData.offer.bonus3" class="input"></div>
-                            <div><label class="label">Texto do Botão Final</label><input type="text" x-model="pageData.offer.ctaButtonText" class="input"></div>
+                        <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Depoimentos</h3>
+                             <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.testimonials.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.testimonials.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.testimonials.title.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título da Seção</label>
+                                    <i @click="pageData.testimonials.title.visible = !pageData.testimonials.title.visible" class="visibility-toggle" :data-lucide="pageData.testimonials.title.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.testimonials.title.value" class="input">
+                            </div>
+
+                            <h4 class="font-semibold pt-2">Itens de Depoimento</h4>
+                            <template x-for="(item, index) in pageData.testimonials.items" :key="index">
+                                <div class="border-t pt-4 mt-4 space-y-2 field-group" :class="{'is-hidden': !item.visible}">
+                                    <div class="flex justify-between items-center">
+                                        <h5 class="font-semibold" x-text="`Depoimento #${index + 1}`"></h5>
+                                        <div class="flex items-center space-x-3">
+                                            <i @click="item.visible = !item.visible" class="visibility-toggle" :data-lucide="item.visible ? 'eye' : 'eye-off'"></i>
+                                            <button @click="removeItem('testimonials', 'items', index)" class="btn-remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div><label class="label">Imagem (URL)</label><input type="text" x-model="item.image" class="input"></div>
+                                    <div><label class="label">Nome</label><input type="text" x-model="item.name" class="input"></div>
+                                    <div><label class="label">Cargo</label><input type="text" x-model="item.role" class="input"></div>
+                                    <div><label class="label">Texto</label><textarea x-model="item.text" rows="3" class="textarea"></textarea></div>
+                                </div>
+                            </template>
+                            <button @click="addItem('testimonials', 'items')" class="btn-add"><i data-lucide="plus" class="w-4 h-4 mr-2"></i>Adicionar Depoimento</button>
                         </div>
                     </div>
-                    <!-- Seção Garantia -->
+
+                    <!-- Section: Offer -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">6. Seção "Garantia"</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">URL da Imagem (Selo)</label><input type="text" x-model="pageData.guarantee.imageUrl" class="input"></div>
-                            <div><label class="label">Título</label><input type="text" x-model="pageData.guarantee.title" class="input"></div>
-                            <div><label class="label">Texto</label><textarea x-model="pageData.guarantee.text" rows="4" class="textarea"></textarea></div>
+                         <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Oferta</h3>
+                             <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.offer.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.offer.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.title.visible}"><div class="flex items-center justify-between"><label class="label">Título</label><i @click="pageData.offer.title.visible = !pageData.offer.title.visible" class="visibility-toggle" :data-lucide="pageData.offer.title.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.title.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.subtitle.visible}"><div class="flex items-center justify-between"><label class="label">Subtítulo</label><i @click="pageData.offer.subtitle.visible = !pageData.offer.subtitle.visible" class="visibility-toggle" :data-lucide="pageData.offer.subtitle.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.subtitle.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.oldPrice.visible}"><div class="flex items-center justify-between"><label class="label">Preço Antigo</label><i @click="pageData.offer.oldPrice.visible = !pageData.offer.oldPrice.visible" class="visibility-toggle" :data-lucide="pageData.offer.oldPrice.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.oldPrice.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.price.visible}"><div class="flex items-center justify-between"><label class="label">Preço Principal</label><i @click="pageData.offer.price.visible = !pageData.offer.price.visible" class="visibility-toggle" :data-lucide="pageData.offer.price.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.price.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.fullPrice.visible}"><div class="flex items-center justify-between"><label class="label">Preço à Vista</label><i @click="pageData.offer.fullPrice.visible = !pageData.offer.fullPrice.visible" class="visibility-toggle" :data-lucide="pageData.offer.fullPrice.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.fullPrice.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.bonusTitle.visible}"><div class="flex items-center justify-between"><label class="label">Título dos Bônus</label><i @click="pageData.offer.bonusTitle.visible = !pageData.offer.bonusTitle.visible" class="visibility-toggle" :data-lucide="pageData.offer.bonusTitle.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.bonusTitle.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.offer.ctaButtonText.visible}"><div class="flex items-center justify-between"><label class="label">Texto do Botão Final</label><i @click="pageData.offer.ctaButtonText.visible = !pageData.offer.ctaButtonText.visible" class="visibility-toggle" :data-lucide="pageData.offer.ctaButtonText.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.offer.ctaButtonText.value" class="input"></div>
+                            
+                            <h4 class="font-semibold pt-2">Bônus</h4>
+                            <template x-for="(item, index) in pageData.offer.bonuses" :key="index">
+                                <div class="border-t pt-4 mt-4 space-y-2 field-group" :class="{'is-hidden': !item.visible}">
+                                    <div class="flex justify-between items-center">
+                                        <h5 class="font-semibold" x-text="`Bônus #${index + 1}`"></h5>
+                                        <div class="flex items-center space-x-3">
+                                            <i @click="item.visible = !item.visible" class="visibility-toggle" :data-lucide="item.visible ? 'eye' : 'eye-off'"></i>
+                                            <button @click="removeItem('offer', 'bonuses', index)" class="btn-remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div><label class="label">Texto do Bônus</label><input type="text" x-model="item.text" class="input"></div>
+                                </div>
+                            </template>
+                            <button @click="addItem('offer', 'bonuses')" class="btn-add"><i data-lucide="plus" class="w-4 h-4 mr-2"></i>Adicionar Bônus</button>
                         </div>
                     </div>
-                    <!-- Seção FAQ -->
+
+                    <!-- Section: Guarantee -->
                     <div class="bg-white p-4 rounded-lg shadow">
-                        <h3 class="font-bold text-lg border-b pb-2 mb-4">7. Seção "FAQ"</h3>
-                        <div class="space-y-4">
-                            <div><label class="label">Título da Seção</label><input type="text" x-model="pageData.faq.title" class="input"></div>
-                            <div class="border-t pt-4">
-                                <div><label class="label">Pergunta 1</label><input type="text" x-model="pageData.faq.q1" class="input"></div>
-                                <div><label class="label">Resposta 1</label><textarea x-model="pageData.faq.a1" rows="3" class="textarea"></textarea></div>
-                            </div>
-                             <div class="border-t pt-4">
-                                <div><label class="label">Pergunta 2</label><input type="text" x-model="pageData.faq.q2" class="input"></div>
-                                <div><label class="label">Resposta 2</label><textarea x-model="pageData.faq.a2" rows="3" class="textarea"></textarea></div>
-                            </div>
-                             <div class="border-t pt-4">
-                                <div><label class="label">Pergunta 3</label><input type="text" x-model="pageData.faq.q3" class="input"></div>
-                                <div><label class="label">Resposta 3</label><textarea x-model="pageData.faq.a3" rows="3" class="textarea"></textarea></div>
-                            </div>
+                        <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: Garantia</h3>
+                             <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.guarantee.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.guarantee.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.guarantee.imageUrl.visible}"><div class="flex items-center justify-between"><label class="label">URL da Imagem (Selo)</label><i @click="pageData.guarantee.imageUrl.visible = !pageData.guarantee.imageUrl.visible" class="visibility-toggle" :data-lucide="pageData.guarantee.imageUrl.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.guarantee.imageUrl.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.guarantee.title.visible}"><div class="flex items-center justify-between"><label class="label">Título</label><i @click="pageData.guarantee.title.visible = !pageData.guarantee.title.visible" class="visibility-toggle" :data-lucide="pageData.guarantee.title.visible ? 'eye' : 'eye-off'"></i></div><input type="text" x-model="pageData.guarantee.title.value" class="input"></div>
+                            <div class="field-group" :class="{'is-hidden': !pageData.guarantee.text.visible}"><div class="flex items-center justify-between"><label class="label">Texto da Garantia</label><i @click="pageData.guarantee.text.visible = !pageData.guarantee.text.visible" class="visibility-toggle" :data-lucide="pageData.guarantee.text.visible ? 'eye' : 'eye-off'"></i></div><textarea x-model="pageData.guarantee.text.value" rows="3" class="textarea"></textarea></div>
                         </div>
                     </div>
+
+                    <!-- Section: FAQ -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex justify-between items-center border-b pb-2 mb-4">
+                            <h3 class="font-bold text-lg">Seção: FAQ</h3>
+                             <label class="flex items-center cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700 mr-3">Visível</span>
+                                <div class="relative">
+                                    <input type="checkbox" class="sr-only" x-model="pageData.faq.visible">
+                                    <div class="toggle-bg bg-gray-200 border-2 border-transparent h-6 w-11 rounded-full"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <div x-show="pageData.faq.visible" x-transition class="space-y-4 mt-4">
+                            <div class="field-group" :class="{'is-hidden': !pageData.faq.title.visible}">
+                                <div class="flex items-center justify-between">
+                                    <label class="label">Título da Seção</label>
+                                    <i @click="pageData.faq.title.visible = !pageData.faq.title.visible" class="visibility-toggle" :data-lucide="pageData.faq.title.visible ? 'eye' : 'eye-off'"></i>
+                                </div>
+                                <input type="text" x-model="pageData.faq.title.value" class="input">
+                            </div>
+
+                            <h4 class="font-semibold pt-2">Perguntas e Respostas</h4>
+                            <template x-for="(item, index) in pageData.faq.items" :key="index">
+                                <div class="border-t pt-4 mt-4 space-y-2 field-group" :class="{'is-hidden': !item.visible}">
+                                    <div class="flex justify-between items-center">
+                                        <h5 class="font-semibold" x-text="`FAQ #${index + 1}`"></h5>
+                                        <div class="flex items-center space-x-3">
+                                            <i @click="item.visible = !item.visible" class="visibility-toggle" :data-lucide="item.visible ? 'eye' : 'eye-off'"></i>
+                                            <button @click="removeItem('faq', 'items', index)" class="btn-remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                    <div><label class="label">Pergunta</label><input type="text" x-model="item.q" class="input"></div>
+                                    <div><label class="label">Resposta</label><textarea x-model="item.a" rows="3" class="textarea"></textarea></div>
+                                </div>
+                            </template>
+                            <button @click="addItem('faq', 'items')" class="btn-add"><i data-lucide="plus" class="w-4 h-4 mr-2"></i>Adicionar Pergunta</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Coluna da Direita: Pré-visualização ao Vivo -->
+            <!-- Preview Column -->
             <div class="lg:col-span-1 preview-pane overflow-y-auto" style="height: calc(100vh - 68px);">
-                <div class="p-4">
-                    <!-- Preview da Seção Hero -->
-                    <section class="py-12 text-center">
-                        <h1 class="text-4xl md:text-5xl font-black tracking-tighter mb-4" x-text="pageData.hero.headline1"></h1>
-                        <h2 class="text-4xl md:text-5xl font-black tracking-tighter mb-6" x-text="pageData.hero.headline2"></h2>
-                        <p class="text-lg max-w-2xl mx-auto text-gray-300 mb-8" x-text="pageData.hero.paragraph"></p>
-                        <div class="video-container max-w-2xl mx-auto mb-10">
-                            <iframe :src="pageData.hero.videoUrl" frameborder="0" allowfullscreen></iframe>
-                        </div>
-                        <a href="#" class="inline-block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-xl py-4 px-10 rounded-lg" x-text="pageData.hero.ctaButtonText"></a>
-                    </section>
+                <div class="p-4" id="preview-content">
                     
-                    <!-- Preview da Seção Problema -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-4xl mx-auto text-center">
-                            <h2 class="text-3xl font-bold mb-4" x-text="pageData.problem.title"></h2>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="clock" class="w-10 h-10 mx-auto mb-3 text-cyan-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p1_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p1_desc"></p></div>
-                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="puzzle" class="w-10 h-10 mx-auto mb-3 text-purple-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p2_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p2_desc"></p></div>
-                                <div class="ui-panel p-6 rounded-xl text-center"><i data-lucide="lightbulb-off" class="w-10 h-10 mx-auto mb-3 text-pink-400"></i><h3 class="text-xl font-bold mb-2" x-text="pageData.problem.p3_title"></h3><p class="text-gray-400 text-sm" x-text="pageData.problem.p3_desc"></p></div>
-                            </div>
-                        </div>
-                    </section>
-
-                     <!-- Preview da Seção Solução -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 ui-panel p-8 rounded-2xl">
-                            <div class="md:w-1/2"><img :src="pageData.solution.imageUrl" class="rounded-2xl shadow-2xl shadow-cyan-500/20"></div>
-                            <div class="md:w-1/2 text-center md:text-left">
-                                <h2 class="text-3xl font-bold mb-4" x-html="pageData.solution.title"></h2>
-                                <p class="text-lg text-gray-300 mb-6" x-text="pageData.solution.description"></p>
-                                <ul class="space-y-4 text-left">
-                                    <li class="flex items-start"><i data-lucide="brain-circuit" class="w-6 h-6 mr-3 mt-1 text-cyan-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f1_title+':'"></strong> <span x-text="pageData.solution.f1_desc"></span></span></li>
-                                    <li class="flex items-start"><i data-lucide="layers" class="w-6 h-6 mr-3 mt-1 text-purple-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f2_title+':'"></strong> <span x-text="pageData.solution.f2_desc"></span></span></li>
-                                    <li class="flex items-start"><i data-lucide="library" class="w-6 h-6 mr-3 mt-1 text-pink-400 flex-shrink-0"></i><span><strong class="text-white" x-text="pageData.solution.f3_title+':'"></strong> <span x-text="pageData.solution.f3_desc"></span></span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </section>
+                    <!-- Hero Section Preview -->
+                    <template x-if="pageData.hero.visible">
+                        <section class="py-12 text-center">
+                            <template x-if="pageData.hero.headline1.visible"><h1 class="text-4xl md:text-5xl font-black tracking-tighter mb-4" x-html="pageData.hero.headline1.value"></h1></template>
+                            <template x-if="pageData.hero.headline2.visible"><h2 class="text-4xl md:text-5xl font-black tracking-tighter mb-6" x-html="pageData.hero.headline2.value"></h2></template>
+                            <template x-if="pageData.hero.paragraph.visible"><p class="text-lg max-w-2xl mx-auto text-gray-300 mb-8" x-html="pageData.hero.paragraph.value"></p></template>
+                            <template x-if="pageData.hero.videoUrl.visible"><div class="video-container max-w-2xl mx-auto mb-10"><iframe :src="pageData.hero.videoUrl.value" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></template>
+                            <template x-if="pageData.hero.ctaButtonText.visible"><a :href="pageData.hero.ctaLink.value" target="_blank" class="inline-block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-xl py-4 px-10 rounded-lg" x-text="pageData.hero.ctaButtonText.value"></a></template>
+                        </section>
+                    </template>
                     
-                    <!-- Preview da Seção Depoimentos -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-5xl mx-auto text-center">
-                            <h2 class="text-3xl font-bold mb-12" x-text="pageData.testimonials.title"></h2>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t1_image" class="w-16 h-16 rounded-full mb-4 border-2 border-cyan-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t1_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t1_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t1_text"></p></div>
-                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t2_image" class="w-16 h-16 rounded-full mb-4 border-2 border-purple-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t2_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t2_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t2_text"></p></div>
-                                <div class="ui-panel p-6 rounded-xl"><img :src="pageData.testimonials.t3_image" class="w-16 h-16 rounded-full mb-4 border-2 border-pink-500"><h4 class="font-bold text-white" x-text="pageData.testimonials.t3_name"></h4><p class="text-sm text-gray-500" x-text="pageData.testimonials.t3_role"></p><p class="text-gray-300 mt-4" x-text="pageData.testimonials.t3_text"></p></div>
+                    <!-- Problem Section Preview -->
+                    <template x-if="pageData.problem.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-4xl mx-auto text-center">
+                                <template x-if="pageData.problem.title.visible"><h2 class="text-3xl font-bold mb-12" x-html="pageData.problem.title.value"></h2></template>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+                                    <template x-for="(point, index) in pageData.problem.points" :key="index">
+                                        <div x-show="point.visible" class="ui-panel p-6 rounded-xl text-center">
+                                            <i :data-lucide="['clock', 'puzzle', 'lightbulb-off'][index % 3]" class="w-10 h-10 mx-auto mb-3" :class="['text-cyan-400', 'text-purple-400', 'text-pink-400'][index % 3]"></i>
+                                            <h3 class="text-xl font-bold mb-2" x-text="point.title"></h3>
+                                            <p class="text-gray-400 text-sm" x-text="point.desc"></p>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </template>
 
-                    <!-- Preview da Seção Oferta -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-3xl mx-auto text-center ui-panel border-2 border-purple-500 rounded-2xl p-8 md:p-12">
-                            <h2 class="text-3xl font-black mb-4" x-html="pageData.offer.title"></h2>
-                            <p class="text-lg text-gray-300 mb-6" x-text="pageData.offer.subtitle"></p>
-                            <div class="bg-black p-6 rounded-lg mb-6 border border-gray-700">
-                                <p class="text-xl text-gray-500 line-through" x-text="pageData.offer.oldPrice"></p>
-                                <p class="text-2xl text-white">Por apenas</p>
-                                <p class="text-5xl font-extrabold text-white my-2" x-text="pageData.offer.price"></p>
-                                <p class="text-xl text-white" x-text="pageData.offer.fullPrice"></p>
+                    <!-- Solution Section Preview -->
+                    <template x-if="pageData.solution.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 ui-panel p-8 rounded-2xl">
+                                <template x-if="pageData.solution.imageUrl.visible"><div class="md:w-1/2"><img :src="pageData.solution.imageUrl.value" class="rounded-2xl shadow-2xl shadow-cyan-500/20"></div></template>
+                                <div class="md:w-1/2 text-center md:text-left">
+                                    <template x-if="pageData.solution.title.visible"><h2 class="text-3xl font-bold mb-4" x-html="pageData.solution.title.value"></h2></template>
+                                    <template x-if="pageData.solution.description.visible"><p class="text-lg text-gray-300 mb-6" x-text="pageData.solution.description.value"></p></template>
+                                    <ul class="space-y-4 text-left">
+                                        <template x-for="(feature, index) in pageData.solution.features" :key="index">
+                                            <li x-show="feature.visible" class="flex items-start">
+                                                <i :data-lucide="['brain-circuit', 'layers', 'library'][index % 3]" class="w-6 h-6 mr-3 mt-1 flex-shrink-0" :class="['text-cyan-400', 'text-purple-400', 'text-pink-400'][index % 3]"></i>
+                                                <span><strong class="text-white" x-text="feature.title + ':'"></strong> <span x-text="feature.desc"></span></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="text-left bg-gray-900 bg-opacity-50 p-6 rounded-lg mb-8 border border-gray-700">
-                                <h3 class="text-xl font-bold text-center mb-4" x-html="pageData.offer.bonusTitle"></h3>
-                                <ul class="space-y-3">
-                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus1"></strong></li>
-                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus2"></strong></li>
-                                    <li class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="pageData.offer.bonus3"></strong></li>
-                                </ul>
+                        </section>
+                    </template>
+                    
+                    <!-- Testimonials Section Preview -->
+                    <template x-if="pageData.testimonials.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-5xl mx-auto text-center">
+                                <template x-if="pageData.testimonials.title.visible"><h2 class="text-3xl font-bold mb-12" x-text="pageData.testimonials.title.value"></h2></template>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                                    <template x-for="(testimonial, index) in pageData.testimonials.items" :key="index">
+                                        <div x-show="testimonial.visible" class="ui-panel p-6 rounded-xl">
+                                            <img :src="testimonial.image" class="w-16 h-16 rounded-full mb-4 border-2" :class="['border-cyan-500', 'border-purple-500', 'border-pink-500'][index % 3]">
+                                            <h4 class="font-bold text-white" x-text="testimonial.name"></h4>
+                                            <p class="text-sm text-gray-500" x-text="testimonial.role"></p>
+                                            <p class="text-gray-300 mt-4" x-text="testimonial.text"></p>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
-                            <a href="#" class="w-full block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-2xl py-5 px-10 rounded-lg mb-4" x-text="pageData.offer.ctaButtonText"></a>
-                        </div>
-                    </section>
+                        </section>
+                    </template>
 
-                    <!-- Preview da Seção Garantia -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-8 ui-panel p-8 rounded-2xl">
-                            <div class="flex-shrink-0"><img :src="pageData.guarantee.imageUrl" class="w-32 h-32 rounded-full border-4 border-cyan-400"></div>
-                            <div>
-                                <h3 class="text-2xl font-bold mb-2" x-text="pageData.guarantee.title"></h3>
-                                <p class="text-gray-400" x-text="pageData.guarantee.text"></p>
+                    <!-- Offer Section Preview -->
+                    <template x-if="pageData.offer.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-3xl mx-auto text-center ui-panel border-2 border-purple-500 rounded-2xl p-8 md:p-12">
+                                <template x-if="pageData.offer.title.visible"><h2 class="text-3xl font-black mb-4" x-html="pageData.offer.title.value"></h2></template>
+                                <template x-if="pageData.offer.subtitle.visible"><p class="text-lg text-gray-300 mb-6" x-text="pageData.offer.subtitle.value"></p></template>
+                                <div class="bg-black p-6 rounded-lg mb-6 border border-gray-700">
+                                    <template x-if="pageData.offer.oldPrice.visible"><p class="text-xl text-gray-500 line-through" x-text="pageData.offer.oldPrice.value"></p></template>
+                                    <p class="text-2xl text-white">Por apenas</p>
+                                    <template x-if="pageData.offer.price.visible"><p class="text-5xl font-extrabold text-white my-2" x-text="pageData.offer.price.value"></p></template>
+                                    <template x-if="pageData.offer.fullPrice.visible"><p class="text-xl text-white" x-text="pageData.offer.fullPrice.value"></p></template>
+                                </div>
+                                <div class="text-left bg-gray-900 bg-opacity-50 p-6 rounded-lg mb-8 border border-gray-700">
+                                    <template x-if="pageData.offer.bonusTitle.visible"><h3 class="text-xl font-bold text-center mb-4" x-html="pageData.offer.bonusTitle.value"></h3></template>
+                                    <ul class="space-y-3">
+                                        <template x-for="bonus in pageData.offer.bonuses" :key="bonus.text">
+                                            <li x-show="bonus.visible" class="flex items-center"><i data-lucide="check-circle-2" class="w-5 h-5 mr-2 text-green-400"></i><strong x-text="bonus.text"></strong></li>
+                                        </template>
+                                    </ul>
+                                </div>
+                                <template x-if="pageData.offer.ctaButtonText.visible"><a :href="pageData.hero.ctaLink.value" target="_blank" class="w-full block bg-gradient-to-r from-cyan-400 via-purple-600 to-pink-600 text-white font-bold text-2xl py-5 px-10 rounded-lg mb-4" x-text="pageData.offer.ctaButtonText.value"></a></template>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </template>
 
-                    <!-- Preview da Seção FAQ -->
-                    <section class="py-16 px-4">
-                        <div class="max-w-3xl mx-auto" x-data="{ open: 'q1' }">
-                            <h2 class="text-3xl font-bold text-center mb-12" x-text="pageData.faq.title"></h2>
-                            <div class="space-y-4">
-                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q1' ? '' : 'q1'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q1"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q1'}"></i></button><div x-show="open === 'q1'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a1"></div></div>
-                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q2' ? '' : 'q2'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q2"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q2'}"></i></button><div x-show="open === 'q2'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a2"></div></div>
-                                <div class="ui-panel rounded-lg"><button @click="open = open === 'q3' ? '' : 'q3'" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center"><span x-text="pageData.faq.q3"></span><i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === 'q3'}"></i></button><div x-show="open === 'q3'" class="p-5 pt-0 text-gray-400" x-text="pageData.faq.a3"></div></div>
+                    <!-- Guarantee Section Preview -->
+                    <template x-if="pageData.guarantee.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-8 ui-panel p-8 rounded-2xl">
+                                <template x-if="pageData.guarantee.imageUrl.visible"><div class="flex-shrink-0"><img :src="pageData.guarantee.imageUrl.value" class="w-32 h-32 rounded-full border-4 border-cyan-400"></div></template>
+                                <div>
+                                    <template x-if="pageData.guarantee.title.visible"><h3 class="text-2xl font-bold mb-2" x-text="pageData.guarantee.title.value"></h3></template>
+                                    <template x-if="pageData.guarantee.text.visible"><p class="text-gray-400" x-text="pageData.guarantee.text.value"></p></template>
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </template>
+
+                    <!-- FAQ Section Preview -->
+                    <template x-if="pageData.faq.visible">
+                        <section class="py-16 px-4">
+                            <div class="max-w-3xl mx-auto" x-data="{ open: 0 }">
+                                <template x-if="pageData.faq.title.visible"><h2 class="text-3xl font-bold text-center mb-12" x-text="pageData.faq.title.value"></h2></template>
+                                <div class="space-y-4">
+                                    <template x-for="(item, index) in pageData.faq.items" :key="index">
+                                        <div x-show="item.visible" class="ui-panel rounded-lg">
+                                            <button @click="open = open === index ? null : index" class="w-full text-left p-5 font-semibold text-lg flex justify-between items-center">
+                                                <span x-text="item.q"></span>
+                                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform" :class="{'rotate-180': open === index}"></i>
+                                            </button>
+                                            <div x-show="open === index" x-transition class="p-5 pt-0 text-gray-400" x-text="item.a"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </section>
+                    </template>
                 </div>
             </div>
         </div>
 
-        <!-- Toast de Notificação -->
-        <div x-show="toast.show" x-transition class="fixed bottom-5 right-5 bg-green-600 text-white py-2 px-5 rounded-lg shadow-lg" x-text="toast.message"></div>
+        <!-- Toast Notification -->
+        <div x-show="toast.show" x-transition class="fixed bottom-5 right-5 text-white py-2 px-5 rounded-lg shadow-lg" :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'" x-text="toast.message" x-cloak></div>
     </div>
     
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('pageEditor', () => ({
+                isReady: false,
+                isSaving: false,
+                toast: { show: false, message: '', type: 'success' },
+                pageData: {}, // Start with empty and load from default structure
+                
+                // Default structure with all fields and original content
+                defaultPageData: {
+                    hero: {
+                        visible: true,
+                        headline1: { value: 'O Fim do Bloqueio Criativo.', visible: true },
+                        headline2: { value: 'O Início da Sua Obra-Prima.', visible: true },
+                        paragraph: { value: 'A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.', visible: true },
+                        videoUrl: { value: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1&playlist=dQw4w9WgXcQ', visible: true },
+                        ctaButtonText: { value: 'QUERO DESBLOQUEAR MINHA CRIATIVIDADE AGORA', visible: true },
+                        ctaLink: { value: 'https://pay.hotmart.com/', visible: true },
+                    },
+                    problem: {
+                        visible: true,
+                        title: { value: 'Sua criatividade está presa?', visible: true },
+                        points: [
+                            { title: 'Horas Perdidas', desc: 'Passar horas caçando o timbre perfeito, apenas para ver a inspiração inicial desaparecer.', visible: true },
+                            { title: 'Workflow Quebrado', desc: 'Pular entre 10 plugins diferentes, quebrando o fluxo criativo e sobrecarregando sua CPU.', visible: true },
+                            { title: 'Ideias no Limbo', desc: 'Ter uma ideia genial na cabeça, mas não conseguir traduzi-la em som por limitações técnicas.', visible: true }
+                        ]
+                    },
+                    solution: {
+                        visible: true,
+                        imageUrl: { value: 'https://placehold.co/600x600/0A0A0A/00F0FF?text=Aura+Engine', visible: true },
+                        title: { value: "Apresentando o <span class='gradient-text'>Aura Engine</span>", visible: true },
+                        description: { value: 'Mais que um instrumento. Um ecossistema sônico inteligente projetado para ser uma extensão da sua mente. O Aura Engine une síntese de ponta, sampling intuitivo e um workflow revolucionário para que você nunca mais perca uma ideia.', visible: true },
+                        features: [
+                            { title: 'Síntese Neural', desc: 'Descreva o som que você imagina e nossa IA o materializa em segundos.', visible: true },
+                            { title: 'Fluxo Unificado', desc: 'Grave, module, sequencie e masterize em um único lugar, com uma interface que inspira.', visible: true },
+                            { title: 'Biblioteca Infinita', desc: 'Acesso a uma nuvem de presets e samples dos maiores produtores, atualizada semanalmente.', visible: true }
+                        ]
+                    },
+                    testimonials: {
+                        visible: true,
+                        title: { value: 'Não acredite apenas na nossa palavra.', visible: true },
+                        items: [
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=DJ', name: 'DJ Alex Groove', role: 'Artista Internacional', text: '"O Aura Engine está no centro do meu novo álbum. A capacidade de criar sons únicos tão rápido é simplesmente revolucionária. Indispensável."', visible: true },
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Produtora', name: 'Juliana Reis', role: 'Produtora Musical (Gold Certified)', text: '"Economizei dezenas de horas no meu último projeto. O workflow é genial e a qualidade sonora é impecável. Compra certa."', visible: true },
+                            { image: 'https://placehold.co/100x100/1D1D1D/FFFFFF?text=Beatmaker', name: 'Léo "Beats" Costa', role: 'Beatmaker & Sound Designer', text: '"Finalmente uma ferramenta que entende a minha visão. O som é orgânico, vivo, e me permite experimentar de formas que eu não achava possível."', visible: true }
+                        ]
+                    },
+                    offer: {
+                        visible: true,
+                        title: { value: 'Sua Oportunidade <span class="gradient-text">ÚNICA</span> de Elevar Seu Som', visible: true },
+                        subtitle: { value: 'Acesso vitalício ao Aura Engine com um desconto massivo de lançamento.', visible: true },
+                        oldPrice: { value: 'De R$1.297,00', visible: true },
+                        price: { value: '12x de R$79,90', visible: true },
+                        fullPrice: { value: 'ou R$797 à vista no PIX', visible: true },
+                        bonusTitle: { value: 'COMPRE HOJE E RECEBA 3 BÔNUS EXCLUSIVOS (<span class="text-pink-400">VALOR R$891</span>):', visible: true },
+                        bonuses: [
+                            { text: 'Masterclass "Sound Design Avançado".', visible: true },
+                            { text: 'Pacote de Samples "Analog Dreams" (Valor R$297).', visible: true },
+                            { text: 'Acesso Vitalício à Comunidade VIP de Produtores.', visible: true }
+                        ],
+                        ctaButtonText: { value: 'QUERO GARANTIR MEU ACESSO COM DESCONTO', visible: true },
+                    },
+                    guarantee: {
+                        visible: true,
+                        imageUrl: { value: 'https://placehold.co/150x150/0A0A0A/00F0FF?text=30+DIAS', visible: true },
+                        title: { value: 'Garantia Blindada de 30 Dias', visible: true },
+                        text: { value: 'O nosso compromisso é com a sua evolução musical. Por isso, oferecemos uma garantia incondicional. Ou você ama o Aura Engine e sente a transformação na sua música nos próximos 30 dias, ou nós devolvemos 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo nosso.', visible: true },
+                    },
+                    faq: {
+                        visible: true,
+                        title: { value: 'Perguntas Frequentes', visible: true },
+                        items: [
+                            { q: 'Para quem é o Aura Engine?', a: 'O Aura Engine foi feito para produtores musicais, beatmakers e DJs de todos os níveis que desejam quebrar barreiras criativas, agilizar o workflow e criar sons verdadeiramente únicos.', visible: true },
+                            { q: 'Preciso de um computador potente?', a: 'Otimizamos o Aura Engine para ser extremamente eficiente. Ele roda bem na maioria dos sistemas modernos, mas recomendamos pelo menos 8GB de RAM e um processador i5 ou equivalente para uma experiência fluida.', visible: true },
+                            { q: 'Como recebo o acesso?', a: 'O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail com seu login, senha e o link para download do software e acesso a todos os bônus.', visible: true }
+                        ]
+                    }
+                },
+
+                db: null,
+                pageRef: null,
+
+                init() {
+                    this.pageData = JSON.parse(JSON.stringify(this.defaultPageData)); // Deep copy
+                    this.db = firebase.firestore();
+                    this.pageRef = this.db.collection('pages').doc('nexus5_granular_expanded');
+                    firebase.auth().onAuthStateChanged(user => {
+                        if (user) {
+                            this.loadPageData().then(() => {
+                                this.isReady = true;
+                                this.$nextTick(() => lucide.createIcons());
+                            });
+                        } else {
+                            window.location.href = 'login.html';
+                        }
+                    });
+                },
+
+                async loadPageData() {
+                    try {
+                        const doc = await this.pageRef.get();
+                        if (doc.exists) {
+                            const firestoreData = doc.data();
+                            this.pageData = this.mergeDeep(this.defaultPageData, firestoreData);
+                        } else {
+                            await this.savePageData(false); 
+                        }
+                    } catch (error) {
+                        console.error("Erro ao carregar dados:", error);
+                        this.showToast('Não foi possível carregar os dados.', 'error');
+                    }
+                },
+
+                async savePageData(showNotification = true) {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+                    try {
+                        await this.pageRef.set(this.pageData);
+                        if (showNotification) this.showToast('Alterações salvas com sucesso!', 'success');
+                    } catch (error) {
+                        console.error("Erro ao salvar:", error);
+                        this.showToast('Erro ao salvar.', 'error');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                
+                addItem(sectionName, key) {
+                    const section = this.pageData[sectionName];
+                    if (section && Array.isArray(section[key])) {
+                        const firstItem = this.defaultPageData[sectionName][key][0];
+                        const newItem = JSON.parse(JSON.stringify(firstItem)); // Deep copy
+                        // Reset values to empty strings
+                        Object.keys(newItem).forEach(prop => {
+                            if(prop !== 'visible') newItem[prop] = '';
+                        });
+                        newItem.visible = true;
+                        section[key].push(newItem);
+                    }
+                },
+
+                removeItem(sectionName, key, index) {
+                    const section = this.pageData[sectionName];
+                    if (section && Array.isArray(section[key])) {
+                        section[key].splice(index, 1);
+                    }
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
+                mergeDeep(target, source) {
+                    const isObject = (obj) => obj && typeof obj === 'object' && !Array.isArray(obj);
+                    const output = { ...target };
+                    if (isObject(target) && isObject(source)) {
+                        Object.keys(source).forEach(key => {
+                            if (isObject(source[key])) {
+                                if (!(key in target))
+                                    Object.assign(output, { [key]: source[key] });
+                                else
+                                    output[key] = this.mergeDeep(target[key], source[key]);
+                            } else if (Array.isArray(source[key])) {
+                                output[key] = [];
+                                source[key].forEach((item, index) => {
+                                    const targetItem = target[key] && target[key][index] ? target[key][index] : {};
+                                    output[key][index] = this.mergeDeep(targetItem, item);
+                                });
+                            } else {
+                                Object.assign(output, { [key]: source[key] });
+                            }
+                        });
+                    }
+                    return output;
+                }
+            }));
+        });
+    </script>
 </body>
 </html>
