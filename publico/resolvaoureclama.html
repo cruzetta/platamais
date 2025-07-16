@@ -465,11 +465,15 @@
                     formMessage.textContent = 'A gerar o seu PIX...';
 
                     try {
-                        const result = await createPixPayment({
+                        const payload = {
                             firstName: userFirstName,
                             email: userEmail,
                             productName: "E-book: Resolva ou Reclama?"
-                        });
+                        };
+                        
+                        console.log("A chamar a função 'createPixPayment' com os seguintes dados:", payload);
+
+                        const result = await createPixPayment(payload);
                         
                         pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                         pixCodeInput.value = result.data.qrCode;
