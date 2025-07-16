@@ -336,38 +336,20 @@
     <script src="firebase-config.js"></script>
 
     <script>
-        // --- SCRIPT DO MODAL INFORMATIVO (ANTIGO) ---
-        const infoModal = document.getElementById('info-modal');
-        const infoModalContent = document.getElementById('info-modal-content');
-        const infoModalTitle = document.getElementById('info-modal-title');
-        const infoModalText = document.getElementById('info-modal-text');
-
-        function openInfoModal(title, text, type) {
-            infoModalTitle.textContent = title;
-            infoModalText.textContent = `"${text}"`;
-            
-            if (type === 'reclamar') {
-                infoModalContent.style.borderColor = '#ef4444';
-                infoModalTitle.style.color = '#f87171';
-            } else {
-                infoModalContent.style.borderColor = '#34d399';
-                infoModalTitle.style.color = '#6ee7b7';
-            }
-            openModal('info-modal');
-        }
-
-        // --- SCRIPT DO LEITOR DE ÁUDIO ---
+        // ===== SCRIPT UNIFICADO PARA TODA A PÁGINA =====
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- LÓGICA DO LEITOR DE ÁUDIO ---
             const audio = document.getElementById('podcast-audio');
             const playPauseBtn = document.getElementById('play-pause-btn');
-            const playIcon = '<i class="fas fa-play"></i>';
-            const pauseIcon = '<i class="fas fa-pause"></i>';
-            const progressBar = document.getElementById('progress-bar');
-            const currentTimeEl = document.getElementById('current-time');
-            const durationEl = document.getElementById('duration');
-            const audioStatus = document.getElementById('audio-status');
-
             if(playPauseBtn) {
+                const playIcon = '<i class="fas fa-play"></i>';
+                const pauseIcon = '<i class="fas fa-pause"></i>';
+                const progressBar = document.getElementById('progress-bar');
+                const currentTimeEl = document.getElementById('current-time');
+                const durationEl = document.getElementById('duration');
+                const audioStatus = document.getElementById('audio-status');
+
                 playPauseBtn.addEventListener('click', () => {
                     if (audio.paused) {
                         audio.play().catch(e => {
@@ -407,38 +389,106 @@
                     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
                 }
             }
-        });
 
-        // ===== NOVO SCRIPT DE PAGAMENTO E MODAIS =====
-        document.addEventListener('DOMContentLoaded', () => {
+            // --- LÓGICA DOS MODAIS ---
+            
+            // Função genérica para abrir um modal
+            function openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.add('flex');
+                    setTimeout(() => modal.classList.add('opacity-100'), 10);
+                }
+            }
+            // Torna a função de fechar global para ser chamada pelo HTML
+            window.closeModal = function(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.remove('opacity-100');
+                    setTimeout(() => modal.classList.remove('flex'), 300);
+                }
+            }
+
+            // Lógica para o modal informativo
+            const infoModal = document.getElementById('info-modal');
+            if(infoModal) {
+                const infoModalContent = document.getElementById('info-modal-content');
+                const infoModalTitle = document.getElementById('info-modal-title');
+                const infoModalText = document.getElementById('info-modal-text');
+                
+                window.openInfoModal = function(title, text, type) {
+                    infoModalTitle.textContent = title;
+                    infoModalText.textContent = `"${text}"`;
+                    
+                    if (type === 'reclamar') {
+                        infoModalContent.style.borderColor = '#ef4444';
+                        infoModalTitle.style.color = '#f87171';
+                    } else {
+                        infoModalContent.style.borderColor = '#34d399';
+                        infoModalTitle.style.color = '#6ee7b7';
+                    }
+                    openModal('info-modal');
+                }
+            }
+
+            // --- LÓGICA DE PAGAMENTO PIX ---
             const functions = firebase.functions();
             const createPixPayment = functions.httpsCallable('createPixPayment');
 
-            // Elementos dos Modais
             const buyButton = document.getElementById('buy-button');
-            const userInfoModal = document.getElementById('user-info-modal');
-            const pixModal = document.getElementById('pix-modal');
             const userInfoForm = document.getElementById('user-info-form');
             const generatePixButton = document.getElementById('generate-pix-button');
             const formMessage = document.getElementById('form-message');
-            
-            const pixQrCodeImg = document.getElementById('pix-qrcode');
             const pixCodeInput = document.getElementById('pix-code-input');
             const copyMessage = document.getElementById('copy-message');
+            const pixQrCodeImg = document.getElementById('pix-qrcode');
 
-            // Funções genéricas para abrir e fechar modais
-            function openModal(modalId) {
-                const modal = document.getElementById(modalId);
-                modal.classList.add('flex');
-                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            if(buyButton) {
+                buyButton.addEventListener('click', () => {
+                    openModal('user-info-modal');
+                });
             }
-            window.closeModal = function(modalId) {
-                const modal = document.getElementById(modalId);
-                modal.classList.remove('opacity-100');
-                setTimeout(() => modal.classList.remove('flex'), 300);
+
+            if(userInfoForm) {
+                userInfoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const userFirstName = document.getElementById('firstName').value;
+                    const userEmail = document.getElementById('email').value;
+
+                    if (!userFirstName.trim() || !userEmail.trim()) {
+                        formMessage.textContent = 'Por favor, preencha todos os campos.';
+                        return;
+                    }
+
+                    generatePixButton.disabled = true;
+                    formMessage.textContent = 'A gerar o seu PIX...';
+
+                    try {
+                        const result = await createPixPayment({
+                            firstName: userFirstName,
+                            email: userEmail,
+                            productName: "E-book: Resolva ou Reclama?"
+                        });
+                        
+                        pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                        pixCodeInput.value = result.data.qrCode;
+
+                        closeModal('user-info-modal');
+                        openModal('pix-modal');
+
+                    } catch (error) {
+                        console.error("Erro ao chamar a função:", error);
+                        formMessage.textContent = `Erro: ${error.message}`;
+                    } finally {
+                        generatePixButton.disabled = false;
+                         if (formMessage.textContent === 'A gerar o seu PIX...') {
+                            formMessage.textContent = '';
+                        }
+                    }
+                });
             }
-            
-            // Função para copiar o código PIX
+
             window.copyPixCode = function() {
                 pixCodeInput.select();
                 try {
@@ -450,52 +500,6 @@
                     copyMessage.textContent = 'Erro ao copiar!';
                 }
             }
-
-            // Abre o modal de formulário ao clicar em comprar
-            buyButton.addEventListener('click', () => {
-                openModal('user-info-modal');
-            });
-
-            // Lida com o envio do formulário
-            userInfoForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); // Impede o recarregamento da página
-                
-                const userFirstName = document.getElementById('firstName').value;
-                const userEmail = document.getElementById('email').value;
-
-                // Validação simples
-                if (!userFirstName.trim() || !userEmail.trim()) {
-                    formMessage.textContent = 'Por favor, preencha todos os campos.';
-                    return;
-                }
-
-                generatePixButton.disabled = true;
-                formMessage.textContent = 'A gerar o seu PIX...';
-
-                try {
-                    const result = await createPixPayment({
-                        firstName: userFirstName,
-                        email: userEmail,
-                        productName: "E-book: Resolva ou Reclama?"
-                        // O preço agora é definido no backend (na Cloud Function)
-                    });
-                    
-                    pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
-                    pixCodeInput.value = result.data.qrCode;
-
-                    closeModal('user-info-modal'); // Fecha o formulário
-                    openModal('pix-modal'); // Abre o modal do PIX
-
-                } catch (error) {
-                    console.error("Erro ao chamar a função:", error);
-                    formMessage.textContent = `Erro: ${error.message}`;
-                } finally {
-                    generatePixButton.disabled = false;
-                     if (formMessage.textContent === 'A gerar o seu PIX...') {
-                        formMessage.textContent = '';
-                    }
-                }
-            });
         });
     </script>
 </body>
