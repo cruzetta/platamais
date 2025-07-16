@@ -37,7 +37,6 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
       const result = await payment.create(paymentData);
       const paymentId = String(result.id);
       
-      // NOVO: Cria um registo da venda no Firestore com status 'pending'
       await admin.firestore().collection('vendas').doc(paymentId).set({
           email: data.email,
           firstName: data.firstName,
@@ -59,25 +58,18 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
     }
 });
 
-// Função que recebe a notificação de pagamento do Mercado Pago
+// Função que recebe a notificação de pagamento do Mercado Pago (webhook)
 exports.mercadoPagoWebhook = onRequest(async (req, res) => {
     const paymentId = req.query.id;
     const type = req.query.type;
 
     if (type === "payment") {
-        console.log(`Recebida notificação para o pagamento: ${paymentId}`);
         try {
-            // Não precisamos de usar o token aqui, apenas confirmar o pagamento
-            // A verificação da autenticidade do webhook pode ser adicionada no futuro
-            
-            // NOVO: Apenas atualiza o status da venda no Firestore para 'approved'
             await admin.firestore().collection('vendas').doc(String(paymentId)).update({
                 status: 'approved',
                 approvedAt: admin.firestore.FieldValue.serverTimestamp()
             });
-
-            console.log(`Venda ${paymentId} marcada como APROVADA.`);
-
+            console.log(`Venda ${paymentId} marcada como APROVADA via webhook.`);
         } catch (error) {
             console.error("Erro no webhook ao atualizar o status:", error);
             res.status(500).send("Erro ao processar notificação.");
@@ -86,4 +78,25 @@ exports.mercadoPagoWebhook = onRequest(async (req, res) => {
     }
     
     res.status(200).send("Notificação recebida.");
+});
+
+// ===== NOVA FUNÇÃO PARA VERIFICAÇÃO INSTANTÂNEA =====
+exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
+    const paymentId = request.data.paymentId;
+    if (!paymentId) {
+        throw new Error("ID do pagamento é obrigatório.");
+    }
+
+    try {
+        const client = new MercadoPagoConfig({ accessToken: mercadoPagoAccessToken.value() });
+        const payment = new Payment(client);
+        const paymentInfo = await payment.get({ id: paymentId });
+        
+        // Retorna o status diretamente da API do Mercado Pago
+        return { status: paymentInfo.status };
+
+    } catch (error) {
+        console.error(`Erro ao verificar status do pagamento ${paymentId}:`, error.cause || error);
+        throw new Error('Não foi possível verificar o status do pagamento.');
+    }
 });

@@ -483,6 +483,8 @@
                             productName: "E-book: Resolva ou Reclama?"
                         };
                         
+                        console.log("A chamar a função 'createPixPayment' com os seguintes dados:", payload);
+
                         const result = await createPixPayment(payload);
                         const paymentId = result.data.paymentId;
                         
