@@ -38,7 +38,7 @@
         .path-item { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
         .path-item:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         .modal { display: none; transition: opacity 0.3s ease; }
-        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; background-color: #1f2937; color: #d1d5db; }
         .modal.flex { display: flex; }
         .modal.opacity-100 .modal-content { transform: scale(1); }
         .icon-shadow-reclamar { filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.5)); }
@@ -55,10 +55,10 @@
         #progress-bar::-moz-range-thumb { width: 18px; height: 18px; background: #facc15; cursor: pointer; border-radius: 50%; border: 2px solid #1f2937; }
         .section-divider { height: 2px; background: linear-gradient(90deg, transparent, #374151, transparent); margin: 4rem auto; width: 80%; }
         
-        /* ===== NOVO ESTILO PARA O MODAL PIX ===== */
-        .pix-modal-content { background-color: #1f2937; color: #d1d5db; }
+        /* ===== ESTILOS PARA OS MODAIS ===== */
         #pix-qrcode { border: 6px solid white; border-radius: 8px; }
         #pix-code-input { background-color: #374151; user-select: all; }
+        .form-input { background-color: #374151; border: 1px solid #4b5563; color: #d1d5db; }
     </style>
 </head>
 <body class="bg-gray-900">
@@ -182,19 +182,19 @@
             <div class="w-full md:w-2/5 px-4 z-10">
                 <h3 class="text-3xl md:text-4xl font-bold text-center text-red-500 text-glow-red mb-8">O CAMINHO DA RECLAMAÇÃO</h3>
                 <div class="space-y-8">
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openModal('Vitimismo Crónico', 'Acreditar que você é a vítima é o caminho mais curto pra você reclamar da vida, dos outros, do mundo e não resolver porcaria nenhuma. Você entrega o controle das suas emoções pra outra pessoa.', 'reclamar')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openInfoModal('Vitimismo Crónico', 'Acreditar que você é a vítima é o caminho mais curto pra você reclamar da vida, dos outros, do mundo e não resolver porcaria nenhuma. Você entrega o controle das suas emoções pra outra pessoa.', 'reclamar')">
                         <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center icon-shadow-reclamar flex-shrink-0"><i class="fas fa-ban text-red-400 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Vitimismo Crónico</h4><p class="text-gray-400">Permanece preso à dor e à culpa.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openModal('Estagnação e Medo', 'O conforto significa permanecer exatamente onde você está, preso à mesma rotina, com medo de arriscar algo diferente. Você enterra seus talentos em reclamações.', 'reclamar')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openInfoModal('Estagnação e Medo', 'O conforto significa permanecer exatamente onde você está, preso à mesma rotina, com medo de arriscar algo diferente. Você enterra seus talentos em reclamações.', 'reclamar')">
                         <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center icon-shadow-reclamar flex-shrink-0"><i class="fas fa-box text-red-400 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Estagnação e Medo</h4><p class="text-gray-400">O medo paralisa e a vida repete-se.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openModal('Relações Destruídas', 'Quem briga por tudo, se cansa. Quem dramatiza tudo, perde credibilidade. E quem sente demais, pensa de menos. Você se torna uma bomba-relógio.', 'reclamar')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openInfoModal('Relações Destruídas', 'Quem briga por tudo, se cansa. Quem dramatiza tudo, perde credibilidade. E quem sente demais, pensa de menos. Você se torna uma bomba-relógio.', 'reclamar')">
                         <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center icon-shadow-reclamar flex-shrink-0"><i class="fas fa-exclamation-triangle text-red-400 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Relações Destruídas</h4><p class="text-gray-400">O drama constante afasta as pessoas.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openModal('Impulsividade e Ruína', 'Você não quer solução. Você quer alívio. Mas alívio não é resolução. É distração. O imediatismo te promete alívio, e entrega ruína.', 'reclamar')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-red-500" onclick="openInfoModal('Impulsividade e Ruína', 'Você não quer solução. Você quer alívio. Mas alívio não é resolução. É distração. O imediatismo te promete alívio, e entrega ruína.', 'reclamar')">
                         <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center icon-shadow-reclamar flex-shrink-0"><i class="fas fa-bolt text-red-400 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Impulsividade e Ruína</h4><p class="text-gray-400">Decisões apressadas levam a perdas.</p></div>
                     </div>
@@ -205,19 +205,19 @@
             <div class="w-full md:w-2/5 px-4 z-10">
                 <h3 class="text-3xl md:text-4xl font-bold text-center text-emerald-400 text-glow-emerald mb-8">O CAMINHO DA RESOLUÇÃO</h3>
                 <div class="space-y-8">
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openModal('Autonomia e Controlo', 'Você para de reagir e começa a agir. Você recupera o controle. Você cresce. A culpa é do abusador. A responsabilidade de sair é sua.', 'resolver')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openInfoModal('Autonomia e Controlo', 'Você para de reagir e começa a agir. Você recupera o controle. Você cresce. A culpa é do abusador. A responsabilidade de sair é sua.', 'resolver')">
                         <div class="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center icon-shadow-resolver flex-shrink-0"><i class="fas fa-key text-emerald-300 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Autonomia e Controlo</h4><p class="text-gray-400">Assume a responsabilidade pela vida.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openModal('Crescimento e Recomeço', 'O recomeço não depende da idade — depende da sua coragem emocional. Você troca o \\\'meu tempo passou\\\' por \\\'meu tempo recomeça agora.\\\'', 'resolver')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openInfoModal('Crescimento e Recomeço', 'O recomeço não depende da idade — depende da sua coragem emocional. Você troca o \\\'meu tempo passou\\\' por \\\'meu tempo recomeça agora.\\\'', 'resolver')">
                         <div class="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center icon-shadow-resolver flex-shrink-0"><i class="fas fa-chart-line text-emerald-300 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Crescimento e Recomeço</h4><p class="text-gray-400">Usa fracassos como aprendizagem.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openModal('Maturidade Emocional', 'Maturidade é ficar desconfortável por um tempo - para não destruir tudo de vez. É saber esperar com consciência. É ter coragem de observar antes de reagir.', 'resolver')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openInfoModal('Maturidade Emocional', 'Maturidade é ficar desconfortável por um tempo - para não destruir tudo de vez. É saber esperar com consciência. É ter coragem de observar antes de reagir.', 'resolver')">
                         <div class="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center icon-shadow-resolver flex-shrink-0"><i class="fas fa-brain text-emerald-300 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Maturidade Emocional</h4><p class="text-gray-400">Controla reações e usa o tempo.</p></div>
                     </div>
-                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openModal('Paz Interior e Resiliência', 'Perdoar não é dar razão. É dar liberdade a si mesmo. Levanta, limpa o joelho e mostra que quem manda no jogo... é você.', 'resolver')">
+                    <div class="path-item bg-gray-800 rounded-xl p-6 flex items-center space-x-4 border-l-4 border-emerald-400" onclick="openInfoModal('Paz Interior e Resiliência', 'Perdoar não é dar razão. É dar liberdade a si mesmo. Levanta, limpa o joelho e mostra que quem manda no jogo... é você.', 'resolver')">
                         <div class="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center icon-shadow-resolver flex-shrink-0"><i class="fas fa-smile-beam text-emerald-300 text-3xl"></i></div>
                         <div><h4 class="text-xl font-bold">Paz Interior e Resiliência</h4><p class="text-gray-400">Liberta-se da mágoa e encontra força.</p></div>
                     </div>
@@ -256,11 +256,9 @@
             <div class="bg-gray-900 border-2 border-yellow-400 max-w-md mx-auto p-8 rounded-xl shadow-2xl">
                 <p class="text-xl text-white">Acesso imediato ao eBook completo por apenas:</p>
                 <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 19,00</p>
-                <!-- ===== BOTÃO MODIFICADO PARA PAGAMENTO PIX ===== -->
                 <button id="buy-button" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
                     <i class="fa-brands fa-pix mr-3"></i> Pagar com PIX
                 </button>
-                <p id="buy-button-message" class="text-sm text-gray-400 mt-2 h-5"></p>
             </div>
             
             <div class="mt-8 flex items-center justify-center space-x-4 text-emerald-400">
@@ -276,22 +274,45 @@
     <!-- Footer -->
     <footer class="bg-black text-center py-8">
         <p class="text-gray-500">&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
-        <p class="text-xs text-gray-600 mt-2">Este é um site de vendas fictício criado para fins de demonstração.</p>
+        <p class="text-gray-500 text-sm mt-2">Dúvidas ou problemas? Contacte <a href="mailto:seu-email-de-suporte@exemplo.com" class="underline hover:text-yellow-400">seu-email-de-suporte@exemplo.com</a></p>
     </footer>
 
-    <!-- Modal Antigo -->
-    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center p-4 z-50">
-        <div id="modal-content" class="modal-content bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-t-4">
-            <h3 id="modal-title" class="text-3xl font-bold mb-4"></h3>
-            <p id="modal-text" class="text-lg text-gray-300 italic mb-6"></p>
-            <button onclick="closeModal()" class="px-6 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors">Fechar</button>
+    <!-- Modal Informativo -->
+    <div id="info-modal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center p-4 z-50">
+        <div id="info-modal-content" class="modal-content bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-t-4">
+            <h3 id="info-modal-title" class="text-3xl font-bold mb-4"></h3>
+            <p id="info-modal-text" class="text-lg text-gray-300 italic mb-6"></p>
+            <button onclick="closeModal('info-modal')" class="px-6 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors">Fechar</button>
         </div>
     </div>
     
-    <!-- ===== NOVO MODAL PARA O PIX ===== -->
+    <!-- ===== NOVO: MODAL PARA DADOS DO UTILIZADOR ===== -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Quase lá!</h3>
+            <p class="text-gray-400 mb-6">Precisamos dos seus dados para gerar o pagamento e enviar o seu livro.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ===== MODAL PARA O PIX ===== -->
     <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
-        <div class="pix-modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
-            <button onclick="closePixModal()" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
             <h3 class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
             <p class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
             <div class="flex justify-center">
@@ -309,42 +330,32 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs - Adicionado o SDK do Functions -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script> <!-- NOVO -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="firebase-config.js"></script>
 
     <script>
-        // --- SCRIPT DO MODAL ANTIGO ---
-        const modal = document.getElementById('modal');
-        const modalContent = document.getElementById('modal-content');
-        const modalTitle = document.getElementById('modal-title');
-        const modalText = document.getElementById('modal-text');
+        // --- SCRIPT DO MODAL INFORMATIVO (ANTIGO) ---
+        const infoModal = document.getElementById('info-modal');
+        const infoModalContent = document.getElementById('info-modal-content');
+        const infoModalTitle = document.getElementById('info-modal-title');
+        const infoModalText = document.getElementById('info-modal-text');
 
-        function openModal(title, text, type) {
-            modalTitle.textContent = title;
-            modalText.textContent = `"${text}"`;
+        function openInfoModal(title, text, type) {
+            infoModalTitle.textContent = title;
+            infoModalText.textContent = `"${text}"`;
             
             if (type === 'reclamar') {
-                modalContent.style.borderColor = '#ef4444';
-                modalTitle.style.color = '#f87171';
+                infoModalContent.style.borderColor = '#ef4444';
+                infoModalTitle.style.color = '#f87171';
             } else {
-                modalContent.style.borderColor = '#34d399';
-                modalTitle.style.color = '#6ee7b7';
+                infoModalContent.style.borderColor = '#34d399';
+                infoModalTitle.style.color = '#6ee7b7';
             }
-
-            modal.classList.add('flex');
-            setTimeout(() => modal.classList.add('opacity-100'), 10);
+            openModal('info-modal');
         }
 
-        function closeModal() {
-            modal.classList.remove('opacity-100');
-            setTimeout(() => modal.classList.remove('flex'), 300);
-        }
-
-        window.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
-        modal.addEventListener('click', (e) => e.target === modal && closeModal());
-        
         // --- SCRIPT DO LEITOR DE ÁUDIO ---
         document.addEventListener('DOMContentLoaded', () => {
             const audio = document.getElementById('podcast-audio');
@@ -356,70 +367,80 @@
             const durationEl = document.getElementById('duration');
             const audioStatus = document.getElementById('audio-status');
 
-            playPauseBtn.addEventListener('click', () => {
-                if (audio.paused) {
-                    audio.play().catch(e => {
-                         console.error("Erro ao tentar reproduzir o áudio:", e);
-                         audioStatus.innerHTML = `<span class="text-red-500">Falha ao iniciar. Interaja com a página e tente novamente.</span>`;
-                    });
-                } else {
-                    audio.pause();
-                }
-            });
+            if(playPauseBtn) {
+                playPauseBtn.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play().catch(e => {
+                             console.error("Erro ao tentar reproduzir o áudio:", e);
+                             audioStatus.innerHTML = `<span class="text-red-500">Falha ao iniciar. Interaja com a página e tente novamente.</span>`;
+                        });
+                    } else {
+                        audio.pause();
+                    }
+                });
 
-            audio.addEventListener('playing', () => { playPauseBtn.innerHTML = pauseIcon; });
-            audio.addEventListener('pause', () => { playPauseBtn.innerHTML = playIcon; });
-            audio.addEventListener('error', (e) => {
-                console.error("Erro detalhado no elemento de áudio:", audio.error);
-                audioStatus.innerHTML = `<span class="text-red-500">Erro ao carregar o áudio. Verifique a consola (F12).</span>`;
-                playPauseBtn.disabled = true;
-            });
-            audio.addEventListener('timeupdate', () => {
-                const progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) * 100 : 0;
-                progressBar.value = progress;
-                currentTimeEl.textContent = formatTime(audio.currentTime);
-            });
-            audio.addEventListener('loadedmetadata', () => { durationEl.textContent = formatTime(audio.duration); });
-            progressBar.addEventListener('input', () => {
-                if(audio.duration > 0) { audio.currentTime = (progressBar.value / 100) * audio.duration; }
-            });
-            audio.addEventListener('ended', () => {
-                playPauseBtn.innerHTML = playIcon;
-                progressBar.value = 0;
-                audio.currentTime = 0;
-            });
-            function formatTime(seconds) {
-                if (isNaN(seconds) || seconds < 0) return "0:00";
-                const minutes = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+                audio.addEventListener('playing', () => { playPauseBtn.innerHTML = pauseIcon; });
+                audio.addEventListener('pause', () => { playPauseBtn.innerHTML = playIcon; });
+                audio.addEventListener('error', (e) => {
+                    console.error("Erro detalhado no elemento de áudio:", audio.error);
+                    audioStatus.innerHTML = `<span class="text-red-500">Erro ao carregar o áudio. Verifique a consola (F12).</span>`;
+                    playPauseBtn.disabled = true;
+                });
+                audio.addEventListener('timeupdate', () => {
+                    const progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) * 100 : 0;
+                    progressBar.value = progress;
+                    currentTimeEl.textContent = formatTime(audio.currentTime);
+                });
+                audio.addEventListener('loadedmetadata', () => { durationEl.textContent = formatTime(audio.duration); });
+                progressBar.addEventListener('input', () => {
+                    if(audio.duration > 0) { audio.currentTime = (progressBar.value / 100) * audio.duration; }
+                });
+                audio.addEventListener('ended', () => {
+                    playPauseBtn.innerHTML = playIcon;
+                    progressBar.value = 0;
+                    audio.currentTime = 0;
+                });
+                function formatTime(seconds) {
+                    if (isNaN(seconds) || seconds < 0) return "0:00";
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+                }
             }
         });
 
-        // ===== NOSSO NOVO SCRIPT DE PAGAMENTO PIX =====
+        // ===== NOVO SCRIPT DE PAGAMENTO E MODAIS =====
         document.addEventListener('DOMContentLoaded', () => {
-            // Inicializa o Firebase Functions
             const functions = firebase.functions();
             const createPixPayment = functions.httpsCallable('createPixPayment');
 
-            // Elementos da página
+            // Elementos dos Modais
             const buyButton = document.getElementById('buy-button');
-            const buyButtonMessage = document.getElementById('buy-button-message');
+            const userInfoModal = document.getElementById('user-info-modal');
             const pixModal = document.getElementById('pix-modal');
+            const userInfoForm = document.getElementById('user-info-form');
+            const generatePixButton = document.getElementById('generate-pix-button');
+            const formMessage = document.getElementById('form-message');
+            
             const pixQrCodeImg = document.getElementById('pix-qrcode');
             const pixCodeInput = document.getElementById('pix-code-input');
             const copyMessage = document.getElementById('copy-message');
 
-            // Função para fechar o modal PIX
-            window.closePixModal = function() {
-                pixModal.classList.remove('flex');
-                setTimeout(() => pixModal.classList.remove('opacity-100'), 10);
+            // Funções genéricas para abrir e fechar modais
+            function openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            }
+            window.closeModal = function(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.remove('flex'), 300);
             }
             
             // Função para copiar o código PIX
             window.copyPixCode = function() {
                 pixCodeInput.select();
-                // Usando document.execCommand para compatibilidade em iframes
                 try {
                     document.execCommand('copy');
                     copyMessage.textContent = 'Código copiado!';
@@ -430,48 +451,48 @@
                 }
             }
 
-            // Evento de clique no botão de compra
-            buyButton.addEventListener('click', async () => {
-                // Para a versão final, crie campos de formulário para isto
-                const userFirstName = prompt("Por favor, digite seu primeiro nome:");
-                const userEmail = prompt("Agora, seu melhor e-mail para receber o livro:");
+            // Abre o modal de formulário ao clicar em comprar
+            buyButton.addEventListener('click', () => {
+                openModal('user-info-modal');
+            });
 
-                if (!userFirstName || !userEmail) {
-                    buyButtonMessage.textContent = "Nome e e-mail são necessários.";
-                    setTimeout(() => { buyButtonMessage.textContent = '' }, 3000);
+            // Lida com o envio do formulário
+            userInfoForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Impede o recarregamento da página
+                
+                const userFirstName = document.getElementById('firstName').value;
+                const userEmail = document.getElementById('email').value;
+
+                // Validação simples
+                if (!userFirstName.trim() || !userEmail.trim()) {
+                    formMessage.textContent = 'Por favor, preencha todos os campos.';
                     return;
                 }
 
-                // Desabilita o botão e mostra mensagem de carregamento
-                buyButton.disabled = true;
-                buyButtonMessage.textContent = 'A gerar o seu PIX...';
+                generatePixButton.disabled = true;
+                formMessage.textContent = 'A gerar o seu PIX...';
 
                 try {
-                    // Chama a nossa função na nuvem
                     const result = await createPixPayment({
                         firstName: userFirstName,
                         email: userEmail,
-                        price: 19.00, // Preço do produto
                         productName: "E-book: Resolva ou Reclama?"
+                        // O preço agora é definido no backend (na Cloud Function)
                     });
                     
-                    // Preenche o modal com os dados do PIX recebidos
                     pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                     pixCodeInput.value = result.data.qrCode;
 
-                    // Mostra o modal
-                    pixModal.classList.add('flex');
-                    setTimeout(() => pixModal.classList.add('opacity-100'), 10);
+                    closeModal('user-info-modal'); // Fecha o formulário
+                    openModal('pix-modal'); // Abre o modal do PIX
 
                 } catch (error) {
                     console.error("Erro ao chamar a função:", error);
-                    buyButtonMessage.textContent = `Erro: ${error.message}`;
+                    formMessage.textContent = `Erro: ${error.message}`;
                 } finally {
-                    // Habilita o botão novamente e limpa a mensagem
-                    buyButton.disabled = false;
-                    // Limpa a mensagem de carregamento, mas mantém a de erro se houver
-                    if (buyButtonMessage.textContent === 'A gerar o seu PIX...') {
-                        buyButtonMessage.textContent = '';
+                    generatePixButton.disabled = false;
+                     if (formMessage.textContent === 'A gerar o seu PIX...') {
+                        formMessage.textContent = '';
                     }
                 }
             });
