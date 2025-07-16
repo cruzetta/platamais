@@ -433,6 +433,8 @@
 
             // --- LÓGICA DE PAGAMENTO PIX ---
             const functions = firebase.functions();
+            // Para debug, podemos apontar para o emulador local se estiver a usar um
+            // functions.useEmulator("localhost", 5001);
             const createPixPayment = functions.httpsCallable('createPixPayment');
 
             const buyButton = document.getElementById('buy-button');
@@ -455,6 +457,9 @@
                     
                     const userFirstName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
+
+                    // ===== DIAGNÓSTICO =====
+                    alert(`A tentar enviar: Nome='${userFirstName}', Email='${userEmail}'`);
 
                     if (!userFirstName.trim() || !userEmail.trim()) {
                         formMessage.textContent = 'Por favor, preencha todos os campos.';
