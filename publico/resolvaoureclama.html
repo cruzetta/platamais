@@ -23,7 +23,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <!-- Font Awesome para o ícone do PIX -->
+    <!-- Font Awesome para o ícone do PIX e WhatsApp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -44,7 +44,8 @@
         .icon-shadow-reclamar { filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.5)); }
         .icon-shadow-resolver { filter: drop-shadow(0 4px 8px rgba(52, 211, 153, 0.5)); }
         .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s; }
-        .cta-button:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4); }
+        .cta-button:hover:not(:disabled) { transform: translateY(-4px); }
+        #comprar .cta-button:hover:not(:disabled) { box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4); }
         .cta-button:disabled { cursor: not-allowed; opacity: 0.6; }
         .audio-player-container { background-color: #1f2937; border: 1px solid #374151; }
         #play-pause-btn .fa-play, #play-pause-btn .fa-pause { transition: transform 0.2s; }
@@ -63,7 +64,6 @@
 </head>
 <body class="bg-gray-900">
 
-    <!-- O HTML do corpo da página permanece o mesmo -->
     <!-- Hero Section -->
     <section class="bg-gray-900 pt-20 pb-16 text-center">
         <div class="container mx-auto px-4">
@@ -275,7 +275,7 @@
     <!-- Footer -->
     <footer class="bg-black text-center py-8">
         <p class="text-gray-500">&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
-        <p class="text-gray-500 text-sm mt-2">Dúvidas ou problemas? Contacte <a href="mailto:seu-email-de-suporte@exemplo.com" class="underline hover:text-yellow-400">seu-email-de-suporte@exemplo.com</a></p>
+        <p class="text-gray-500 text-sm mt-2">Dúvidas ou problemas? Clique no ícone do WhatsApp nesta página.</p>
     </footer>
 
     <!-- Modal Informativo -->
@@ -287,7 +287,7 @@
         </div>
     </div>
     
-    <!-- ===== NOVO: MODAL PARA DADOS DO UTILIZADOR ===== -->
+    <!-- Modal para Dados do Utilizador -->
     <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
             <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -310,7 +310,7 @@
         </div>
     </div>
     
-    <!-- ===== MODAL PARA O PIX ===== -->
+    <!-- Modal para o PIX -->
     <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
             <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -334,6 +334,29 @@
                 Já Paguei, Verificar Agora!
             </button>
             <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
+        </div>
+    </div>
+
+    <!-- NOVO: Botão Flutuante do WhatsApp -->
+    <button id="whatsapp-support-button" class="fixed bottom-5 right-5 bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-40 cta-button hover:bg-green-600">
+        <i class="fab fa-whatsapp text-4xl"></i>
+    </button>
+
+    <!-- NOVO: Modal de Suporte WhatsApp -->
+    <div id="whatsapp-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-green-500 relative">
+            <button onclick="closeModal('whatsapp-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Suporte via WhatsApp</h3>
+            <p class="text-gray-400 mb-6">Descreva o seu problema ou dúvida abaixo. A sua mensagem será enviada diretamente para o nosso WhatsApp.</p>
+            <form id="whatsapp-form">
+                <div class="mb-4 text-left">
+                    <label for="whatsapp-message" class="block text-sm font-medium text-gray-300 mb-1">A sua mensagem:</label>
+                    <textarea id="whatsapp-message" name="whatsapp-message" class="form-input w-full p-3 rounded-lg h-32" required placeholder="Ex: Olá, estou com uma dúvida sobre..."></textarea>
+                </div>
+                <button type="submit" id="send-whatsapp-button" class="cta-button w-full bg-green-500 hover:bg-green-600 text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Enviar para o WhatsApp
+                </button>
+            </form>
         </div>
     </div>
 
@@ -399,13 +422,15 @@
 
             // --- LÓGICA DOS MODAIS ---
             
-            function openModal(modalId) {
+            // Função global para abrir modais
+            window.openModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
                     modal.classList.add('flex');
                     setTimeout(() => modal.classList.add('opacity-100'), 10);
                 }
             }
+            // Função global para fechar modais
             window.closeModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
@@ -462,7 +487,7 @@
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
                     currentProductId = buyButton.dataset.productId;
-                    if (currentProductId === "COLE_SEU_ID_REAL_AQUI") {
+                    if (!currentProductId || currentProductId === "COLE_SEU_ID_REAL_AQUI") {
                         alert("Erro de configuração: O ID do produto não foi definido no botão de compra.");
                         return;
                     }
@@ -478,7 +503,7 @@
                     const userEmail = document.getElementById('email').value;
 
                     if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
-                        formMessage.textContent = 'Erro: ID do produto não encontrado.';
+                        formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
                         return;
                     }
 
@@ -524,7 +549,7 @@
                     try {
                         const result = await checkPaymentStatus({ paymentId: currentPaymentId });
                         if (result.data.status === 'approved') {
-                            redirectToWhatsApp(currentUserName, currentPaymentId);
+                            redirectToWhatsAppAfterPayment(currentUserName, currentPaymentId);
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
@@ -558,7 +583,7 @@
                 }, 1000);
             }
 
-            function redirectToWhatsApp(userName, paymentId) {
+            function redirectToWhatsAppAfterPayment(userName, paymentId) {
                 clearInterval(countdownInterval);
                 const seuNumero = "5567999093031"; // SEU NÚMERO AQUI
                 const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
@@ -586,6 +611,35 @@
                     console.error('Não foi possível copiar o código:', err);
                     copyMessage.textContent = 'Erro ao copiar!';
                 }
+            }
+
+            // --- NOVO: LÓGICA DO SUPORTE WHATSAPP ---
+            const whatsappSupportButton = document.getElementById('whatsapp-support-button');
+            const whatsappForm = document.getElementById('whatsapp-form');
+            const seuNumeroWhatsApp = "5567999093031"; // O mesmo número de antes
+
+            if (whatsappSupportButton) {
+                whatsappSupportButton.addEventListener('click', () => {
+                    openModal('whatsapp-modal');
+                });
+            }
+
+            if (whatsappForm) {
+                whatsappForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const messageText = document.getElementById('whatsapp-message').value;
+                    if (messageText.trim() === "") {
+                        alert("Por favor, escreva a sua mensagem.");
+                        return;
+                    }
+                    const encodedMessage = encodeURIComponent(messageText);
+                    const whatsappUrl = `https://wa.me/${seuNumeroWhatsApp}?text=${encodedMessage}`;
+                    
+                    window.open(whatsappUrl, '_blank');
+                    
+                    closeModal('whatsapp-modal');
+                    document.getElementById('whatsapp-message').value = ''; // Limpa o campo
+                });
             }
         });
     </script>
