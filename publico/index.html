@@ -5,120 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plata+ | Seu Portal de Produtos</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide-element@0.395.0/dist/lucide-element.min.js"></script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827; /* bg-gray-900 */
-        }
-        .card {
-            background-color: rgba(31, 41, 55, 0.7); /* bg-gray-800 com transparência */
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .card:hover {
-            border-color: #4f46e5; /* indigo-600 */
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-        }
-        .card-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-size: cover;
-            background-position: center;
-            opacity: 0.1;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .card:hover .card-bg {
-            opacity: 0.2;
-            transform: scale(1.05);
-        }
-        .card-content {
-            position: relative;
-            z-index: 10;
-        }
-        .btn-portal {
-            transition: all 0.3s ease;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #111827; }
+        .card { background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; }
+        .card:hover { border-color: #4f46e5; transform: translateY(-5px); }
+        .card-content { flex-grow: 1; display: flex; flex-direction: column; }
     </style>
 </head>
 <body class="antialiased text-white">
 
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        
         <header class="text-center mb-12">
             <h1 class="text-5xl md:text-6xl font-black tracking-tighter">Bem-vindo ao seu <span class="text-indigo-400">Universo Criativo</span></h1>
             <p class="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Explore os produtos que vão transformar suas ideias em realidade e suas emoções em poder.</p>
         </header>
 
         <main class="w-full max-w-5xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                <!-- Card 1: Aura Engine / Nexus 5 -->
-                <a href="aura-engine.html" class="card rounded-2xl p-8 block">
-                    <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1619983081563-436f63e02242?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                    <div class="card-content flex flex-col h-full">
-                        <div>
-                            <h2 class="text-3xl font-bold text-cyan-300">Aura Engine</h2>
-                            <p class="text-gray-300 mt-2 mb-6">A ferramenta definitiva que faltava para transformar suas ideias em som com a velocidade do pensamento.</p>
-                        </div>
-                        <div class="mt-auto">
-                            <div class="btn-portal inline-flex items-center bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg">
-                                Acessar Página
-                                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Card 2: Resolva ou Reclama -->
-                <a href="resolvaoureclama.html" class="card rounded-2xl p-8 block">
-                    <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4c85?auto=format&fit=crop&q=80&w=2070');"></div>
-                    <div class="card-content flex flex-col h-full">
-                        <div>
-                            <h2 class="text-3xl font-bold text-yellow-400">Resolva ou Reclama?</h2>
-                            <p class="text-gray-300 mt-2 mb-6">O manual prático para parar de reagir com base na emoção e começar a agir com base na resolução.</p>
-                        </div>
-                        <div class="mt-auto">
-                            <div class="btn-portal inline-flex items-center bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg">
-                                Conhecer o Livro
-                                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <p id="loading-products" class="col-span-full text-center text-gray-400">A carregar os seus produtos...</p>
             </div>
         </main>
 
         <footer class="text-center mt-12">
-             <a href="login.html" class="text-gray-500 hover:text-indigo-400 transition-colors">Acesso Administrativo</a>
+             <a href="login.html" class="text-gray-500 hover:text-indigo-400">Acesso Administrativo</a>
             <p class="text-gray-600 text-sm mt-4">&copy; 2024 Plata+. Todos os direitos reservados.</p>
         </footer>
-
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
     <script>
-        // É uma boa prática executar este script após o DOM estar totalmente carregado
-        // para garantir que a biblioteca lucide esteja disponível.
-        document.addEventListener('DOMContentLoaded', (event) => {
-            lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            const productsGrid = document.getElementById('products-grid');
+            const loadingMessage = document.getElementById('loading-products');
+
+            db.collection('products').get().then(querySnapshot => {
+                loadingMessage.style.display = 'none';
+                if (querySnapshot.empty) {
+                    productsGrid.innerHTML = '<p class="col-span-full text-center text-gray-400">Nenhum produto cadastrado ainda.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach(doc => {
+                    const product = { id: doc.id, ...doc.data() };
+                    
+                    // LÓGICA AUTOMÁTICA: Usa a URL da página se existir, senão, cria o link para o modelo padrão.
+                    const productUrl = product.paginaUrl || `produto.html?id=${product.id}`;
+
+                    const productLink = document.createElement('a');
+                    productLink.href = productUrl;
+                    productLink.className = 'card rounded-2xl p-8 block';
+                    productLink.innerHTML = `
+                        <div class="card-content">
+                            <div style="flex-grow: 1;">
+                                <h2 class="text-3xl font-bold text-indigo-300">${product.nome}</h2>
+                                <p class="text-gray-300 mt-2 mb-6">${product.descricao || 'Clique para saber mais.'}</p>
+                            </div>
+                            <div class="mt-auto">
+                                <div class="inline-flex items-center bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg">
+                                    Acessar Página
+                                    <lucide-icon name="arrow-right" class="w-5 h-5 ml-2"></lucide-icon>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    productsGrid.appendChild(productLink);
+                });
+            });
         });
     </script>
 </body>
