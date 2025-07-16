@@ -256,7 +256,7 @@
             <div class="bg-gray-900 border-2 border-yellow-400 max-w-md mx-auto p-8 rounded-xl shadow-2xl">
                 <p class="text-xl text-white">Acesso imediato ao eBook completo por apenas:</p>
                 <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 19,00</p>
-                <button id="buy-button" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
+                <button id="buy-button" data-product-id="oZpB4i3aT5Yq6wE7xU8C" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
                     <i class="fa-brands fa-pix mr-3"></i> Pagar com PIX
                 </button>
             </div>
@@ -329,9 +329,8 @@
                 </div>
                 <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
             </div>
-            <!-- NOVO BOTÃO DE VERIFICAÇÃO -->
             <button id="check-payment-button" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg cta-button">
-                Já Paguei, Verificar Agora!
+                Já Paguei, Verificar e Receber
             </button>
             <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
         </div>
@@ -344,7 +343,6 @@
     <script src="firebase-config.js"></script>
 
     <script>
-        // ===== SCRIPT UNIFICADO PARA TODA A PÁGINA =====
         document.addEventListener('DOMContentLoaded', () => {
             
             // --- LÓGICA DO LEITOR DE ÁUDIO ---
@@ -439,7 +437,7 @@
             // --- LÓGICA DE PAGAMENTO PIX ---
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
-            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+            const checkPaymentStatusAndGetLink = functions.httpsCallable('checkPaymentStatusAndGetLink');
 
             const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
@@ -456,11 +454,12 @@
             const pixTimerContainer = document.getElementById('pix-timer-container');
             
             let currentPaymentId = null;
-            let currentUserName = null;
+            let currentProductId = null;
             let countdownInterval;
 
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
+                    currentProductId = buyButton.dataset.productId; // Captura o ID do produto
                     openModal('user-info-modal');
                 });
             }
@@ -469,11 +468,11 @@
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
-                    currentUserName = document.getElementById('firstName').value;
+                    const userName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
 
-                    if (!currentUserName.trim() || !userEmail.trim()) {
-                        formMessage.textContent = 'Por favor, preencha todos os campos.';
+                    if (!userName.trim() || !userEmail.trim() || !currentProductId) {
+                        formMessage.textContent = 'Erro: ID do produto não encontrado.';
                         return;
                     }
 
@@ -482,9 +481,9 @@
 
                     try {
                         const payload = {
-                            firstName: currentUserName,
+                            firstName: userName,
                             email: userEmail,
-                            productName: "E-book: Resolva ou Reclama?"
+                            productId: currentProductId // Envia o ID do produto para a Cloud Function
                         };
                         
                         const result = await createPixPayment(payload);
@@ -495,7 +494,7 @@
 
                         closeModal('user-info-modal');
                         openModal('pix-modal');
-                        startTimer(600); // Inicia cronómetro de 10 minutos (600 segundos)
+                        startTimer(600); 
 
                     } catch (error) {
                         console.error("Erro ao chamar a função:", error);
@@ -514,12 +513,13 @@
                     if (!currentPaymentId) return;
 
                     checkPaymentButton.disabled = true;
-                    checkPaymentMessage.textContent = "A verificar...";
+                    checkPaymentMessage.textContent = "A verificar e a preparar o seu acesso...";
 
                     try {
-                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
-                        if (result.data.status === 'approved') {
-                            redirectToWhatsApp(currentPaymentId, currentUserName);
+                        const result = await checkPaymentStatusAndGetLink({ paymentId: currentPaymentId });
+                        
+                        if (result.data.status === 'approved' && result.data.downloadUrl) {
+                            redirectToDownload(result.data.downloadUrl);
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
@@ -536,20 +536,12 @@
             }
             
             function startTimer(duration) {
-                let timer = duration, minutes, seconds;
-                
-                // Limpa qualquer cronómetro anterior
+                let timer = duration;
                 clearInterval(countdownInterval);
-
-                countdownInterval = setInterval(function () {
-                    minutes = parseInt(timer / 60, 10);
-                    seconds = parseInt(timer % 60, 10);
-
-                    minutes = minutes < 10 ? "0" + minutes : minutes;
-                    seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                    pixTimerEl.textContent = minutes + ":" + seconds;
-
+                countdownInterval = setInterval(() => {
+                    const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                    const seconds = (timer % 60).toString().padStart(2, '0');
+                    pixTimerEl.textContent = `${minutes}:${seconds}`;
                     if (--timer < 0) {
                         clearInterval(countdownInterval);
                         pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
@@ -561,21 +553,17 @@
                 }, 1000);
             }
 
-            function redirectToWhatsApp(paymentId, userName) {
-                clearInterval(countdownInterval); // Para o cronómetro
-                const seuNumero = "5567999093031"; // SUBSTITUA PELO SEU NÚMERO COM CÓDIGO DO PAÍS
-                const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
-                const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
-                
+            function redirectToDownload(downloadUrl) {
+                clearInterval(countdownInterval);
                 pixTitle.textContent = "Pagamento Aprovado!";
-                pixSubtitle.textContent = "A redirecionar para o WhatsApp...";
+                pixSubtitle.textContent = "A preparar o seu download...";
                 checkPaymentButton.style.display = 'none';
                 document.getElementById('pix-container').style.display = 'none';
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
 
                 setTimeout(() => {
-                    window.location.href = whatsappUrl;
+                    window.location.href = downloadUrl;
                 }, 2000);
             }
 

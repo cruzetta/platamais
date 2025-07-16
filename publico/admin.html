@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
+    <title>Painel Administrativo - PlataMais</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,36 +14,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-icons@latest/dist/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide-element@0.395.0/dist/lucide-element.min.js"></script>
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            /* Esconde o corpo da página até que a verificação de auth seja feita, para evitar "piscar" */
-            display: none; 
+            display: none; /* Esconde o corpo para evitar "piscar" antes da autenticação */
         }
-        .modal-overlay {
-            transition: opacity 0.3s ease;
-        }
-        .modal-container {
-            transition: transform 0.3s ease;
-        }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-container { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .toast { transition: transform 0.3s ease, opacity 0.3s ease; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 antialiased">
+<body class="bg-gray-100 text-gray-800 antialiased" x-data="adminPanel" x-cloak>
 
     <!-- ===== Seção do Dashboard ===== -->
     <div id="dashboard-section">
         <header class="bg-white shadow-md sticky top-0 z-20">
             <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-gray-900">Meus Produtos</h1>
-                <div class="flex items-center">
-                    <span id="user-email" class="text-gray-600 mr-4 hidden sm:block"></span>
-                    <button id="add-product-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center transition-colors">
-                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                <div class="flex items-center space-x-4">
+                    <span x-text="userEmail" class="text-gray-600 hidden sm:block"></span>
+                    <button @click="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center transition-colors">
+                        <lucide-icon name="plus" class="w-5 h-5 mr-2"></lucide-icon>
                         Novo Produto
                     </button>
-                    <button id="logout-button" class="ml-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                    <button @click="logout" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
                         Sair
                     </button>
                 </div>
@@ -57,7 +54,7 @@
                     <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between border-2 border-indigo-500">
                         <div>
                             <h3 class="font-bold text-lg mb-2 text-indigo-800">Página de Vendas Principal</h3>
-                            <p class="text-sm text-gray-600 mb-4">Este é o editor da sua página principal (Nexus 5). Clique em editar para alterar os textos, vídeos e preços.</p>
+                            <p class="text-sm text-gray-600 mb-4">Este é o editor da sua página principal (Nexus 5). Clique para alterar os textos, vídeos e preços.</p>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
                             <a href="nexus5.html" class="w-full text-center text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition-colors">
@@ -66,102 +63,219 @@
                         </div>
                     </div>
 
-                    <!-- Os outros produtos dinâmicos do Firestore serão inseridos aqui -->
-                </div>
-                 <div id="loading-indicator" class="text-center py-10">
-                    <p class="text-gray-500">Carregando outros produtos...</p>
+                    <!-- Template para produtos dinâmicos -->
+                    <template x-for="product in products" :key="product.id">
+                        <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg mb-2" x-text="product.nome"></h3>
+                                <p class="text-gray-500 text-sm mb-1"><strong>Preço:</strong> R$ <span x-text="product.preco ? product.preco.toFixed(2) : '0.00'"></span></p>
+                                <p class="text-gray-500 text-sm mb-4"><strong>ID:</strong> <code class="text-xs bg-gray-200 p-1 rounded" x-text="product.id"></code></p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
+                                <button @click="openModal(product)" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded-md transition-colors">Editar</button>
+                                <button @click="confirmDelete(product.id)" class="text-sm bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-1 px-3 rounded-md transition-colors">Excluir</button>
+                            </div>
+                        </div>
+                    </template>
+                     <!-- Indicador de Carregamento -->
+                    <div x-show="isLoading" class="text-center py-10 col-span-full">
+                        <p class="text-gray-500">Carregando produtos...</p>
+                    </div>
+                     <!-- Mensagem de Nenhum Produto -->
+                    <div x-show="!isLoading && products.length === 0" class="text-center py-10 col-span-full">
+                        <p class="text-gray-500">Nenhum produto dinâmico encontrado. Clique em "Novo Produto" para adicionar.</p>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- ===== Modal para Adicionar/Editar Produto (Funcionalidade mantida) ===== -->
-    <div id="product-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-30 modal-overlay opacity-0">
-        <!-- O conteúdo do modal permanece o mesmo -->
+    <!-- ===== Modal para Adicionar/Editar Produto ===== -->
+    <div x-show="isModalOpen" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-30 modal-overlay"
+         x-transition:enter="ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div @click.away="closeModal" class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 modal-container"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95">
+            <h2 class="text-2xl font-bold mb-4" x-text="modal.isEditing ? 'Editar Produto' : 'Adicionar Novo Produto'"></h2>
+            <form @submit.prevent="saveProduct">
+                <div class="space-y-4">
+                    <div>
+                        <label for="product-name" class="block text-sm font-medium text-gray-700">Nome do Produto</label>
+                        <input type="text" id="product-name" x-model="modal.product.nome" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="product-price" class="block text-sm font-medium text-gray-700">Preço (ex: 19.90)</label>
+                        <input type="number" step="0.01" id="product-price" x-model.number="modal.product.preco" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="product-file-path" class="block text-sm font-medium text-gray-700">Caminho do Ficheiro no Storage</label>
+                        <input type="text" id="product-file-path" x-model="modal.product.caminhoDoFicheiro" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="ex: ebooks/meu-livro.pdf">
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" @click="closeModal" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" :disabled="isSaving" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md flex items-center transition-colors disabled:opacity-50">
+                        <span x-show="!isSaving">Salvar</span>
+                        <span x-show="isSaving">Salvando...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div x-show="toast.show" 
+         class="fixed top-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg z-50 toast"
+         :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'"
+         x-text="toast.message"
+         x-transition:enter="transform ease-out duration-300"
+         x-transition:enter-start="translate-x-full opacity-0"
+         x-transition:enter-end="translate-x-0 opacity-100"
+         x-transition:leave="transform ease-in duration-300"
+         x-transition:leave-start="translate-x-0 opacity-100"
+         x-transition:leave-end="translate-x-full opacity-0">
     </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="firebase-config.js"></script>
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const auth = firebase.auth();
-            const db = firebase.firestore();
-            
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    document.body.style.display = 'block';
-                    initializeApp(user);
-                } else {
-                    window.location.href = 'login.html';
-                }
-            });
-
-            function initializeApp(user) {
-                const userEmailDisplay = document.getElementById('user-email');
-                const logoutButton = document.getElementById('logout-button');
-                const addProductButton = document.getElementById('add-product-button');
-                const productsListContainer = document.getElementById('products-list');
-                const loadingIndicator = document.getElementById('loading-indicator');
-
-                userEmailDisplay.textContent = user.email;
-                fetchProducts(user); 
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('adminPanel', () => ({
+                // Propriedades do estado
+                user: null,
+                userEmail: '',
+                products: [],
+                isLoading: true,
+                isSaving: false,
+                isModalOpen: false,
                 
-                lucide.createIcons();
+                // Propriedades do Modal
+                modal: {
+                    isEditing: false,
+                    product: { id: null, nome: '', preco: null, caminhoDoFicheiro: '' }
+                },
 
-                // A lógica do modal para adicionar novos produtos continua a mesma
-                // ...
+                // Propriedades do Toast
+                toast: { show: false, message: '', type: 'success' },
 
-                async function fetchProducts(user) {
-                    loadingIndicator.style.display = 'block';
-                    
-                    try {
-                        // CORREÇÃO: Removido o .orderBy('createdAt') para evitar a necessidade de um índice composto no Firestore.
-                        // A ordenação pode ser feita no lado do cliente se necessário.
-                        const querySnapshot = await db.collection('products')
-                                                      .where('ownerUid', '==', user.uid)
-                                                      .get();
-                        
-                        if (querySnapshot.empty) {
-                            loadingIndicator.innerHTML = '<p class="text-gray-500 col-span-full text-center">Nenhum outro produto dinâmico encontrado.</p>';
+                // Inicialização
+                init() {
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            this.user = user;
+                            this.userEmail = user.email;
+                            document.body.style.display = 'block';
+                            this.fetchProducts();
                         } else {
-                             loadingIndicator.style.display = 'none';
+                            window.location.href = 'login.html';
                         }
+                    });
+                },
 
-                        querySnapshot.forEach(doc => {
-                            const product = doc.data();
-                            const productCard = `
-                                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
-                                    <div>
-                                        <h3 class="font-bold text-lg mb-2">${product.name}</h3>
-                                        <p class="text-sm text-gray-500 mb-4">${product.headline}</p>
-                                    </div>
-                                    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
-                                        <button class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded">Editar</button>
-                                        <button class="text-sm bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-1 px-3 rounded">Excluir</button>
-                                    </div>
-                                </div>
-                            `;
-                            // Adiciona o card ao container
-                            productsListContainer.insertAdjacentHTML('beforeend', productCard);
-                        });
-                        
-                        lucide.createIcons();
+                // Métodos de dados
+                fetchProducts() {
+                    this.isLoading = true;
+                    db.collection('products')
+                      .where('ownerUid', '==', this.user.uid)
+                      .onSnapshot(querySnapshot => {
+                          this.products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                          this.isLoading = false;
+                      }, error => {
+                          console.error("Erro ao buscar produtos: ", error);
+                          this.showToast('Erro ao carregar produtos.', 'error');
+                          this.isLoading = false;
+                      });
+                },
 
+                async saveProduct() {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+
+                    const productData = {
+                        nome: this.modal.product.nome,
+                        preco: parseFloat(this.modal.product.preco),
+                        caminhoDoFicheiro: this.modal.product.caminhoDoFicheiro,
+                        ownerUid: this.user.uid,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    try {
+                        if (this.modal.isEditing) {
+                            await db.collection('products').doc(this.modal.product.id).update(productData);
+                            this.showToast('Produto atualizado com sucesso!');
+                        } else {
+                            productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                            await db.collection('products').add(productData);
+                            this.showToast('Produto adicionado com sucesso!');
+                        }
+                        this.closeModal();
                     } catch (error) {
-                        console.error("Erro ao buscar produtos: ", error);
-                        loadingIndicator.style.display = 'block'; // Garante que o loading seja visível
-                        loadingIndicator.innerHTML = `<p class="text-red-500 col-span-full text-center">Não foi possível carregar os outros produtos. Verifique o console para mais detalhes.</p>`;
+                        console.error("Erro ao salvar produto: ", error);
+                        this.showToast('Erro ao salvar o produto.', 'error');
+                    } finally {
+                        this.isSaving = false;
                     }
-                }
-                
-                logoutButton.addEventListener('click', () => {
+                },
+
+                confirmDelete(productId) {
+                    if (confirm('Tem a certeza que quer apagar este produto? Esta ação não pode ser desfeita.')) {
+                        this.deleteProduct(productId);
+                    }
+                },
+
+                async deleteProduct(productId) {
+                    try {
+                        await db.collection('products').doc(productId).delete();
+                        this.showToast('Produto apagado com sucesso!');
+                    } catch (error) {
+                        console.error("Erro ao apagar produto: ", error);
+                        this.showToast('Erro ao apagar o produto.', 'error');
+                    }
+                },
+
+                // Métodos de UI
+                openModal(product = null) {
+                    if (product) {
+                        this.modal.isEditing = true;
+                        this.modal.product = { ...product };
+                    } else {
+                        this.modal.isEditing = false;
+                        this.modal.product = { id: null, nome: '', preco: null, caminhoDoFicheiro: '' };
+                    }
+                    this.isModalOpen = true;
+                },
+
+                closeModal() {
+                    this.isModalOpen = false;
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
+                logout() {
                     auth.signOut().catch(error => console.error('Erro ao sair:', error));
-                });
-            }
+                }
+            }));
         });
     </script>
 </body>

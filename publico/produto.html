@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- O título será definido dinamicamente -->
+    <title>Carregando Produto...</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .cta-button:hover:not(:disabled) { transform: translateY(-4px); }
+        .cta-button:disabled { cursor: not-allowed; opacity: 0.6; }
+        .modal { display: none; transition: opacity 0.3s ease; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; background-color: #1f2937; color: #d1d5db; }
+        .modal.flex { display: flex; }
+        .modal.opacity-100 .modal-content { transform: scale(1); }
+        .form-input { background-color: #374151; border: 1px solid #4b5563; color: #d1d5db; }
+        #pix-qrcode { border: 6px solid white; border-radius: 8px; }
+        #pix-code-input { background-color: #374151; user-select: all; }
+        [x-cloak] { display: none; }
+    </style>
+</head>
+<body x-data="productPage" x-cloak>
+
+    <!-- Cabeçalho -->
+    <header class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-white" x-text="product.nome || 'PlataMais'"></h1>
+            <a href="index.html" class="text-sm text-indigo-400 hover:text-indigo-300">&larr; Voltar ao Início</a>
+        </div>
+    </header>
+
+    <!-- Seção de Carregamento / Erro -->
+    <main class="container mx-auto px-4 py-12 md:py-20">
+        <template x-if="isLoading">
+            <div class="text-center">
+                <p class="text-2xl text-gray-400">A carregar produto...</p>
+            </div>
+        </template>
+
+        <template x-if="!isLoading && !product.id">
+            <div class="text-center bg-red-900/50 border border-red-700 p-8 rounded-lg max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-red-400">Produto Não Encontrado</h2>
+                <p class="mt-4 text-lg text-red-300">O produto que você está a tentar aceder não existe ou o link está incorreto. Por favor, verifique o URL e tente novamente.</p>
+            </div>
+        </template>
+
+        <!-- Conteúdo do Produto -->
+        <template x-if="!isLoading && product.id">
+            <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <!-- Imagem do Produto (Opcional) -->
+                <div class="flex justify-center">
+                    <img :src="product.imagemUrl || 'https://placehold.co/600x600/1f2937/d1d5db?text=' + encodeURIComponent(product.nome || 'Produto')" 
+                         alt="Imagem do produto" 
+                         class="rounded-lg shadow-2xl w-full max-w-sm border-4 border-gray-700">
+                </div>
+
+                <!-- Detalhes e Compra -->
+                <div class="text-center md:text-left">
+                    <h2 class="text-4xl md:text-5xl font-black text-white" x-text="product.nome"></h2>
+                    <p class="mt-4 text-lg text-gray-300" x-text="product.descricao || 'Descrição detalhada do produto.'"></p>
+                    
+                    <div class="my-8">
+                        <p class="text-lg text-gray-400">Preço:</p>
+                        <p class="text-6xl font-bold text-indigo-400">R$ <span x-text="product.preco ? product.preco.toFixed(2).replace('.', ',') : '0,00'"></span></p>
+                    </div>
+
+                    <button @click="openModal('user-info-modal')" id="buy-button" class="cta-button w-full md:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg">
+                        Comprar com PIX
+                    </button>
+                </div>
+            </div>
+        </template>
+    </main>
+
+    <!-- ===== MODAL PARA DADOS DO UTILIZADOR ===== -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-indigo-500 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Quase lá!</h3>
+            <p class="text-gray-400 mb-6">Precisamos dos seus dados para gerar o pagamento e enviar o seu produto.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ===== MODAL PARA O PIX ===== -->
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-indigo-500 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p id="pix-subtitle" class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-indigo-400">10:00</span></div>
+            <div id="pix-container" class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <div id="pix-copy-paste" class="mt-4">
+                <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
+                <div class="relative">
+                    <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                    <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
+            </div>
+            <button id="check-payment-button" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar e Receber
+            </button>
+            <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
+        </div>
+    </div>
+
+    <!-- Firebase e Alpine.js -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('productPage', () => ({
+                isLoading: true,
+                product: {},
+                productId: null,
+
+                init() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.productId = urlParams.get('id');
+
+                    if (this.productId) {
+                        this.fetchProduct();
+                    } else {
+                        this.isLoading = false;
+                        document.title = "Produto não encontrado";
+                    }
+                    
+                    this.initializePaymentLogic();
+                },
+
+                async fetchProduct() {
+                    this.isLoading = true;
+                    try {
+                        const productRef = db.collection('products').doc(this.productId);
+                        const doc = await productRef.get();
+
+                        if (doc.exists) {
+                            this.product = { id: doc.id, ...doc.data() };
+                            document.title = this.product.nome;
+                        } else {
+                            console.error("Produto não encontrado no Firestore.");
+                            document.title = "Produto não encontrado";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao buscar produto:", error);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                initializePaymentLogic() {
+                    const functions = firebase.app().functions('us-central1');
+                    const createPixPayment = functions.httpsCallable('createPixPayment');
+                    const checkPaymentStatusAndGetLink = functions.httpsCallable('checkPaymentStatusAndGetLink');
+
+                    const buyButton = document.getElementById('buy-button');
+                    const userInfoForm = document.getElementById('user-info-form');
+                    const generatePixButton = document.getElementById('generate-pix-button');
+                    const formMessage = document.getElementById('form-message');
+                    const pixCodeInput = document.getElementById('pix-code-input');
+                    const copyMessage = document.getElementById('copy-message');
+                    const pixQrCodeImg = document.getElementById('pix-qrcode');
+                    const pixTitle = document.getElementById('pix-title');
+                    const pixSubtitle = document.getElementById('pix-subtitle');
+                    const checkPaymentButton = document.getElementById('check-payment-button');
+                    const checkPaymentMessage = document.getElementById('check-payment-message');
+                    const pixTimerEl = document.getElementById('pix-timer');
+                    const pixTimerContainer = document.getElementById('pix-timer-container');
+                    
+                    let currentPaymentId = null;
+                    let countdownInterval;
+
+                    // O evento de clique no buyButton já é gerido pelo Alpine com @click
+                    // então não precisamos de um event listener aqui.
+
+                    if(userInfoForm) {
+                        userInfoForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            
+                            const userName = document.getElementById('firstName').value;
+                            const userEmail = document.getElementById('email').value;
+
+                            // Usamos this.productId que já foi capturado pelo Alpine
+                            if (!userName.trim() || !userEmail.trim() || !this.productId) {
+                                formMessage.textContent = 'Erro: ID do produto não encontrado.';
+                                return;
+                            }
+
+                            generatePixButton.disabled = true;
+                            formMessage.textContent = 'A gerar o seu PIX...';
+
+                            try {
+                                const payload = {
+                                    firstName: userName,
+                                    email: userEmail,
+                                    productId: this.productId 
+                                };
+                                
+                                const result = await createPixPayment(payload);
+                                currentPaymentId = result.data.paymentId;
+                                
+                                pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                                pixCodeInput.value = result.data.qrCode;
+
+                                closeModal('user-info-modal');
+                                openModal('pix-modal');
+                                startTimer(600); 
+
+                            } catch (error) {
+                                console.error("Erro ao chamar a função:", error);
+                                formMessage.textContent = `Erro: ${error.message}`;
+                            } finally {
+                                generatePixButton.disabled = false;
+                                if (formMessage.textContent === 'A gerar o seu PIX...') {
+                                    formMessage.textContent = '';
+                                }
+                            }
+                        });
+                    }
+
+                    if(checkPaymentButton) {
+                        checkPaymentButton.addEventListener('click', async () => {
+                            if (!currentPaymentId) return;
+
+                            checkPaymentButton.disabled = true;
+                            checkPaymentMessage.textContent = "A verificar e a preparar o seu acesso...";
+
+                            try {
+                                const result = await checkPaymentStatusAndGetLink({ paymentId: currentPaymentId });
+                                
+                                if (result.data.status === 'approved' && result.data.downloadUrl) {
+                                    redirectToDownload(result.data.downloadUrl);
+                                } else {
+                                    checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
+                                }
+                            } catch (error) {
+                                console.error("Erro ao verificar pagamento:", error);
+                                checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                            } finally {
+                                setTimeout(() => {
+                                   checkPaymentButton.disabled = false;
+                                   checkPaymentMessage.textContent = "";
+                                }, 3000);
+                            }
+                        });
+                    }
+                    
+                    function startTimer(duration) {
+                        let timer = duration;
+                        clearInterval(countdownInterval);
+                        countdownInterval = setInterval(() => {
+                            const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                            const seconds = (timer % 60).toString().padStart(2, '0');
+                            pixTimerEl.textContent = `${minutes}:${seconds}`;
+                            if (--timer < 0) {
+                                clearInterval(countdownInterval);
+                                pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                                document.getElementById('pix-container').style.display = 'none';
+                                document.getElementById('pix-copy-paste').style.display = 'none';
+                                checkPaymentButton.textContent = "Gerar Novo PIX";
+                                checkPaymentButton.onclick = () => window.location.reload();
+                            }
+                        }, 1000);
+                    }
+
+                    function redirectToDownload(downloadUrl) {
+                        clearInterval(countdownInterval);
+                        pixTitle.textContent = "Pagamento Aprovado!";
+                        pixSubtitle.textContent = "A preparar o seu download...";
+                        checkPaymentButton.style.display = 'none';
+                        document.getElementById('pix-container').style.display = 'none';
+                        document.getElementById('pix-copy-paste').style.display = 'none';
+                        pixTimerContainer.style.display = 'none';
+
+                        setTimeout(() => {
+                            window.location.href = downloadUrl;
+                        }, 2000);
+                    }
+
+                    window.copyPixCode = function() {
+                        pixCodeInput.select();
+                        try {
+                            document.execCommand('copy');
+                            copyMessage.textContent = 'Código copiado!';
+                            setTimeout(() => { copyMessage.textContent = '' }, 2000);
+                        } catch (err) {
+                            console.error('Não foi possível copiar o código:', err);
+                            copyMessage.textContent = 'Erro ao copiar!';
+                        }
+                    }
+                }
+            }));
+        });
+        
+        // Funções de modal globais para simplicidade
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            }
+        }
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.remove('flex'), 300);
+            }
+        }
+    </script>
+</body>
+</html>
