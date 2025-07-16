@@ -315,6 +315,7 @@
             <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
             <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
             <p id="pix-subtitle" class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-yellow-400">10:00</span></div>
             <div id="pix-container" class="flex justify-center">
                  <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
             </div>
@@ -451,9 +452,12 @@
             const pixSubtitle = document.getElementById('pix-subtitle');
             const checkPaymentButton = document.getElementById('check-payment-button');
             const checkPaymentMessage = document.getElementById('check-payment-message');
+            const pixTimerEl = document.getElementById('pix-timer');
+            const pixTimerContainer = document.getElementById('pix-timer-container');
             
             let currentPaymentId = null;
             let currentUserName = null;
+            let countdownInterval;
 
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
@@ -491,6 +495,7 @@
 
                         closeModal('user-info-modal');
                         openModal('pix-modal');
+                        startTimer(600); // Inicia cronómetro de 10 minutos (600 segundos)
 
                     } catch (error) {
                         console.error("Erro ao chamar a função:", error);
@@ -516,7 +521,7 @@
                         if (result.data.status === 'approved') {
                             redirectToWhatsApp(currentPaymentId, currentUserName);
                         } else {
-                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em alguns segundos.";
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
                     } catch (error) {
                         console.error("Erro ao verificar pagamento:", error);
@@ -530,7 +535,34 @@
                 });
             }
             
+            function startTimer(duration) {
+                let timer = duration, minutes, seconds;
+                
+                // Limpa qualquer cronómetro anterior
+                clearInterval(countdownInterval);
+
+                countdownInterval = setInterval(function () {
+                    minutes = parseInt(timer / 60, 10);
+                    seconds = parseInt(timer % 60, 10);
+
+                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                    pixTimerEl.textContent = minutes + ":" + seconds;
+
+                    if (--timer < 0) {
+                        clearInterval(countdownInterval);
+                        pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                        document.getElementById('pix-container').style.display = 'none';
+                        document.getElementById('pix-copy-paste').style.display = 'none';
+                        checkPaymentButton.textContent = "Gerar Novo PIX";
+                        checkPaymentButton.onclick = () => window.location.reload();
+                    }
+                }, 1000);
+            }
+
             function redirectToWhatsApp(paymentId, userName) {
+                clearInterval(countdownInterval); // Para o cronómetro
                 const seuNumero = "5567999093031"; // SUBSTITUA PELO SEU NÚMERO COM CÓDIGO DO PAÍS
                 const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
                 const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
@@ -540,6 +572,7 @@
                 checkPaymentButton.style.display = 'none';
                 document.getElementById('pix-container').style.display = 'none';
                 document.getElementById('pix-copy-paste').style.display = 'none';
+                pixTimerContainer.style.display = 'none';
 
                 setTimeout(() => {
                     window.location.href = whatsappUrl;

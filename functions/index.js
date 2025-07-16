@@ -4,12 +4,12 @@ const {defineSecret} = require("firebase-functions/params");
 
 const { MercadoPagoConfig, Payment } = require("mercadopago");
 const admin = require("firebase-admin");
+const { getStorage } = require("firebase-admin/storage");
 
 admin.initializeApp();
 
 const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
 
-// Função para criar o pagamento PIX
 exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const data = request.data;
     if (!data.email || !data.firstName) {
@@ -20,11 +20,15 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
     const payment = new Payment(client);
     const productPrice = 19.00;
 
+    // NOVO: Define a data de expiração para 10 minutos a partir de agora
+    const expirationDate = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos em milissegundos
+
     const paymentData = {
       body: {
         transaction_amount: productPrice,
         description: data.productName || "E-book: Resolva ou Reclama?",
         payment_method_id: "pix",
+        date_of_expiration: expirationDate.toISOString(), // Adiciona a data de expiração
         payer: {
           email: data.email,
           first_name: data.firstName,
@@ -32,6 +36,8 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
         notification_url: `https://us-central1-platamais.cloudfunctions.net/mercadoPagoWebhook`,
       }
     };
+
+    console.log("Criando pagamento PIX para:", data.email, "com expiração em:", expirationDate.toISOString());
 
     try {
       const result = await payment.create(paymentData);
@@ -58,8 +64,7 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
     }
 });
 
-// Função que recebe a notificação de pagamento do Mercado Pago (webhook)
-exports.mercadoPagoWebhook = onRequest(async (req, res) => {
+exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, async (req, res) => {
     const paymentId = req.query.id;
     const type = req.query.type;
 
@@ -80,7 +85,6 @@ exports.mercadoPagoWebhook = onRequest(async (req, res) => {
     res.status(200).send("Notificação recebida.");
 });
 
-// ===== NOVA FUNÇÃO PARA VERIFICAÇÃO INSTANTÂNEA =====
 exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const paymentId = request.data.paymentId;
     if (!paymentId) {
@@ -92,7 +96,6 @@ exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async
         const payment = new Payment(client);
         const paymentInfo = await payment.get({ id: paymentId });
         
-        // Retorna o status diretamente da API do Mercado Pago
         return { status: paymentInfo.status };
 
     } catch (error) {
