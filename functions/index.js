@@ -4,6 +4,7 @@ const {defineSecret} = require("firebase-functions/params");
 
 const { MercadoPagoConfig, Payment } = require("mercadopago");
 const admin = require("firebase-admin");
+// A linha do Storage já não é necessária aqui, mas podemos manter para o futuro.
 const { getStorage } = require("firebase-admin/storage");
 
 admin.initializeApp();
@@ -16,12 +17,10 @@ const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
  */
 exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const data = request.data;
-    // Validação dos dados de entrada
     if (!data.email || !data.firstName || !data.productId) {
       throw new Error('Email, nome e ID do produto são obrigatórios.');
     }
 
-    // 1. Buscar o produto no Firestore
     const productRef = db.collection('products').doc(data.productId);
     const productSnap = await productRef.get();
 
@@ -37,8 +36,7 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
     const client = new MercadoPagoConfig({ accessToken: mercadoPagoAccessToken.value() });
     const payment = new Payment(client);
     
-    // Define a data de expiração para 10 minutos a partir de agora
-    const expirationDate = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos em milissegundos
+    const expirationDate = new Date(Date.now() + 10 * 60 * 1000);
 
     const paymentData = {
       body: {
@@ -51,7 +49,6 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
           first_name: data.firstName,
         },
         notification_url: `https://us-central1-platamais.cloudfunctions.net/mercadoPagoWebhook`,
-        // Adiciona o productId aos metadados para ser usado no webhook
         metadata: {
             productId: data.productId 
         }
@@ -64,12 +61,11 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
       const result = await payment.create(paymentData);
       const paymentId = String(result.id);
       
-      // Salva a venda com o status 'pending' e o ID do produto
       await db.collection('vendas').doc(paymentId).set({
           email: data.email,
           firstName: data.firstName,
           status: 'pending',
-          productId: data.productId, // Salva o ID do produto na venda
+          productId: data.productId,
           createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
@@ -99,12 +95,10 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, as
             const payment = new Payment(client);
             const paymentInfo = await payment.get({ id: paymentId });
 
-            // Apenas processa se o pagamento estiver aprovado
             if (paymentInfo.status === 'approved') {
                 await db.collection('vendas').doc(String(paymentId)).update({
                     status: 'approved',
                     approvedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    // Adiciona os metadados recebidos para referência futura
                     mercadoPagoDetails: paymentInfo 
                 });
                 console.log(`Venda ${paymentId} marcada como APROVADA via webhook.`);
@@ -122,68 +116,32 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, as
 });
 
 /**
- * Verifica o status de um pagamento e, se aprovado, retorna o link de download.
+ * Apenas verifica o status de um pagamento.
+ * Renomeada de volta para um nome mais simples, pois não gera mais o link.
  */
-exports.checkPaymentStatusAndGetLink = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
+exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const paymentId = request.data.paymentId;
     if (!paymentId) {
         throw new Error("ID do pagamento é obrigatório.");
     }
 
     try {
-        // 1. Verifica o status do pagamento no Mercado Pago
         const client = new MercadoPagoConfig({ accessToken: mercadoPagoAccessToken.value() });
         const payment = new Payment(client);
         const paymentInfo = await payment.get({ id: paymentId });
-
-        if (paymentInfo.status !== 'approved') {
-            return { status: paymentInfo.status, downloadUrl: null };
-        }
-
-        // 2. Se aprovado, busca os detalhes da venda no Firestore
-        const vendaRef = db.collection('vendas').doc(paymentId);
-        const vendaSnap = await vendaRef.get();
-        if (!vendaSnap.exists) {
-            throw new Error("Detalhes da venda não encontrados no Firestore.");
-        }
-        const vendaData = vendaSnap.data();
-        const productId = vendaData.productId;
-
-        // 3. Busca os detalhes do produto para obter o caminho do ficheiro
-        const productRef = db.collection('products').doc(productId);
-        const productSnap = await productRef.get();
-        if (!productSnap.exists) {
-            throw new Error("Produto associado à venda não encontrado.");
-        }
-        const productData = productSnap.data();
-        const filePath = productData.caminhoDoFicheiro; // e.g., 'ebooks/resolve-ou-reclama.pdf'
-
-        if (!filePath) {
-             throw new Error("Caminho do ficheiro não definido para este produto.");
-        }
-
-        // 4. Gera um link de download assinado e de curta duração para o ficheiro no Storage
-        const storage = getStorage();
-        const bucket = storage.bucket(); // Usa o bucket padrão
-        const file = bucket.file(filePath);
         
-        const [url] = await file.getSignedUrl({
-            action: 'read',
-            expires: Date.now() + 15 * 60 * 1000, // O link expira em 15 minutos
-        });
-
-        console.log(`Link de download gerado para o produto ${productId}: ${url}`);
-
-        // Atualiza o registro da venda com o status de 'delivered'
-        await vendaRef.update({
-            status: 'delivered',
-            deliveredAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return { status: 'approved', downloadUrl: url };
+        // Se o pagamento for aprovado, atualiza o status no Firestore para 'delivered'
+        if (paymentInfo.status === 'approved') {
+             await db.collection('vendas').doc(paymentId).update({
+                status: 'delivered',
+                deliveredAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        return { status: paymentInfo.status };
 
     } catch (error) {
-        console.error(`Erro ao verificar status ou gerar link para ${paymentId}:`, error.cause || error);
-        throw new Error('Não foi possível concluir o processo de verificação e entrega.');
+        console.error(`Erro ao verificar status do pagamento ${paymentId}:`, error.cause || error);
+        throw new Error('Não foi possível verificar o status do pagamento.');
     }
 });

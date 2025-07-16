@@ -63,6 +63,7 @@
 </head>
 <body class="bg-gray-900">
 
+    <!-- O HTML do corpo da página permanece o mesmo -->
     <!-- Hero Section -->
     <section class="bg-gray-900 pt-20 pb-16 text-center">
         <div class="container mx-auto px-4">
@@ -256,7 +257,7 @@
             <div class="bg-gray-900 border-2 border-yellow-400 max-w-md mx-auto p-8 rounded-xl shadow-2xl">
                 <p class="text-xl text-white">Acesso imediato ao eBook completo por apenas:</p>
                 <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 19,00</p>
-                <button id="buy-button" data-product-id="oZpB4i3aT5Yq6wE7xU8C" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
+                <button id="buy-button" data-product-id="COLE_SEU_ID_REAL_AQUI" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
                     <i class="fa-brands fa-pix mr-3"></i> Pagar com PIX
                 </button>
             </div>
@@ -330,7 +331,7 @@
                 <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
             </div>
             <button id="check-payment-button" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg cta-button">
-                Já Paguei, Verificar e Receber
+                Já Paguei, Verificar Agora!
             </button>
             <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
         </div>
@@ -437,7 +438,7 @@
             // --- LÓGICA DE PAGAMENTO PIX ---
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
-            const checkPaymentStatusAndGetLink = functions.httpsCallable('checkPaymentStatusAndGetLink');
+            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
 
             const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
@@ -455,11 +456,16 @@
             
             let currentPaymentId = null;
             let currentProductId = null;
+            let currentUserName = null;
             let countdownInterval;
 
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
-                    currentProductId = buyButton.dataset.productId; // Captura o ID do produto
+                    currentProductId = buyButton.dataset.productId;
+                    if (currentProductId === "COLE_SEU_ID_REAL_AQUI") {
+                        alert("Erro de configuração: O ID do produto não foi definido no botão de compra.");
+                        return;
+                    }
                     openModal('user-info-modal');
                 });
             }
@@ -468,10 +474,10 @@
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
-                    const userName = document.getElementById('firstName').value;
+                    currentUserName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
 
-                    if (!userName.trim() || !userEmail.trim() || !currentProductId) {
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
                         formMessage.textContent = 'Erro: ID do produto não encontrado.';
                         return;
                     }
@@ -481,9 +487,9 @@
 
                     try {
                         const payload = {
-                            firstName: userName,
+                            firstName: currentUserName,
                             email: userEmail,
-                            productId: currentProductId // Envia o ID do produto para a Cloud Function
+                            productId: currentProductId
                         };
                         
                         const result = await createPixPayment(payload);
@@ -513,13 +519,12 @@
                     if (!currentPaymentId) return;
 
                     checkPaymentButton.disabled = true;
-                    checkPaymentMessage.textContent = "A verificar e a preparar o seu acesso...";
+                    checkPaymentMessage.textContent = "A verificar...";
 
                     try {
-                        const result = await checkPaymentStatusAndGetLink({ paymentId: currentPaymentId });
-                        
-                        if (result.data.status === 'approved' && result.data.downloadUrl) {
-                            redirectToDownload(result.data.downloadUrl);
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToWhatsApp(currentUserName, currentPaymentId);
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
@@ -553,17 +558,21 @@
                 }, 1000);
             }
 
-            function redirectToDownload(downloadUrl) {
+            function redirectToWhatsApp(userName, paymentId) {
                 clearInterval(countdownInterval);
+                const seuNumero = "5567999093031"; // SEU NÚMERO AQUI
+                const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
+                const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
+                
                 pixTitle.textContent = "Pagamento Aprovado!";
-                pixSubtitle.textContent = "A preparar o seu download...";
+                pixSubtitle.textContent = "A redirecionar para o WhatsApp...";
                 checkPaymentButton.style.display = 'none';
                 document.getElementById('pix-container').style.display = 'none';
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
 
                 setTimeout(() => {
-                    window.location.href = downloadUrl;
+                    window.location.href = whatsappUrl;
                 }, 2000);
             }
 
