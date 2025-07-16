@@ -23,6 +23,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Font Awesome para o ícone do PIX -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -42,23 +44,21 @@
         .icon-shadow-reclamar { filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.5)); }
         .icon-shadow-resolver { filter: drop-shadow(0 4px 8px rgba(52, 211, 153, 0.5)); }
         .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s; }
-        .cta-button:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4); }
+        .cta-button:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4); }
+        .cta-button:disabled { cursor: not-allowed; opacity: 0.6; }
         .audio-player-container { background-color: #1f2937; border: 1px solid #374151; }
         #play-pause-btn .fa-play, #play-pause-btn .fa-pause { transition: transform 0.2s; }
         #play-pause-btn:hover:not(:disabled) .fa-play, #play-pause-btn:hover:not(:disabled) .fa-pause { transform: scale(1.1); }
-        #play-pause-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
+        #play-pause-btn:disabled { cursor: not-allowed; opacity: 0.5; }
         #progress-bar { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #374151; outline: none; border-radius: 3px; transition: background 0.3s; }
         #progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #facc15; cursor: pointer; border-radius: 50%; border: 2px solid #1f2937; }
         #progress-bar::-moz-range-thumb { width: 18px; height: 18px; background: #facc15; cursor: pointer; border-radius: 50%; border: 2px solid #1f2937; }
-        .section-divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #374151, transparent);
-            margin: 4rem auto;
-            width: 80%;
-        }
+        .section-divider { height: 2px; background: linear-gradient(90deg, transparent, #374151, transparent); margin: 4rem auto; width: 80%; }
+        
+        /* ===== NOVO ESTILO PARA O MODAL PIX ===== */
+        .pix-modal-content { background-color: #1f2937; color: #d1d5db; }
+        #pix-qrcode { border: 6px solid white; border-radius: 8px; }
+        #pix-code-input { background-color: #374151; user-select: all; }
     </style>
 </head>
 <body class="bg-gray-900">
@@ -142,7 +142,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Áudio com o link CORRIGIDO -->
             <audio id="podcast-audio" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/Resolve%20ou%20Reclama_%20Como%20Treinar%20Suas%20Emo%C3%A7%C3%B5es%20e%20Agir%20Diante%20da%20Adversidade.mp3?alt=media&token=0001fa53-d1d8-428a-ad77-95c32a4714aa" preload="metadata"></audio>
         </div>
     </section>
@@ -257,9 +256,11 @@
             <div class="bg-gray-900 border-2 border-yellow-400 max-w-md mx-auto p-8 rounded-xl shadow-2xl">
                 <p class="text-xl text-white">Acesso imediato ao eBook completo por apenas:</p>
                 <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 19,00</p>
-                <button class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg">
-                    <i class="fas fa-book-open mr-2"></i> Comprar Agora
+                <!-- ===== BOTÃO MODIFICADO PARA PAGAMENTO PIX ===== -->
+                <button id="buy-button" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
+                    <i class="fa-brands fa-pix mr-3"></i> Pagar com PIX
                 </button>
+                <p id="buy-button-message" class="text-sm text-gray-400 mt-2 h-5"></p>
             </div>
             
             <div class="mt-8 flex items-center justify-center space-x-4 text-emerald-400">
@@ -278,7 +279,7 @@
         <p class="text-xs text-gray-600 mt-2">Este é um site de vendas fictício criado para fins de demonstração.</p>
     </footer>
 
-    <!-- Modal -->
+    <!-- Modal Antigo -->
     <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center p-4 z-50">
         <div id="modal-content" class="modal-content bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-t-4">
             <h3 id="modal-title" class="text-3xl font-bold mb-4"></h3>
@@ -286,12 +287,35 @@
             <button onclick="closeModal()" class="px-6 py-2 bg-yellow-500 text-gray-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors">Fechar</button>
         </div>
     </div>
+    
+    <!-- ===== NOVO MODAL PARA O PIX ===== -->
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="pix-modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
+            <button onclick="closePixModal()" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
+            <div class="relative">
+                <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
+            <p class="text-xs text-gray-500 mt-6">Após o pagamento, você receberá o acesso ao e-book no e-mail fornecido.</p>
+        </div>
+    </div>
 
-    <!-- Firebase SDKs - Removidos os desnecessários para esta página -->
+    <!-- Firebase SDKs - Adicionado o SDK do Functions -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script> <!-- NOVO -->
     <script src="firebase-config.js"></script>
 
     <script>
+        // --- SCRIPT DO MODAL ANTIGO ---
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
@@ -321,7 +345,7 @@
         window.addEventListener('keydown', (e) => e.key === 'Escape' && closeModal());
         modal.addEventListener('click', (e) => e.target === modal && closeModal());
         
-        // --- SCRIPT DO LEITOR DE ÁUDIO MELHORADO ---
+        // --- SCRIPT DO LEITOR DE ÁUDIO ---
         document.addEventListener('DOMContentLoaded', () => {
             const audio = document.getElementById('podcast-audio');
             const playPauseBtn = document.getElementById('play-pause-btn');
@@ -335,79 +359,35 @@
             playPauseBtn.addEventListener('click', () => {
                 if (audio.paused) {
                     audio.play().catch(e => {
-                         // A reprodução pode falhar se o usuário não interagiu com a página
                          console.error("Erro ao tentar reproduzir o áudio:", e);
-                         audioStatus.innerHTML = `<span class="text-red-500">Falha ao iniciar a reprodução. Interaja com a página e tente novamente.</span>`;
+                         audioStatus.innerHTML = `<span class="text-red-500">Falha ao iniciar. Interaja com a página e tente novamente.</span>`;
                     });
                 } else {
                     audio.pause();
                 }
             });
 
-            audio.addEventListener('playing', () => {
-                playPauseBtn.innerHTML = pauseIcon;
-            });
-
-            audio.addEventListener('pause', () => {
-                playPauseBtn.innerHTML = playIcon;
-            });
-            
+            audio.addEventListener('playing', () => { playPauseBtn.innerHTML = pauseIcon; });
+            audio.addEventListener('pause', () => { playPauseBtn.innerHTML = playIcon; });
             audio.addEventListener('error', (e) => {
-                console.error("Erro detalhado no elemento de áudio:", e);
-                console.dir(audio.error); // Mostra o objeto de erro completo no console
-
-                let errorMessage = "Erro ao carregar o áudio.";
-                
-                if (audio.error) {
-                    switch (audio.error.code) {
-                        case audio.error.MEDIA_ERR_ABORTED:
-                            errorMessage += " A busca foi abortada.";
-                            break;
-                        case audio.error.MEDIA_ERR_NETWORK:
-                            errorMessage += " Erro de rede. Verifique sua conexão.";
-                            break;
-                        case audio.error.MEDIA_ERR_DECODE:
-                            errorMessage += " Erro na decodificação do arquivo.";
-                            break;
-                        case audio.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                            errorMessage += " Formato de áudio não suportado.";
-                            break;
-                        default:
-                            errorMessage += " Ocorreu um erro desconhecido.";
-                            break;
-                    }
-                }
-                // A mensagem de erro de CORS geralmente aparece no console principal do navegador, não aqui.
-                // Um erro de rede (MEDIA_ERR_NETWORK) é um forte indicador de um problema de CORS.
-                errorMessage += "<br><b>Verifique o console do navegador (F12) para possíveis erros de CORS.</b>";
-
-                audioStatus.innerHTML = `<span class="text-red-500">${errorMessage}</span>`;
-                playPauseBtn.disabled = true; // Desabilita o botão em caso de erro
+                console.error("Erro detalhado no elemento de áudio:", audio.error);
+                audioStatus.innerHTML = `<span class="text-red-500">Erro ao carregar o áudio. Verifique a consola (F12).</span>`;
+                playPauseBtn.disabled = true;
             });
-
             audio.addEventListener('timeupdate', () => {
                 const progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) * 100 : 0;
                 progressBar.value = progress;
                 currentTimeEl.textContent = formatTime(audio.currentTime);
             });
-
-            audio.addEventListener('loadedmetadata', () => {
-                durationEl.textContent = formatTime(audio.duration);
-            });
-
+            audio.addEventListener('loadedmetadata', () => { durationEl.textContent = formatTime(audio.duration); });
             progressBar.addEventListener('input', () => {
-                if(audio.duration > 0) {
-                    const time = (progressBar.value / 100) * audio.duration;
-                    audio.currentTime = time;
-                }
+                if(audio.duration > 0) { audio.currentTime = (progressBar.value / 100) * audio.duration; }
             });
-            
             audio.addEventListener('ended', () => {
                 playPauseBtn.innerHTML = playIcon;
                 progressBar.value = 0;
                 audio.currentTime = 0;
             });
-
             function formatTime(seconds) {
                 if (isNaN(seconds) || seconds < 0) return "0:00";
                 const minutes = Math.floor(seconds / 60);
@@ -415,7 +395,87 @@
                 return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
             }
         });
-    </script>
 
+        // ===== NOSSO NOVO SCRIPT DE PAGAMENTO PIX =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializa o Firebase Functions
+            const functions = firebase.functions();
+            const createPixPayment = functions.httpsCallable('createPixPayment');
+
+            // Elementos da página
+            const buyButton = document.getElementById('buy-button');
+            const buyButtonMessage = document.getElementById('buy-button-message');
+            const pixModal = document.getElementById('pix-modal');
+            const pixQrCodeImg = document.getElementById('pix-qrcode');
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+
+            // Função para fechar o modal PIX
+            window.closePixModal = function() {
+                pixModal.classList.remove('flex');
+                setTimeout(() => pixModal.classList.remove('opacity-100'), 10);
+            }
+            
+            // Função para copiar o código PIX
+            window.copyPixCode = function() {
+                pixCodeInput.select();
+                // Usando document.execCommand para compatibilidade em iframes
+                try {
+                    document.execCommand('copy');
+                    copyMessage.textContent = 'Código copiado!';
+                    setTimeout(() => { copyMessage.textContent = '' }, 2000);
+                } catch (err) {
+                    console.error('Não foi possível copiar o código:', err);
+                    copyMessage.textContent = 'Erro ao copiar!';
+                }
+            }
+
+            // Evento de clique no botão de compra
+            buyButton.addEventListener('click', async () => {
+                // Para a versão final, crie campos de formulário para isto
+                const userFirstName = prompt("Por favor, digite seu primeiro nome:");
+                const userEmail = prompt("Agora, seu melhor e-mail para receber o livro:");
+
+                if (!userFirstName || !userEmail) {
+                    buyButtonMessage.textContent = "Nome e e-mail são necessários.";
+                    setTimeout(() => { buyButtonMessage.textContent = '' }, 3000);
+                    return;
+                }
+
+                // Desabilita o botão e mostra mensagem de carregamento
+                buyButton.disabled = true;
+                buyButtonMessage.textContent = 'A gerar o seu PIX...';
+
+                try {
+                    // Chama a nossa função na nuvem
+                    const result = await createPixPayment({
+                        firstName: userFirstName,
+                        email: userEmail,
+                        price: 19.00, // Preço do produto
+                        productName: "E-book: Resolva ou Reclama?"
+                    });
+                    
+                    // Preenche o modal com os dados do PIX recebidos
+                    pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                    pixCodeInput.value = result.data.qrCode;
+
+                    // Mostra o modal
+                    pixModal.classList.add('flex');
+                    setTimeout(() => pixModal.classList.add('opacity-100'), 10);
+
+                } catch (error) {
+                    console.error("Erro ao chamar a função:", error);
+                    buyButtonMessage.textContent = `Erro: ${error.message}`;
+                } finally {
+                    // Habilita o botão novamente e limpa a mensagem
+                    buyButton.disabled = false;
+                    // Limpa a mensagem de carregamento, mas mantém a de erro se houver
+                    if (buyButtonMessage.textContent === 'A gerar o seu PIX...') {
+                        buyButtonMessage.textContent = '';
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
