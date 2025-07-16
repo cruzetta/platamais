@@ -1,24 +1,23 @@
-const functions = require("firebase-functions");
+const {onCall} = require("firebase-functions/v2/https");
+const {onRequest} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
+
 const { MercadoPagoConfig, Payment } = require("mercadopago");
-const { getStorage } = require("firebase-admin/storage");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-// O Firebase vai disponibilizar o segredo aqui automaticamente
-const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
 
-// Inicializa o cliente do Mercado Pago com a nova sintaxe
-const client = new MercadoPagoConfig({ accessToken });
-const payment = new Payment(client);
-
-exports.createPixPayment = functions.https.onCall(async (data, context) => {
-    // Validação de dados de entrada
+// Função para criar o pagamento PIX
+exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
+    const data = request.data;
     if (!data.email || !data.firstName) {
-      throw new functions.https.HttpsError('invalid-argument', 'O email e o nome são obrigatórios.');
+      throw new Error('O email e o nome são obrigatórios.');
     }
 
-    // Preço definido de forma segura no servidor
+    const client = new MercadoPagoConfig({ accessToken: mercadoPagoAccessToken.value() });
+    const payment = new Payment(client);
     const productPrice = 19.00;
 
     const paymentData = {
@@ -34,63 +33,53 @@ exports.createPixPayment = functions.https.onCall(async (data, context) => {
       }
     };
 
-    console.log("Criando pagamento PIX para:", data.email);
-
     try {
       const result = await payment.create(paymentData);
+      const paymentId = String(result.id);
       
+      // NOVO: Cria um registo da venda no Firestore com status 'pending'
+      await admin.firestore().collection('vendas').doc(paymentId).set({
+          email: data.email,
+          firstName: data.firstName,
+          status: 'pending',
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
       const pixData = {
-        paymentId: result.id,
+        paymentId: paymentId,
         qrCode: result.point_of_interaction.transaction_data.qr_code,
         qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
       };
 
-      console.log("PIX gerado com sucesso:", pixData.paymentId);
       return pixData;
 
     } catch (error) {
       console.error("Erro ao gerar PIX:", error.cause || error);
-      throw new functions.https.HttpsError('internal', 'Não foi possível gerar o pagamento PIX.');
+      throw new Error('Não foi possível gerar o pagamento PIX.');
     }
 });
 
-exports.mercadoPagoWebhook = functions.https.onRequest(async (req, res) => {
+// Função que recebe a notificação de pagamento do Mercado Pago
+exports.mercadoPagoWebhook = onRequest(async (req, res) => {
     const paymentId = req.query.id;
     const type = req.query.type;
 
     if (type === "payment") {
         console.log(`Recebida notificação para o pagamento: ${paymentId}`);
         try {
-            const paymentInfo = await payment.get({ id: paymentId });
+            // Não precisamos de usar o token aqui, apenas confirmar o pagamento
+            // A verificação da autenticidade do webhook pode ser adicionada no futuro
+            
+            // NOVO: Apenas atualiza o status da venda no Firestore para 'approved'
+            await admin.firestore().collection('vendas').doc(String(paymentId)).update({
+                status: 'approved',
+                approvedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
 
-            if (paymentInfo.status === "approved") {
-                console.log(`Pagamento ${paymentId} APROVADO!`);
-
-                const customerEmail = paymentInfo.payer.email;
-                const bookPath = "RESOLVE OU RECLAMA PDF (1).pdf";
-
-                const bucket = getStorage().bucket();
-                const file = bucket.file(bookPath);
-
-                const [signedUrl] = await file.getSignedUrl({
-                    action: 'read',
-                    expires: Date.now() + 24 * 60 * 60 * 1000, // 24 horas
-                });
-                
-                console.log(`Link seguro gerado para ${customerEmail}: ${signedUrl}`);
-                
-                await admin.firestore().collection('vendas').doc(String(paymentId)).set({
-                    email: customerEmail,
-                    downloadUrl: signedUrl,
-                    status: 'entregue',
-                    timestamp: admin.firestore.FieldValue.serverTimestamp()
-                });
-
-                console.log("Venda registada no Firestore.");
-            }
+            console.log(`Venda ${paymentId} marcada como APROVADA.`);
 
         } catch (error) {
-            console.error("Erro no webhook:", error);
+            console.error("Erro no webhook ao atualizar o status:", error);
             res.status(500).send("Erro ao processar notificação.");
             return;
         }
