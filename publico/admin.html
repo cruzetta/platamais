@@ -13,19 +13,157 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Lucide Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide-element@0.395.0/dist/lucide-element.min.js"></script>
-
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            display: none; /* Esconde o corpo para evitar "piscar" antes da autenticação */
         }
         .modal-overlay { transition: opacity 0.3s ease; }
         .modal-container { transition: transform 0.3s ease, opacity 0.3s ease; }
         .toast { transition: transform 0.3s ease, opacity 0.3s ease; }
         [x-cloak] { display: none !important; }
     </style>
+
+    <!-- =============================================== -->
+    <!-- SCRIPTS MOVIMOS PARA O HEAD PARA CARREGAMENTO ROBUSTO -->
+    <!-- =============================================== -->
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide-element@0.395.0/dist/lucide-element.min.js"></script>
+
+    <!-- Definição do Componente Alpine -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('adminPanel', () => ({
+                // Propriedades do estado
+                user: null,
+                userEmail: '',
+                products: [],
+                isLoading: true,
+                isSaving: false,
+                isModalOpen: false,
+                
+                // Propriedades do Modal
+                modal: {
+                    isEditing: false,
+                    product: { id: null, nome: '', preco: null, caminhoDoFicheiro: '' }
+                },
+
+                // Propriedades do Toast
+                toast: { show: false, message: '', type: 'success' },
+
+                // Inicialização
+                init() {
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            this.user = user;
+                            this.userEmail = user.email;
+                            this.fetchProducts();
+                        } else {
+                            window.location.href = 'login.html';
+                        }
+                    });
+                },
+
+                // Métodos de dados
+                fetchProducts() {
+                    this.isLoading = true;
+                    db.collection('products')
+                      .where('ownerUid', '==', this.user.uid)
+                      .onSnapshot(querySnapshot => {
+                          this.products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                          this.isLoading = false;
+                      }, error => {
+                          console.error("Erro ao buscar produtos: ", error);
+                          this.showToast('Erro ao carregar produtos.', 'error');
+                          this.isLoading = false;
+                      });
+                },
+
+                async saveProduct() {
+                    if (this.isSaving) return;
+                    this.isSaving = true;
+
+                    const productData = {
+                        nome: this.modal.product.nome,
+                        preco: parseFloat(this.modal.product.preco),
+                        caminhoDoFicheiro: this.modal.product.caminhoDoFicheiro,
+                        ownerUid: this.user.uid,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    try {
+                        if (this.modal.isEditing) {
+                            await db.collection('products').doc(this.modal.product.id).update(productData);
+                            this.showToast('Produto atualizado com sucesso!');
+                        } else {
+                            productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                            await db.collection('products').add(productData);
+                            this.showToast('Produto adicionado com sucesso!');
+                        }
+                        this.closeModal();
+                    } catch (error) {
+                        console.error("Erro ao salvar produto: ", error);
+                        this.showToast('Erro ao salvar o produto.', 'error');
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+
+                confirmDelete(productId) {
+                    if (confirm('Tem a certeza que quer apagar este produto? Esta ação não pode ser desfeita.')) {
+                        this.deleteProduct(productId);
+                    }
+                },
+
+                async deleteProduct(productId) {
+                    try {
+                        await db.collection('products').doc(productId).delete();
+                        this.showToast('Produto apagado com sucesso!');
+                    } catch (error) {
+                        console.error("Erro ao apagar produto: ", error);
+                        this.showToast('Erro ao apagar o produto.', 'error');
+                    }
+                },
+
+                // Métodos de UI
+                openModal(product = null) {
+                    if (product) {
+                        this.modal.isEditing = true;
+                        this.modal.product = { ...product };
+                    } else {
+                        this.modal.isEditing = false;
+                        this.modal.product = { id: null, nome: '', preco: null, caminhoDoFicheiro: '' };
+                    }
+                    this.isModalOpen = true;
+                },
+
+                closeModal() {
+                    this.isModalOpen = false;
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
+                logout() {
+                    auth.signOut().catch(error => console.error('Erro ao sair:', error));
+                }
+            }));
+        });
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased" x-data="adminPanel" x-cloak>
 
@@ -145,138 +283,5 @@
          x-transition:leave-end="translate-x-full opacity-0">
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="firebase-config.js"></script>
-    <!-- Alpine.js -->
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('adminPanel', () => ({
-                // Propriedades do estado
-                user: null,
-                userEmail: '',
-                products: [],
-                isLoading: true,
-                isSaving: false,
-                isModalOpen: false,
-                
-                // Propriedades do Modal
-                modal: {
-                    isEditing: false,
-                    product: { id: null, nome: '', preco: null, caminhoDoFicheiro: '' }
-                },
-
-                // Propriedades do Toast
-                toast: { show: false, message: '', type: 'success' },
-
-                // Inicialização
-                init() {
-                    auth.onAuthStateChanged(user => {
-                        if (user) {
-                            this.user = user;
-                            this.userEmail = user.email;
-                            document.body.style.display = 'block';
-                            this.fetchProducts();
-                        } else {
-                            window.location.href = 'login.html';
-                        }
-                    });
-                },
-
-                // Métodos de dados
-                fetchProducts() {
-                    this.isLoading = true;
-                    db.collection('products')
-                      .where('ownerUid', '==', this.user.uid)
-                      .onSnapshot(querySnapshot => {
-                          this.products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                          this.isLoading = false;
-                      }, error => {
-                          console.error("Erro ao buscar produtos: ", error);
-                          this.showToast('Erro ao carregar produtos.', 'error');
-                          this.isLoading = false;
-                      });
-                },
-
-                async saveProduct() {
-                    if (this.isSaving) return;
-                    this.isSaving = true;
-
-                    const productData = {
-                        nome: this.modal.product.nome,
-                        preco: parseFloat(this.modal.product.preco),
-                        caminhoDoFicheiro: this.modal.product.caminhoDoFicheiro,
-                        ownerUid: this.user.uid,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-
-                    try {
-                        if (this.modal.isEditing) {
-                            await db.collection('products').doc(this.modal.product.id).update(productData);
-                            this.showToast('Produto atualizado com sucesso!');
-                        } else {
-                            productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                            await db.collection('products').add(productData);
-                            this.showToast('Produto adicionado com sucesso!');
-                        }
-                        this.closeModal();
-                    } catch (error) {
-                        console.error("Erro ao salvar produto: ", error);
-                        this.showToast('Erro ao salvar o produto.', 'error');
-                    } finally {
-                        this.isSaving = false;
-                    }
-                },
-
-                confirmDelete(productId) {
-                    if (confirm('Tem a certeza que quer apagar este produto? Esta ação não pode ser desfeita.')) {
-                        this.deleteProduct(productId);
-                    }
-                },
-
-                async deleteProduct(productId) {
-                    try {
-                        await db.collection('products').doc(productId).delete();
-                        this.showToast('Produto apagado com sucesso!');
-                    } catch (error) {
-                        console.error("Erro ao apagar produto: ", error);
-                        this.showToast('Erro ao apagar o produto.', 'error');
-                    }
-                },
-
-                // Métodos de UI
-                openModal(product = null) {
-                    if (product) {
-                        this.modal.isEditing = true;
-                        this.modal.product = { ...product };
-                    } else {
-                        this.modal.isEditing = false;
-                        this.modal.product = { id: null, nome: '', preco: null, caminhoDoFicheiro: '' };
-                    }
-                    this.isModalOpen = true;
-                },
-
-                closeModal() {
-                    this.isModalOpen = false;
-                },
-
-                showToast(message, type = 'success') {
-                    this.toast.message = message;
-                    this.toast.type = type;
-                    this.toast.show = true;
-                    setTimeout(() => this.toast.show = false, 3000);
-                },
-
-                logout() {
-                    auth.signOut().catch(error => console.error('Erro ao sair:', error));
-                }
-            }));
-        });
-    </script>
 </body>
 </html>
