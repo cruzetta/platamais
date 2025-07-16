@@ -82,7 +82,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Referências aos elementos do DOM
             const dashboardSection = document.getElementById('dashboard-section');
             const userEmailEl = document.getElementById('user-email');
             const addProductButton = document.getElementById('add-product-button');
@@ -101,14 +100,11 @@
             
             let currentUser;
 
-            // **CORREÇÃO:** Os event listeners são adicionados imediatamente.
-            // Eles vão funcionar sempre, independentemente do estado de login.
             addProductButton.addEventListener('click', () => openModal());
             logoutButton.addEventListener('click', () => auth.signOut());
             cancelButton.addEventListener('click', closeModal);
             productForm.addEventListener('submit', saveProduct);
 
-            // A lógica de autenticação agora só controla a visibilidade e o carregamento dos dados.
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user;
@@ -124,13 +120,16 @@
                 loadingIndicator.style.display = 'block';
                 db.collection('products').where('ownerUid', '==', currentUser.uid)
                   .onSnapshot(querySnapshot => {
-                    productsList.innerHTML = ''; // Limpa a lista
+                    productsList.innerHTML = '';
                     loadingIndicator.style.display = 'none';
                     if (querySnapshot.empty) {
                         productsList.innerHTML = '<p class="text-gray-500 col-span-full text-center">Nenhum produto cadastrado.</p>';
                     } else {
                         querySnapshot.forEach(doc => renderProductCard({ id: doc.id, ...doc.data() }));
                     }
+                }, error => {
+                    console.error("Erro ao buscar produtos: ", error);
+                    loadingIndicator.textContent = 'Erro ao carregar produtos.';
                 });
             }
 
@@ -176,9 +175,8 @@
 
             async function saveProduct(e) {
                 e.preventDefault();
-                // A verificação de 'currentUser' garante que a função só executa se o utilizador estiver logado.
                 if (!currentUser) {
-                    alert("Erro: Utilizador não autenticado.");
+                    alert("Erro: Utilizador não autenticado. Por favor, faça login novamente.");
                     return;
                 }
                 saveButton.disabled = true;
@@ -189,7 +187,7 @@
                     nome: productNameInput.value,
                     preco: parseFloat(productPriceInput.value),
                     paginaUrl: productPageUrlInput.value.trim(),
-                    ownerUid: currentUser.uid,
+                    ownerUid: currentUser.uid, // Garante que o ID do dono é sempre adicionado
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
@@ -202,7 +200,9 @@
                     }
                     closeModal();
                 } catch (error) {
-                    console.error("Erro ao salvar: ", error);
+                    console.error("Erro ao salvar o produto: ", error);
+                    // **AQUI ESTÁ A CORREÇÃO IMPORTANTE**
+                    alert("Não foi possível salvar o produto. Erro: " + error.message);
                 } finally {
                     saveButton.disabled = false;
                     saveButton.textContent = 'Salvar';
