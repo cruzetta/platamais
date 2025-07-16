@@ -318,7 +318,7 @@
             <div id="pix-container" class="flex justify-center">
                  <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
             </div>
-            <div id="pix-copy-paste" class="hidden">
+            <div id="pix-copy-paste" class="mt-4">
                 <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
                 <div class="relative">
                     <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
@@ -328,7 +328,11 @@
                 </div>
                 <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
             </div>
-            <p class="text-xs text-gray-500 mt-6">Após o pagamento, você será redirecionado para o WhatsApp para receber seu livro.</p>
+            <!-- NOVO BOTÃO DE VERIFICAÇÃO -->
+            <button id="check-payment-button" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar Agora!
+            </button>
+            <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
         </div>
     </div>
 
@@ -395,7 +399,6 @@
 
             // --- LÓGICA DOS MODAIS ---
             
-            // Função genérica para abrir um modal
             function openModal(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
@@ -403,7 +406,6 @@
                     setTimeout(() => modal.classList.add('opacity-100'), 10);
                 }
             }
-            // Torna a função de fechar global para ser chamada pelo HTML
             window.closeModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
@@ -412,7 +414,6 @@
                 }
             }
 
-            // Lógica para o modal informativo
             const infoModal = document.getElementById('info-modal');
             if(infoModal) {
                 const infoModalContent = document.getElementById('info-modal-content');
@@ -435,9 +436,9 @@
             }
 
             // --- LÓGICA DE PAGAMENTO PIX ---
-            const db = firebase.firestore();
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
+            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
 
             const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
@@ -446,14 +447,13 @@
             const pixCodeInput = document.getElementById('pix-code-input');
             const copyMessage = document.getElementById('copy-message');
             const pixQrCodeImg = document.getElementById('pix-qrcode');
-            
             const pixTitle = document.getElementById('pix-title');
             const pixSubtitle = document.getElementById('pix-subtitle');
-            const pixContainer = document.getElementById('pix-container');
-            const pixCopyPaste = document.getElementById('pix-copy-paste');
-
-
-            let unsubscribe; // Variável para guardar a função de cancelamento do listener
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            const checkPaymentMessage = document.getElementById('check-payment-message');
+            
+            let currentPaymentId = null;
+            let currentUserName = null;
 
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
@@ -465,10 +465,10 @@
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
-                    const userFirstName = document.getElementById('firstName').value;
+                    currentUserName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
 
-                    if (!userFirstName.trim() || !userEmail.trim()) {
+                    if (!currentUserName.trim() || !userEmail.trim()) {
                         formMessage.textContent = 'Por favor, preencha todos os campos.';
                         return;
                     }
@@ -478,24 +478,19 @@
 
                     try {
                         const payload = {
-                            firstName: userFirstName,
+                            firstName: currentUserName,
                             email: userEmail,
                             productName: "E-book: Resolva ou Reclama?"
                         };
                         
-                        console.log("A chamar a função 'createPixPayment' com os seguintes dados:", payload);
-
                         const result = await createPixPayment(payload);
-                        const paymentId = result.data.paymentId;
+                        currentPaymentId = result.data.paymentId;
                         
                         pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                         pixCodeInput.value = result.data.qrCode;
 
                         closeModal('user-info-modal');
                         openModal('pix-modal');
-
-                        // Inicia o listener para o status do pagamento
-                        listenForPaymentApproval(paymentId, userFirstName);
 
                     } catch (error) {
                         console.error("Erro ao chamar a função:", error);
@@ -508,47 +503,48 @@
                     }
                 });
             }
-            
-            function listenForPaymentApproval(paymentId, userName) {
-                // Cancela qualquer listener anterior
-                if (unsubscribe) {
-                    unsubscribe();
-                }
 
-                pixTitle.textContent = "Aguardando Pagamento...";
-                pixSubtitle.textContent = "Assim que o pagamento for confirmado, você será redirecionado.";
-                pixContainer.classList.remove('hidden');
-                pixCopyPaste.classList.remove('hidden');
+            if(checkPaymentButton) {
+                checkPaymentButton.addEventListener('click', async () => {
+                    if (!currentPaymentId) return;
 
-                unsubscribe = db.collection('vendas').doc(paymentId)
-                    .onSnapshot((doc) => {
-                        console.log("Recebida atualização do Firestore: ", doc.data());
-                        if (doc.exists && doc.data().status === 'approved') {
-                            console.log("Pagamento APROVADO! Redirecionando...");
-                            
-                            // Para o listener para não ser chamado novamente
-                            unsubscribe();
+                    checkPaymentButton.disabled = true;
+                    checkPaymentMessage.textContent = "A verificar...";
 
-                            // Monta a mensagem para o WhatsApp
-                            const seuNumero = "5567999093031"; // SUBSTITUA PELO SEU NÚMERO COM CÓDIGO DO PAÍS
-                            const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
-                            const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
-                            
-                            // Mostra mensagem de sucesso e redireciona
-                            pixTitle.textContent = "Pagamento Aprovado!";
-                            pixSubtitle.textContent = "A redirecionar para o WhatsApp...";
-                            pixContainer.classList.add('hidden');
-                            pixCopyPaste.classList.add('hidden');
-
-                            setTimeout(() => {
-                                window.location.href = whatsappUrl;
-                            }, 2000); // Espera 2 segundos antes de redirecionar
+                    try {
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToWhatsApp(currentPaymentId, currentUserName);
+                        } else {
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em alguns segundos.";
                         }
-                    }, (error) => {
-                        console.error("Erro no listener do Firestore: ", error);
-                    });
+                    } catch (error) {
+                        console.error("Erro ao verificar pagamento:", error);
+                        checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                    } finally {
+                        setTimeout(() => {
+                           checkPaymentButton.disabled = false;
+                           checkPaymentMessage.textContent = "";
+                        }, 3000);
+                    }
+                });
             }
+            
+            function redirectToWhatsApp(paymentId, userName) {
+                const seuNumero = "5567999093031"; // SUBSTITUA PELO SEU NÚMERO COM CÓDIGO DO PAÍS
+                const mensagem = encodeURIComponent(`Olá Victor! Meu nome é ${userName} e acabei de comprar o e-book "Resolve ou Reclama?". Pagamento efetuado com sucesso! (ID: ${paymentId})`);
+                const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
+                
+                pixTitle.textContent = "Pagamento Aprovado!";
+                pixSubtitle.textContent = "A redirecionar para o WhatsApp...";
+                checkPaymentButton.style.display = 'none';
+                document.getElementById('pix-container').style.display = 'none';
+                document.getElementById('pix-copy-paste').style.display = 'none';
 
+                setTimeout(() => {
+                    window.location.href = whatsappUrl;
+                }, 2000);
+            }
 
             window.copyPixCode = function() {
                 pixCodeInput.select();
