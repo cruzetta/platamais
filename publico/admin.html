@@ -61,6 +61,10 @@
                         <label for="product-price" class="block text-sm font-medium text-gray-700">Preço (ex: 19.90)</label>
                         <input type="number" step="0.01" id="product-price" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                     </div>
+                     <div>
+                        <label for="product-description" class="block text-sm font-medium text-gray-700">Descrição Curta (Prévia)</label>
+                        <textarea id="product-description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="Escreva uma prévia que aparecerá na página inicial."></textarea>
+                    </div>
                     <div>
                         <label for="product-page-url" class="block text-sm font-medium text-gray-700">URL da Página de Vendas (Opcional)</label>
                         <input type="text" id="product-page-url" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" placeholder="Deixe em branco para usar o modelo padrão">
@@ -94,6 +98,7 @@
             const productIdInput = document.getElementById('product-id');
             const productNameInput = document.getElementById('product-name');
             const productPriceInput = document.getElementById('product-price');
+            const productDescriptionInput = document.getElementById('product-description');
             const productPageUrlInput = document.getElementById('product-page-url');
             const cancelButton = document.getElementById('cancel-button');
             const saveButton = document.getElementById('save-button');
@@ -133,10 +138,10 @@
             function renderProductCard(product) {
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-lg shadow-md p-6 flex flex-col justify-between';
-                // **CORREÇÃO:** Adicionado o campo "ID do Produto" para ser fácil de copiar.
                 card.innerHTML = `
                     <div>
                         <h3 class="font-bold text-lg mb-2">${product.nome}</h3>
+                        <p class="text-gray-600 text-sm mb-2">${product.descricao || '<i>Sem descrição</i>'}</p>
                         <p class="text-gray-500 text-sm mb-1"><strong>Preço:</strong> R$ ${product.preco ? product.preco.toFixed(2) : '0.00'}</p>
                         <p class="text-gray-500 text-sm mb-2"><strong>Página de Vendas:</strong> <a href="${product.paginaUrl || `produto.html?id=${product.id}`}" target="_blank" class="text-indigo-600 hover:underline">${product.paginaUrl || 'Padrão'}</a></p>
                         <p class="text-gray-500 text-sm mb-4"><strong>ID do Produto:</strong> <code class="text-xs bg-gray-200 p-1 rounded select-all">${product.id}</code></p>
@@ -160,6 +165,7 @@
                     productIdInput.value = product.id;
                     productNameInput.value = product.nome;
                     productPriceInput.value = product.preco;
+                    productDescriptionInput.value = product.descricao || '';
                     productPageUrlInput.value = product.paginaUrl || '';
                 } else {
                     modalTitle.textContent = 'Adicionar Novo Produto';
@@ -185,6 +191,7 @@
                 const productData = {
                     nome: productNameInput.value,
                     preco: parseFloat(productPriceInput.value),
+                    descricao: productDescriptionInput.value.trim(),
                     paginaUrl: productPageUrlInput.value.trim(),
                     ownerUid: currentUser.uid,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
