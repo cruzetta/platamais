@@ -1,16 +1,63 @@
-const {onCall} = require("firebase-functions/v2/https");
-const {onRequest} = require("firebase-functions/v2/https");
-const {defineSecret} = require("firebase-functions/params");
-
-const { MercadoPagoConfig, Payment } = require("mercadopago");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-// A linha do Storage já não é necessária aqui, mas podemos manter para o futuro.
+const { MercadoPagoConfig, Payment } = require("mercadopago");
 const { getStorage } = require("firebase-admin/storage");
+
+// Importe o SDK do Google AI
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
 const db = admin.firestore();
 
+// --- SEGREDOS ---
+// Defina os segredos para as chaves de API. Você precisará configurá-los no seu projeto Firebase.
+// Rode: firebase functions:secrets:set MERCADO_PAGO_ACCESS_TOKEN e firebase functions:secrets:set GEMINI_API_KEY
 const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
+
+
+// ===================================================================
+// NOVA FUNÇÃO PROXY PARA O GEMINI API
+// ===================================================================
+exports.generateWithGemini = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    // Pega o prompt enviado pelo cliente
+    const { prompt, isJson } = request.data;
+
+    if (!prompt) {
+        throw new HttpsError('invalid-argument', 'O prompt é obrigatório.');
+    }
+
+    // Inicializa o cliente do Google AI com a chave de API segura
+    const genAI = new GoogleGenerativeAI(geminiApiKey.value());
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+    try {
+        let generationConfig = {};
+        if (isJson) {
+            generationConfig = {
+                responseMimeType: "application/json",
+            };
+        }
+
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: generationConfig,
+        });
+
+        const response = result.response;
+        const text = response.text();
+        return { text: text };
+
+    } catch (error) {
+        console.error("Erro ao chamar a API do Gemini:", error);
+        throw new HttpsError('internal', 'Não foi possível gerar o conteúdo.', error);
+    }
+});
+
+
+// --- SUAS FUNÇÕES EXISTENTES DO MERCADO PAGO ---
 
 /**
  * Cria um pagamento PIX buscando os detalhes do produto no Firestore.
@@ -18,7 +65,7 @@ const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
 exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const data = request.data;
     if (!data.email || !data.firstName || !data.productId) {
-      throw new Error('Email, nome e ID do produto são obrigatórios.');
+      throw new HttpsError('invalid-argument', 'Email, nome e ID do produto são obrigatórios.');
     }
 
     const productRef = db.collection('products').doc(data.productId);
@@ -26,7 +73,7 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
 
     if (!productSnap.exists) {
         console.error(`Produto com ID ${data.productId} não encontrado.`);
-        throw new Error('Produto não encontrado.');
+        throw new HttpsError('not-found', 'Produto não encontrado.');
     }
 
     const productData = productSnap.data();
@@ -79,7 +126,7 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
 
     } catch (error) {
       console.error("Erro ao gerar PIX:", error.cause || error);
-      throw new Error('Não foi possível gerar o pagamento PIX.');
+      throw new HttpsError('internal', 'Não foi possível gerar o pagamento PIX.');
     }
 });
 
@@ -117,12 +164,11 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, as
 
 /**
  * Apenas verifica o status de um pagamento.
- * Renomeada de volta para um nome mais simples, pois não gera mais o link.
  */
 exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
     const paymentId = request.data.paymentId;
     if (!paymentId) {
-        throw new Error("ID do pagamento é obrigatório.");
+        throw new HttpsError("invalid-argument", "ID do pagamento é obrigatório.");
     }
 
     try {
@@ -130,7 +176,6 @@ exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async
         const payment = new Payment(client);
         const paymentInfo = await payment.get({ id: paymentId });
         
-        // Se o pagamento for aprovado, atualiza o status no Firestore para 'delivered'
         if (paymentInfo.status === 'approved') {
              await db.collection('vendas').doc(paymentId).update({
                 status: 'delivered',
@@ -142,6 +187,6 @@ exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async
 
     } catch (error) {
         console.error(`Erro ao verificar status do pagamento ${paymentId}:`, error.cause || error);
-        throw new Error('Não foi possível verificar o status do pagamento.');
+        throw new HttpsError('internal', 'Não foi possível verificar o status do pagamento.');
     }
 });

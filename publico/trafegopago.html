@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tráfego IA - Estratégia de Precisão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* bg-slate-950 */
+            color: #f9fafb; /* text-gray-50 */
+            overflow: hidden;
+        }
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #app-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.1), transparent 70%);
+            z-index: -2;
+        }
+        .scanline-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 98%, rgba(255,255,255,0.1) 99%, rgba(0,0,0,0) 100%);
+            background-size: 100% 4px;
+            animation: scan 10s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        @keyframes scan {
+            from { background-position: 0 0; }
+            to { background-position: 0 100%; }
+        }
+        #login-screen {
+            background: transparent;
+            transition: opacity 0.7s ease-out, filter 0.7s ease-out;
+        }
+        #enterBtn {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), 0 0 30px rgba(56, 189, 248, 0.3), 0 0 5px #fff; }
+            50% { box-shadow: 0 0 40px rgba(56, 189, 248, 0.7), 0 0 60px rgba(56, 189, 248, 0.5), 0 0 10px #fff; }
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6); /* bg-slate-900/60 */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.2); /* border-sky-400/20 */
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            animation: fadeInSlideUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .text-glow {
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+        .loader {
+            border: 4px solid #374151; /* border-gray-700 */
+            border-top: 4px solid #22d3ee; /* border-cyan-400 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .prose h3 {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #f9fafb;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+        }
+         .prose h4 {
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #67e8f9; /* text-cyan-300 */
+        }
+        .prose li::before {
+            color: #22d3ee; /* text-cyan-400 */
+        }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal-content { background-color: #1f2937; color: #f9fafb; padding: 20px; border: 1px solid #4b5563; width: 90%; max-width: 500px; border-radius: 10px; text-align: center; }
+        input {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        input::placeholder { color: #9ca3af; }
+
+        /* Typing animation */
+        .typing-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.8rem;
+            background-color: #67e8f9;
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
+        }
+        @keyframes blink {
+            from, to { background-color: transparent; }
+            50% { background-color: #67e8f9; }
+        }
+        
+        /* Rocket Animation */
+        .rocket {
+            animation: rocket-takeoff 4s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        .flame {
+            animation: flame-flicker 150ms ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        .flame2 {
+            animation-delay: 50ms;
+        }
+        .smoke {
+            animation: smoke-expand 4s ease-out infinite;
+            transform-origin: bottom center;
+        }
+
+        @keyframes rocket-takeoff {
+            0% { transform: translateY(0); }
+            20% { transform: translateY(-5px) rotate(0deg); }
+            25% { transform: rotate(2deg); }
+            30% { transform: rotate(-2deg); }
+            35% { transform: rotate(0deg); }
+            80%, 100% { transform: translateY(-250px); opacity: 0; }
+        }
+
+        @keyframes flame-flicker {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.2); }
+        }
+
+        @keyframes smoke-expand {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        
+        /* Tab Styles */
+        .tab-button {
+            background-color: transparent;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #9ca3af;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: rgba(56, 189, 248, 0.2);
+            color: #f9fafb;
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+
+    </style>
+</head>
+<body class="text-gray-200">
+    <div id="app-background"></div>
+    <canvas id="particle-canvas"></canvas>
+    <div class="scanline-overlay"></div>
+
+    <!-- Tela de Login -->
+    <div id="login-screen" class="h-screen w-full flex flex-col justify-center items-center text-white p-4 fixed top-0 left-0 z-50">
+        <div class="text-center">
+            <!-- Rocket SVG Animation -->
+            <div class="w-64 h-80 mx-auto mb-6 relative">
+                <svg id="rocket-svg" class="w-full h-full absolute bottom-0" viewBox="0 0 100 150">
+                    <defs>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Smoke -->
+                    <g class="smoke">
+                        <circle cx="50" cy="140" r="10" fill="white" opacity="0.8"/>
+                        <circle cx="40" cy="145" r="15" fill="white" opacity="0.6"/>
+                        <circle cx="60" cy="145" r="15" fill="white" opacity="0.6"/>
+                        <circle cx="50" cy="150" r="20" fill="white" opacity="0.4"/>
+                    </g>
+                    <!-- Rocket Body -->
+                    <g class="rocket">
+                        <!-- Flames -->
+                        <path class="flame" d="M 40 130 Q 50 150 60 130 L 50 120 Z" fill="#22d3ee" filter="url(#glow)"/>
+                        <path class="flame flame2" d="M 45 130 Q 50 145 55 130 L 50 125 Z" fill="#fff"/>
+                        <!-- Body -->
+                        <path d="M 50 20 L 65 80 L 70 120 L 30 120 L 35 80 Z" fill="#f9fafb"/>
+                        <!-- Tip -->
+                        <path d="M 50 0 L 60 20 L 40 20 Z" fill="#22d3ee"/>
+                        <!-- Fins -->
+                        <path d="M 70 120 L 85 130 L 70 110 Z" fill="#22d3ee"/>
+                        <path d="M 30 120 L 15 130 L 30 110 Z" fill="#22d3ee"/>
+                        <!-- Window -->
+                        <circle cx="50" cy="50" r="8" fill="#020617" stroke="#22d3ee" stroke-width="2"/>
+                        <!-- LOGO EMBEDDED -->
+                        <image href="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" x="38" y="65" height="24" width="24"/>
+                    </g>
+                </svg>
+            </div>
+            <h1 id="main-title" class="text-5xl md:text-7xl font-extrabold mb-2 tracking-tight text-glow"></h1>
+            <p class="text-xl md:text-2xl text-cyan-300 mb-8">O futuro da criação de campanhas de alta performance.</p>
+            <button id="enterBtn" class="bg-white text-blue-700 font-bold text-lg py-3 px-12 rounded-full shadow-2xl transition-transform duration-300 ease-in-out hover:scale-105">
+                Entrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal da Aplicação (Inicialmente Oculto) -->
+    <div id="app-content" class="hidden h-screen overflow-y-auto">
+        <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+            <header class="text-center mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="w-20 h-auto">
+                <div>
+                    <h1 class="text-3xl md:text-5xl font-bold text-white text-glow">Gerador de Estratégias de Precisão 🎯</h1>
+                    <p class="mt-3 text-lg text-cyan-400">Gere planos de campanha com matriz de públicos, testes A/B e KPIs de decisão.</p>
+                </div>
+            </header>
+
+            <div class="glass-card p-6 mb-8 opacity-0" style="animation-delay: 0.2s;">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1">
+                        <label for="product" class="block text-sm font-medium text-gray-300 mb-1">Produto/Serviço</label>
+                        <input type="text" id="product" class="w-full p-3 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400" placeholder="Ex: Software de gestão de projetos">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="audience" class="block text-sm font-medium text-gray-300 mb-1">Público-Alvo</label>
+                        <input type="text" id="audience" class="w-full p-3 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400" placeholder="Ex: Gestores de projetos em empresas de tecnologia">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="budget" class="block text-sm font-medium text-gray-300 mb-1">Valor do Investimento (R$)</label>
+                        <input type="number" id="budget" class="w-full p-3 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400" placeholder="Ex: 5000">
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <button id="generateBtn" class="bg-cyan-500 text-gray-900 font-bold py-3 px-8 rounded-lg hover:bg-cyan-400 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 shadow-lg shadow-cyan-500/50">
+                        <i class="fa-solid fa-file-invoice mr-2"></i>
+                        <span id="generateBtnText">Gerar Estratégia de Precisão</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="results" class="space-y-8">
+                <div id="loader-container" class="hidden flex justify-center items-center">
+                    <div class="loader"></div>
+                </div>
+                <!-- Abas e Conteúdo dos Resultados -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Notificações -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <p id="notificationMessage" class="text-lg mb-6"></p>
+            <button id="closeNotificationBtn" class="bg-cyan-500 text-gray-900 font-bold py-2 px-8 rounded-lg">OK</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script type="module">
+        // Elementos da UI
+        const enterBtn = document.getElementById('enterBtn');
+        const loginScreen = document.getElementById('login-screen');
+        const appContent = document.getElementById('app-content');
+        const generateBtn = document.getElementById('generateBtn');
+        const generateBtnText = document.getElementById('generateBtnText');
+        const resultsContainer = document.getElementById('results');
+        const loaderContainer = document.getElementById('loader-container');
+        const productInput = document.getElementById('product');
+        const audienceInput = document.getElementById('audience');
+        const budgetInput = document.getElementById('budget');
+        const notificationModal = document.getElementById('notificationModal');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const closeNotificationBtn = document.getElementById('closeNotificationBtn');
+        const mainTitle = document.getElementById('main-title');
+
+        let budgetChartInstance = null;
+        let growthChartInstance = null;
+        let timerInterval = null;
+        
+        // Inicializa o Firebase Functions
+        const functions = firebase.app().functions('us-central1');
+        // Prepara a chamada para a nossa nova função segura
+        const generateWithGemini = functions.httpsCallable('generateWithGemini');
+
+
+        // --- Efeitos Sonoros com Tone.js ---
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.set({
+            oscillator: { type: 'fmsine' },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+        });
+
+        const playSound = (note, duration = '8n') => {
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            synth.triggerAttackRelease(note, duration);
+        };
+
+        // --- Animação de Título ---
+        const titleText = "Sistema de Tráfego IA";
+        let charIndex = 0;
+        function typeTitle() {
+            if (charIndex < titleText.length) {
+                mainTitle.innerHTML = titleText.substring(0, charIndex + 1) + '<span class="typing-cursor"></span>';
+                charIndex++;
+                setTimeout(typeTitle, 100);
+            } else {
+                 mainTitle.innerHTML = titleText + '<span class="typing-cursor"></span>';
+            }
+        }
+        window.onload = typeTitle;
+
+        // --- Sistema de Partículas ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+
+        function setupCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setupCanvas();
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * .4) - .2;
+                let directionY = (Math.random() * .4) - .2;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size));
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = `rgba(56, 189, 248, ${opacityValue})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        initParticles();
+        animateParticles();
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            initParticles();
+        });
+
+
+        // Lógica da Tela de Login
+        enterBtn.addEventListener('click', () => {
+            playSound('C4');
+            loginScreen.style.opacity = '0';
+            loginScreen.style.filter = 'blur(20px)';
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                appContent.classList.remove('hidden');
+            }, 700);
+        });
+
+        // Lógica do Gerador de Campanhas
+        generateBtn.addEventListener('click', () => {
+            playSound('E4', '16n');
+            generateCampaign();
+        });
+        closeNotificationBtn.addEventListener('click', () => {
+            playSound('A3', '16n');
+            notificationModal.style.display = 'none';
+        });
+
+        function showNotification(message) {
+            playSound('G3', '8n');
+            notificationMessage.textContent = message;
+            notificationModal.style.display = 'flex';
+        }
+        
+        function cleanAndParseJson(text) {
+            // Remove ```json and ``` markdown delimiters
+            const cleanedText = text.replace(/^```json\s*|```\s*$/g, '');
+            try {
+                return JSON.parse(cleanedText);
+            } catch (e) {
+                console.error("Falha ao analisar JSON:", cleanedText);
+                throw e; 
+            }
+        }
+
+        // ===================================================================
+        // FUNÇÃO ATUALIZADA PARA USAR A CLOUD FUNCTION
+        // ===================================================================
+        async function callGemini(prompt, isJson = false) {
+            try {
+                // Chama a Cloud Function com o payload
+                const result = await generateWithGemini({ prompt, isJson });
+                // A Cloud Function retorna um objeto { text: "..." }
+                return result.data.text;
+            } catch (error) {
+                console.error("Erro ao chamar a Cloud Function 'generateWithGemini':", error);
+                // Lança um erro mais amigável para a UI
+                throw new Error(`Erro na comunicação com o servidor: ${error.message}`);
+            }
+        }
+
+
+        async function generateCampaign() {
+            const product = productInput.value;
+            const audience = audienceInput.value;
+            const budget = budgetInput.value;
+
+            if (!product || !audience) {
+                showNotification("Por favor, preencha os campos de Produto/Serviço e Público-Alvo.");
+                return;
+            }
+
+            resultsContainer.innerHTML = '';
+            loaderContainer.classList.remove('hidden');
+            generateBtn.disabled = true;
+            
+            // Iniciar cronómetro
+            let startTime = Date.now();
+            generateBtn.querySelector('i').className = 'fa-solid fa-spinner fa-spin mr-2';
+            timerInterval = setInterval(() => {
+                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+                const seconds = String(elapsedTime % 60).padStart(2, '0');
+                generateBtnText.textContent = `Gerando... ${minutes}:${seconds}`;
+            }, 1000);
+
+            try {
+                const budgetInfo = budget ? `O orçamento total disponível para a campanha é de R$ ${budget}.` : 'Nenhum orçamento total foi especificado.';
+                const prompt = `
+                    Você é um Diretor de Estratégia de Mídia Paga de classe mundial. Sua tarefa é criar uma estratégia de precisão, altamente detalhada e acionável, para o Gerenciador de Anúncios.
+
+                    *Produto/Serviço:* ${product}
+                    *Público-Alvo:* ${audience}
+                    *Orçamento Total:* ${budgetInfo}
+
+                    Para cada fase do funil (Topo, Meio, Fundo), detalhe os seguintes pontos em português do Brasil:
+
+                    1.  *Análise da Persona e Momento de Compra:* Descreva o estado mental, as dores, os desejos e as principais objeções do cliente nesta fase.
+                    2.  *Matriz de Públicos de Precisão:*
+                        * *Público Primário (Alvo Certeiro):* O público com maior probabilidade de conversão. Seja específico.
+                        * *Público Secundário (Escala):* Um público mais amplo para escalar a campanha.
+                        * *Público de Teste (Descoberta):* Uma sugestão de público experimental para encontrar novas oportunidades.
+                    3.  *Estrutura de Campanha e Otimização:*
+                        * *Objetivo da Campanha:* (Ex: Vendas, Leads).
+                        * *Otimização do Conjunto:* (Ex: Compras, Visualização de Página de Destino).
+                        * *Estratégia de Orçamento:* Descreva a estratégia (CBO/ABO). *Se um orçamento total foi fornecido, sugira uma alocação percentual para esta fase e calcule o valor exato em Reais (R$).*
+                    4.  *Estrutura de Anúncios (Plano de Teste A/B):*
+                        * *Hipótese do Teste:* O que se espera provar com o teste. (Ex: "A hipótese é que um criativo focado na dor terá um CTR maior que um focado em benefícios.").
+                        * *Anúncio A (Controlo - Foco em Benefícios):* Título + Texto Principal.
+                        * *Anúncio B (Variação - Foco na Dor):* Título + Texto Principal.
+                    5.  *KPIs de Decisão:*
+                        * *KPI Primário:* A métrica principal para julgar o sucesso.
+                        * *Limiar de Decisão:* Uma regra clara para otimização. (Ex: "Se o Custo por Lead for superior a R$ 25,00 após 72h, pausar o conjunto de anúncios.").
+
+                    Formate a resposta usando Markdown. Use ## para as fases do funil e ### para cada ponto estratégico. Use #### para os sub-pontos.
+                `;
+
+                const markdownText = await callGemini(prompt);
+                displayResults(markdownText);
+                if (budget) {
+                    generateAnalyticsDashboard(product, audience, budget);
+                }
+                generateCreativeAssets(product, audience);
+                playSound('G4', '4n'); // Som de sucesso
+
+            } catch (error) {
+                console.error("Erro ao gerar campanha:", error);
+                showNotification(`Ocorreu um erro ao tentar gerar a campanha. Por favor, tente novamente. Detalhes: ${error.message}`);
+                resultsContainer.innerHTML = `<div class="lg:col-span-3 glass-card text-red-400 p-4 opacity-0" style="animation-delay: 0.2s;"><p>Ocorreu um erro ao tentar gerar a campanha. Por favor, tente novamente.</p></div>`;
+                playSound('C3', '2n'); // Som de erro
+            } finally {
+                // Parar cronómetro e resetar botão
+                clearInterval(timerInterval);
+                loaderContainer.classList.add('hidden');
+                generateBtn.disabled = false;
+                generateBtn.querySelector('i').className = 'fa-solid fa-file-invoice mr-2';
+                generateBtnText.textContent = 'Gerar Estratégia de Precisão';
+            }
+        }
+
+        function displayResults(markdownText) {
+            resultsContainer.innerHTML = `
+                <div class="glass-card p-4 opacity-0" style="animation-delay: 0.4s;">
+                    <div class="flex border-b border-slate-700 mb-4">
+                        <button data-tab="strategy" class="tab-button flex-1 p-3 rounded-t-lg font-bold flex items-center justify-center gap-2 active"><i class="fa-solid fa-sitemap"></i> Estratégia de Precisão</button>
+                        <button data-tab="dashboard" class="tab-button flex-1 p-3 rounded-t-lg font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-chart-pie"></i> Dashboard Preditivo</button>
+                        <button data-tab="assets" class="tab-button flex-1 p-3 rounded-t-lg font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-bullseye"></i> Alvos de Funil (Copia e Cola)</button>
+                    </div>
+                    <div>
+                        <div id="strategy-pane" class="tab-pane active"></div>
+                        <div id="dashboard-pane" class="tab-pane"></div>
+                        <div id="assets-pane" class="tab-pane"></div>
+                    </div>
+                </div>
+            `;
+            
+            const strategyPane = document.getElementById('strategy-pane');
+            
+            const icons = {
+                'Análise da Persona e Momento de Compra': { class: 'fa-solid fa-user-secret' },
+                'Matriz de Públicos de Precisão': { class: 'fa-solid fa-crosshairs' },
+                'Estrutura de Campanha e Otimização': { class: 'fa-solid fa-sitemap' },
+                'Estrutura de Anúncios': { class: 'fa-solid fa-vials' },
+                'KPIs de Decisão': { class: 'fa-solid fa-ruler-combined' }
+            };
+
+            let htmlContent = markdownText
+                .replace(/## (.*?)\n/g, '<h2 class="text-3xl font-bold text-white mb-4 border-b-2 border-cyan-500 pb-2 text-glow">$1</h2>')
+                .replace(/### (.*?)\n/g, (match, p1) => {
+                    const key = p1.split('(')[0].trim();
+                    const iconInfo = icons[key] || { class: 'fa-solid fa-check' };
+                    return `<h3><i class="${iconInfo.class} text-lg w-6 text-center text-cyan-400"></i> ${p1}</h3>`;
+                })
+                .replace(/#### (.*?)\n/g, '<h4>$1</h4>')
+                .replace(/\* \*(.*?):\*\* (.*?)\n/g, (match, key, value) => {
+                     const highlightedValue = value.replace(/(R\$\s?[\d,.]+)/, '<span class="text-green-400 font-bold">$1</span>');
+                     return `<p class="mt-1"><strong class="text-gray-300">${key}:</strong> <span class="text-gray-400">${highlightedValue}</span></p>`;
+                })
+                .replace(/\* (.*?):/g, '<strong class="text-cyan-300">$1:</strong>');
+
+            strategyPane.innerHTML = `<div class="prose max-w-none text-gray-300">${htmlContent}</div>`;
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tabId = e.currentTarget.dataset.tab;
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    document.getElementById(`${tabId}-pane`).classList.add('active');
+                });
+            });
+        }
+
+        async function generateAnalyticsDashboard(product, audience, budget) {
+            const prompt = `
+                Baseado no produto "${product}", no público "${audience}" e num orçamento de R$ ${budget}, forneça uma análise preditiva. Responda APENAS com um objeto JSON válido, sem markdown. O objeto deve ter a seguinte estrutura:
+                {"resumo": "Uma frase curta", "cpcEstimado": "2.50", "ctrEstimado": "1.5%", "cplEstimado": "30.00", "cpmEstimado": "15.00", "roasProjetado": "4x", "alocacaoTOFU": "60", "alocacaoMOFU": "30", "alocacaoBOFU": "10"}
+            `;
+
+            try {
+                const summaryJsonText = await callGemini(prompt, true);
+                const data = cleanAndParseJson(summaryJsonText);
+
+                const cpc = parseFloat(data.cpcEstimado?.replace(',', '.') || 1);
+                const cpm = parseFloat(data.cpmEstimado?.replace(',', '.') || 15);
+                const budgetValue = parseFloat(budget);
+                const clicks = Math.round(budgetValue / (cpc || 1));
+                const leads = Math.round(budgetValue / (parseFloat(data.cplEstimado?.replace(',', '.') || budgetValue)));
+                const impressions = Math.round((budgetValue / cpm) * 1000);
+                const reach = Math.round(impressions / 3); // Assuming average frequency of 3
+
+                const dashboardPane = document.getElementById('dashboard-pane');
+                
+                const summaryCard = document.createElement('div');
+                summaryCard.className = 'glass-card relative p-6';
+                
+                summaryCard.innerHTML = `
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-4 border-b-2 border-cyan-500 pb-2 text-glow">Resumo Preditivo de Busca</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                            <div class="md:col-span-2">
+                                <p class="text-gray-300 mb-4">${data.resumo || 'Análise de mercado em andamento.'}</p>
+                                <div class="grid grid-cols-2 gap-4 text-center">
+                                    <div class="glass-card p-3"><p class="text-sm text-cyan-400">CPC Estimado</p><p class="text-2xl font-bold">R$ ${data.cpcEstimado || 'N/A'}</p></div>
+                                    <div class="glass-card p-3"><p class="text-sm text-cyan-400">CTR Estimado</p><p class="text-2xl font-bold">${data.ctrEstimado || 'N/A'}</p></div>
+                                    <div class="glass-card p-3"><p class="text-sm text-cyan-400">CPL Estimado</p><p class="text-2xl font-bold">R$ ${data.cplEstimado || 'N/A'}</p></div>
+                                    <div class="glass-card p-3"><p class="text-sm text-cyan-400">Projeção de Cliques</p><p class="text-2xl font-bold">${clicks.toLocaleString('pt-BR')}</p></div>
+                                </div>
+                                <p class="text-center mt-4 text-green-400 font-bold text-2xl">Projeção de Leads/Vendas: ~${leads.toLocaleString('pt-BR')}</p>
+                            </div>
+                            <div class="md:col-span-1 h-64"><canvas id="budgetChart"></canvas></div>
+                        </div>
+                        <div class="mt-6 border-t-2 border-cyan-500/50 pt-4">
+                            <h3 class="text-xl font-bold text-white text-glow text-center">Resumo Final (Alcance Prometido)</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mt-4">
+                                <div class="glass-card p-3"><p class="text-sm text-cyan-400">Impressões</p><p class="text-2xl font-bold">${impressions.toLocaleString('pt-BR')}</p></div>
+                                <div class="glass-card p-3"><p class="text-sm text-cyan-400">CPM Estimado</p><p class="text-2xl font-bold">R$ ${data.cpmEstimado || 'N/A'}</p></div>
+                                <div class="glass-card p-3"><p class="text-sm text-cyan-400">Alcance Estimado</p><p class="text-2xl font-bold">${reach.toLocaleString('pt-BR')}</p></div>
+                                <div class="glass-card p-3"><p class="text-sm text-green-400">ROAS Projetado</p><p class="text-2xl font-bold text-green-400">${data.roasProjetado || 'N/A'}</p></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                dashboardPane.appendChild(summaryCard);
+
+                // Orçamento Chart
+                const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+                if(budgetChartInstance) budgetChartInstance.destroy();
+                budgetChartInstance = new Chart(budgetCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Topo de Funil', 'Meio de Funil', 'Fundo de Funil'],
+                        datasets: [{
+                            data: [ parseFloat(data.alocacaoTOFU), parseFloat(data.alocacaoMOFU), parseFloat(data.alocacaoBOFU) ],
+                            backgroundColor: [ 'rgba(34, 211, 238, 0.7)', 'rgba(250, 204, 21, 0.7)', 'rgba(74, 222, 128, 0.7)' ],
+                            borderColor: [ '#0e7490', '#a16207', '#15803d' ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#f9fafb' } } } }
+                });
+
+
+            } catch(error) {
+                console.error("Erro ao gerar resumo e gráfico:", error);
+                const dashboardPane = document.getElementById('dashboard-pane');
+                dashboardPane.innerHTML = `<div class="glass-card text-yellow-400 p-4"><p>Não foi possível gerar a análise preditiva. A estratégia criativa foi gerada com sucesso.</p></div>`;
+            }
+        }
+        
+        async function generateCreativeAssets(product, audience) {
+            const prompt = `
+                Como um Diretor Criativo de uma agência de publicidade de topo, crie um "Arsenal de Criativos" para o seguinte:
+                *Produto/Serviço:* ${product}
+                *Público-Alvo:* ${audience}
+                Gere 8 palavras-chave, 5 títulos com focos diferentes e 3 textos principais com variações.
+                Responda APENAS com um objeto JSON válido, sem markdown. O objeto deve ter a seguinte estrutura:
+                {"palavrasChave": ["kw1", "kw2", ...], "titulos": [{"foco": "Curiosidade", "texto": "Título 1"}, ...], "textosPrincipais": [{"variacao": "Narrativa", "texto": "Texto aqui."}, ...]}
+            `;
+
+            try {
+                const assetsJsonText = await callGemini(prompt, true);
+                const data = cleanAndParseJson(assetsJsonText);
+                displayCreativeAssets(data);
+            } catch (error) {
+                console.error("Erro ao gerar ativos criativos:", error);
+                const assetsPane = document.getElementById('assets-pane');
+                assetsPane.innerHTML = `<div class="glass-card text-yellow-400 p-4"><p>Não foi possível gerar o Arsenal de Criativos.</p></div>`;
+            }
+        }
+
+        function displayCreativeAssets(data) {
+            const assetsPane = document.getElementById('assets-pane');
+            const card = document.createElement('div');
+            card.className = 'glass-card relative p-6';
+
+            const icons = {
+                'Palavras-chave de Precisão': 'fa-solid fa-key',
+                'Títulos de Alto Impacto': 'fa-solid fa-heading',
+                'Textos Principais Persuasivos': 'fa-solid fa-paragraph'
+            };
+
+            const keywordsHtml = (data.palavrasChave && Array.isArray(data.palavrasChave)) ? `
+                <h3 class="text-2xl font-bold text-white mb-4 border-b-2 border-cyan-500 pb-2 text-glow"><i class="${icons['Palavras-chave de Precisão']} text-lg w-6 text-center text-cyan-400"></i> Palavras-chave de Precisão</h3>
+                ${data.palavrasChave.map(kw => `
+                    <div class="flex items-center justify-between gap-2 py-2 border-b border-slate-800">
+                        <span class="text-gray-300">${kw}</span>
+                        <button class="asset-copy-btn flex-shrink-0 bg-slate-700 hover:bg-cyan-500 hover:text-slate-900 text-xs font-bold py-1 px-2 rounded">Copiar</button>
+                    </div>
+                `).join('')}
+            ` : '';
+
+            const headlinesHtml = (data.titulos && Array.isArray(data.titulos)) ? `
+                <h3 class="text-2xl font-bold text-white mb-4 border-b-2 border-cyan-500 pb-2 text-glow mt-8"><i class="${icons['Títulos de Alto Impacto']} text-lg w-6 text-center text-cyan-400"></i> Títulos de Alto Impacto (Headlines)</h3>
+                ${data.titulos.map(h => `
+                    <div class="flex items-center justify-between gap-2 py-2 border-b border-slate-800">
+                        <span class="text-gray-300"><strong class="text-cyan-400">${h.foco}:</strong> ${h.texto}</span>
+                        <button class="asset-copy-btn flex-shrink-0 bg-slate-700 hover:bg-cyan-500 hover:text-slate-900 text-xs font-bold py-1 px-2 rounded">Copiar</button>
+                    </div>
+                `).join('')}
+            ` : '';
+            
+            const bodiesHtml = (data.textosPrincipais && Array.isArray(data.textosPrincipais)) ? `
+                <h3 class="text-2xl font-bold text-white mb-4 border-b-2 border-cyan-500 pb-2 text-glow mt-8"><i class="${icons['Textos Principais Persuasivos']} text-lg w-6 text-center text-cyan-400"></i> Textos Principais Persuasivos</h3>
+                ${data.textosPrincipais.map(b => `
+                    <div class="py-2 border-b border-slate-800">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                           <h4 class="text-cyan-300">${b.variacao}</h4>
+                           <button class="asset-copy-btn flex-shrink-0 bg-slate-700 hover:bg-cyan-500 hover:text-slate-900 text-xs font-bold py-1 px-2 rounded">Copiar</button>
+                        </div>
+                        <p class="text-gray-400 text-sm">${b.texto}</p>
+                    </div>
+                `).join('')}
+            ` : '';
+
+            card.innerHTML = `<div class="prose max-w-none">${keywordsHtml}${headlinesHtml}${bodiesHtml}</div>`;
+            
+            if (!keywordsHtml && !headlinesHtml && !bodiesHtml) {
+                 assetsPane.innerHTML = `<div class="glass-card text-yellow-400 p-4"><p>Não foi possível gerar o Arsenal de Criativos. A resposta da API pode estar em um formato inesperado.</p></div>`;
+                 return;
+            }
+
+            assetsPane.appendChild(card);
+
+            assetsPane.querySelectorAll('.asset-copy-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    playSound('F5', '16n');
+                    let textToCopy;
+                    
+                    const parentDiv = e.currentTarget.parentElement;
+                    let textElement = parentDiv.querySelector('span'); // Para keywords e headlines
+                    if (!textElement) { // Para textos principais
+                        textElement = parentDiv.nextElementSibling;
+                    }
+                    textToCopy = textElement.textContent;
+
+                    // Para headlines, removemos o foco "Curiosidade: " do texto copiado
+                    if(textToCopy.includes(':')) {
+                        textToCopy = textToCopy.split(':').slice(1).join(':').trim();
+                    }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        e.currentTarget.textContent = 'Copiado!';
+                        setTimeout(() => { e.currentTarget.textContent = 'Copiar'; }, 2000);
+                    });
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>
