@@ -3,43 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plata+ | Seu Portal de Produtos</title>
-    
+    <title>Plata+ | Seu Universo Criativo</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
     <script src="https://cdn.jsdelivr.net/npm/lucide-element@0.395.0/dist/lucide-element.min.js"></script>
 
+    <!-- Estilos personalizados -->
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #111827; }
-        .card { background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; }
-        .card:hover { border-color: #4f46e5; transform: translateY(-5px); }
-        .card-content { flex-grow: 1; display: flex; flex-direction: column; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a09; /* Cor base: um preto suave (stone-950) */
+            color: #e7e5e4; /* Cor do texto: (stone-200) */
+        }
+
+        /* Efeito de Aurora no Fundo */
+        .aurora-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .aurora-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+            animation: moveAurora 20s infinite alternate;
+        }
+
+        .aurora-1 {
+            background-color: #4f46e5; /* indigo-600 */
+            width: 400px;
+            height: 400px;
+            top: 10%;
+            left: 20%;
+            animation-duration: 15s;
+        }
+
+        .aurora-2 {
+            background-color: #7c3aed; /* violet-600 */
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 60%;
+            animation-duration: 20s;
+            animation-delay: 5s;
+        }
+        
+        .aurora-3 {
+            background-color: #db2777; /* pink-600 */
+            width: 350px;
+            height: 350px;
+            top: 30%;
+            left: 80%;
+            animation-duration: 25s;
+            animation-delay: 10s;
+        }
+
+        @keyframes moveAurora {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(100px, 150px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* Estilo dos Cards */
+        .card {
+            background-color: rgba(12, 10, 9, 0.6); /* Fundo do card mais escuro e semitransparente */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            border-color: rgba(79, 70, 229, 0.8); /* Borda indigo mais forte no hover */
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
-<body class="antialiased text-white">
+<body class="antialiased relative">
 
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <header class="text-center mb-12">
-            <h1 class="text-5xl md:text-6xl font-black tracking-tighter">Bem-vindo ao seu <span class="text-indigo-400">Universo Criativo</span></h1>
-            <p class="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Explore os produtos que vão transformar suas ideias em realidade e suas emoções em poder.</p>
+    <!-- Elementos para o fundo Aurora -->
+    <div class="aurora-background">
+        <div class="aurora-shape aurora-1"></div>
+        <div class="aurora-shape aurora-2"></div>
+        <div class="aurora-shape aurora-3"></div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="relative min-h-screen flex flex-col items-center justify-center p-4 z-10">
+        <header class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-stone-100 to-stone-400">
+                Bem-vindo ao seu <span class="text-indigo-400">Universo Criativo</span>
+            </h1>
+            <p class="text-lg text-stone-400 mt-4 max-w-2xl mx-auto">
+                Explore os produtos que vão transformar suas ideias em realidade e suas emoções em poder.
+            </p>
         </header>
 
-        <main class="w-full max-w-5xl">
-            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <p id="loading-products" class="col-span-full text-center text-gray-400">A carregar os seus produtos...</p>
+        <main class="w-full max-w-6xl">
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Mensagem de carregamento, será substituída pelos produtos -->
+                <p id="loading-products" class="col-span-full text-center text-stone-400 text-lg">
+                    A carregar os seus produtos...
+                </p>
             </div>
         </main>
 
-        <footer class="text-center mt-12">
-             <a href="login.html" class="text-gray-500 hover:text-indigo-400">Acesso Administrativo</a>
-            <p class="text-gray-600 text-sm mt-4">&copy; 2024 Plata+. Todos os direitos reservados.</p>
+        <footer class="text-center mt-16">
+             <a href="login.html" class="text-stone-500 hover:text-indigo-400 transition-colors duration-300">
+                Acesso Administrativo
+             </a>
+            <p class="text-stone-600 text-sm mt-4">
+                &copy; 2024 Plata+. Todos os direitos reservados.
+            </p>
         </footer>
     </div>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- Configuração do Firebase -->
     <script src="firebase-config.js"></script>
 
     <script>
@@ -47,38 +152,52 @@
             const productsGrid = document.getElementById('products-grid');
             const loadingMessage = document.getElementById('loading-products');
 
+            // Acessa a coleção 'products' no Firestore
             db.collection('products').get().then(querySnapshot => {
+                // Esconde a mensagem de carregamento
                 loadingMessage.style.display = 'none';
+                
+                // Verifica se não há produtos
                 if (querySnapshot.empty) {
-                    productsGrid.innerHTML = '<p class="col-span-full text-center text-gray-400">Nenhum produto cadastrado ainda.</p>';
+                    productsGrid.innerHTML = '<p class="col-span-full text-center text-stone-400">Nenhum produto cadastrado ainda.</p>';
                     return;
                 }
 
+                // Itera sobre cada produto encontrado
                 querySnapshot.forEach(doc => {
                     const product = { id: doc.id, ...doc.data() };
                     
-                    // LÓGICA AUTOMÁTICA: Usa a URL da página se existir, senão, cria o link para o modelo padrão.
+                    // Define a URL do produto: usa a URL customizada se existir, senão a página padrão
                     const productUrl = product.paginaUrl || `produto.html?id=${product.id}`;
+                    
+                    // Define uma imagem padrão caso não haja uma cadastrada
+                    const imageUrl = product.imagemUrl || `https://placehold.co/600x400/0c0a09/4f46e5?text=${encodeURIComponent(product.nome)}`;
 
-                    const productLink = document.createElement('a');
-                    productLink.href = productUrl;
-                    productLink.className = 'card rounded-2xl p-8 block';
-                    productLink.innerHTML = `
-                        <div class="card-content">
-                            <div style="flex-grow: 1;">
-                                <h2 class="text-3xl font-bold text-indigo-300">${product.nome}</h2>
-                                <p class="text-gray-300 mt-2 mb-6">${product.descricao || 'Clique para saber mais.'}</p>
+                    // Cria o elemento do card
+                    const productCard = document.createElement('div');
+                    productCard.className = 'card rounded-2xl overflow-hidden';
+                    
+                    // Define o conteúdo HTML do card
+                    productCard.innerHTML = `
+                        <img src="${imageUrl}" alt="Imagem de ${product.nome}" class="w-full h-48 object-cover">
+                        <div class="p-6 card-content">
+                            <div class="flex-grow">
+                                <h2 class="text-2xl font-bold text-stone-100">${product.nome}</h2>
+                                <p class="text-stone-400 mt-2 mb-6 text-sm">${product.descricao || 'Clique para saber mais detalhes sobre este produto.'}</p>
                             </div>
-                            <div class="mt-auto">
-                                <div class="inline-flex items-center bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg">
-                                    Acessar Página
-                                    <lucide-icon name="arrow-right" class="w-5 h-5 ml-2"></lucide-icon>
-                                </div>
-                            </div>
+                            <a href="${productUrl}" class="mt-auto inline-block w-full text-center bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-500 transition-colors duration-300">
+                                Acessar Página
+                            </a>
                         </div>
                     `;
-                    productsGrid.appendChild(productLink);
+                    
+                    // Adiciona o card ao grid
+                    productsGrid.appendChild(productCard);
                 });
+            }).catch(error => {
+                // Trata possíveis erros na busca dos dados
+                console.error("Erro ao buscar produtos: ", error);
+                loadingMessage.textContent = 'Ocorreu um erro ao carregar os produtos.';
             });
         });
     </script>
