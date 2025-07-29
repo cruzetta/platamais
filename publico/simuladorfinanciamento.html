@@ -1,139 +1,71 @@
-import React, { useState, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Financiamento Imobiliário</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
 
-// Função para formatar números como moeda brasileira (Real)
-const formatCurrency = (value) => {
-  if (isNaN(value)) return "R$ 0,00";
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
-
-// Componente para o Tooltip customizado do gráfico
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/90 backdrop-blur-sm p-4 border border-slate-200 rounded-lg shadow-lg">
-        <p className="label text-base font-semibold text-slate-700">{`Mês ${label}`}</p>
-        {payload.map((pld, index) => (
-            <p key={index} style={{ color: pld.color }} className="text-sm font-medium">
-                {`${pld.name}: ${formatCurrency(pld.value)}`}
-            </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-
-// Componente para um card de exibição de dados (Layout com fonte dinâmica)
-const InfoCard = ({ title, value, subValue, icon }) => {
-  const getFontSizeClass = (text) => {
-    const len = String(text).length;
-    if (len <= 10) return 'text-3xl';
-    if (len <= 12) return 'text-2xl';
-    if (len <= 15) return 'text-xl';
-    return 'text-lg';
-  };
-
-  const valueFontSizeClass = getFontSizeClass(value);
-
-  return (
-    <div className="bg-white p-5 rounded-xl shadow-md flex flex-col justify-between h-full transition-shadow hover:shadow-lg">
-      <div>
-        <div className="flex items-center text-slate-500 mb-3">
-          <span className="text-blue-500">{icon}</span>
-          <h3 className="text-base font-medium ml-3 truncate">{title}</h3>
-        </div>
-        <div className={`${valueFontSizeClass} font-bold text-slate-800 whitespace-nowrap`}>
-          {value}
-        </div>
-      </div>
-      {subValue && <p className="text-sm text-slate-400 mt-2 self-start">{subValue}</p>}
+    <div id="app-container">
+        <!-- O conteúdo da aplicação será renderizado aqui -->
     </div>
-  );
-};
 
-// Componente para os inputs manuais
-const InputManual = ({ label, id, value, onChange, prefix = '', suffix = '', max }) => {
-    const handleInputChange = (e) => {
-        let val = e.target.value;
-        if (val === '' || val === null) {
-            val = 0;
-        } else {
-            val = Number(val.replace(/[^0-9.]/g, ''));
-        }
-        if (max !== undefined && val > max) {
-            val = max;
-        }
-        onChange(val);
-    };
-
-    return (
-        <div>
-            <label htmlFor={id} className="block text-base font-medium text-slate-600 mb-2">{label}</label>
-            <div className="relative">
-                {prefix && <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">{prefix}</span>}
-                <input
-                    type="number"
-                    id={id}
-                    value={value === 0 ? '' : value}
-                    onChange={handleInputChange}
-                    className={`w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${prefix ? 'pl-10' : ''} ${suffix ? 'pr-12' : ''}`}
-                    placeholder="0"
-                    min="0"
-                    step={suffix === '%' ? '0.1' : '1'}
-                />
-                {suffix && <span className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500">{suffix}</span>}
-            </div>
-        </div>
-    );
-};
-
-// Componente para o Modal de Explicação
-const ExplanationModal = ({ onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-slate-800">Tabela SAC vs. Tabela Price</h2>
-                <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+    <!-- Modal de Explicação -->
+    <div id="explanation-modal" class="modal fixed inset-0 bg-black bg-opacity-50 justify-center items-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Tabela SAC vs. Tabela Price</h2>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div className="text-slate-600 space-y-6">
+            <div class="text-slate-600 space-y-6">
                 <div>
-                    <h3 className="text-xl font-semibold text-slate-700 mb-2">Tabela SAC (Sistema de Amortização Constante)</h3>
-                    <p>Neste sistema, a **amortização** (parte da parcela que reduz sua dívida) é sempre a mesma. Como os juros são calculados sobre o saldo devedor, que diminui a cada mês, as **parcelas começam mais altas e vão diminuindo** com o tempo.</p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li><span className="font-semibold">Vantagem:</span> No final, você paga um total de juros menor.</li>
-                        <li><span className="font-semibold">Ideal para:</span> Quem pode pagar parcelas maiores no início.</li>
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Tabela SAC (Sistema de Amortização Constante)</h3>
+                    <p>Neste sistema, a <strong>amortização</strong> (parte da parcela que reduz sua dívida) é sempre a mesma. Como os juros são calculados sobre o saldo devedor, que diminui a cada mês, as <strong>parcelas começam mais altas e vão diminuindo</strong> com o tempo.</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li><span class="font-semibold">Vantagem:</span> No final, você paga um total de juros menor.</li>
+                        <li><span class="font-semibold">Ideal para:</span> Quem pode pagar parcelas maiores no início.</li>
                     </ul>
                 </div>
                 <div>
-                    <h3 className="text-xl font-semibold text-slate-700 mb-2">Tabela Price (Sistema Francês)</h3>
-                    <p>Aqui, as **parcelas são fixas** do início ao fim. No começo, a maior parte da parcela é composta por juros. Com o tempo, essa proporção se inverte, e a amortização aumenta.</p>
-                     <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li><span className="font-semibold">Vantagem:</span> Previsibilidade, com parcelas iniciais mais baixas que na SAC.</li>
-                        <li><span className="font-semibold">Ideal para:</span> Quem busca estabilidade no valor da parcela mensal.</li>
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Tabela Price (Sistema Francês)</h3>
+                    <p>Aqui, as <strong>parcelas são fixas</strong> do início ao fim. No começo, a maior parte da parcela é composta por juros. Com o tempo, essa proporção se inverte, e a amortização aumenta.</p>
+                     <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li><span class="font-semibold">Vantagem:</span> Previsibilidade, com parcelas iniciais mais baixas que na SAC.</li>
+                        <li><span class="font-semibold">Ideal para:</span> Quem busca estabilidade no valor da parcela mensal.</li>
                     </ul>
                 </div>
                 <div>
-                    <h3 className="text-xl font-semibold text-slate-700 mb-2">Comparativo Rápido</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Comparativo Rápido</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50">
-                                    <th className="p-3 border-b font-semibold">Característica</th>
-                                    <th className="p-3 border-b font-semibold">Tabela SAC</th>
-                                    <th className="p-3 border-b font-semibold">Tabela Price</th>
+                                <tr class="bg-slate-50">
+                                    <th class="p-3 border-b font-semibold">Característica</th>
+                                    <th class="p-3 border-b font-semibold">Tabela SAC</th>
+                                    <th class="p-3 border-b font-semibold">Tabela Price</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr className="border-b"><td className="p-3">Valor da Parcela</td><td className="p-3">Decrescente</td><td className="p-3">Fixo</td></tr>
-                                <tr className="bg-slate-50 border-b"><td className="p-3">Total de Juros</td><td className="p-3">Menor</td><td className="p-3">Maior</td></tr>
-                                <tr className="border-b"><td className="p-3">Saldo Devedor</td><td className="p-3">Diminui mais rápido</td><td className="p-3">Diminui mais lento</td></tr>
+                                <tr class="border-b"><td class="p-3">Valor da Parcela</td><td class="p-3">Decrescente</td><td class="p-3">Fixo</td></tr>
+                                <tr class="bg-slate-50 border-b"><td class="p-3">Total de Juros</td><td class="p-3">Menor</td><td class="p-3">Maior</td></tr>
+                                <tr class="border-b"><td class="p-3">Saldo Devedor</td><td class="p-3">Diminui mais rápido</td><td class="p-3">Diminui mais lento</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -141,165 +73,355 @@ const ExplanationModal = ({ onClose }) => (
             </div>
         </div>
     </div>
-);
 
-// Componente principal da aplicação
-export default function App() {
-  const [valorImovel, setValorImovel] = useState(300000);
-  const [valorEntrada, setValorEntrada] = useState(60000);
-  const [taxaJuros, setTaxaJuros] = useState(9.5);
-  const [taxaPeriodo, setTaxaPeriodo] = useState('anual');
-  const [prazo, setPrazo] = useState(30);
-  const [prazoPeriodo, setPrazoPeriodo] = useState('anos');
-  const [tipoTabela, setTipoTabela] = useState('SAC');
-  const [showExplanationModal, setShowExplanationModal] = useState(false);
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- ESTADO DA APLICAÇÃO ---
+            let state = {
+                valorImovel: 300000,
+                valorEntrada: 60000,
+                taxaJuros: 9.5,
+                taxaPeriodo: 'anual',
+                prazo: 30,
+                prazoPeriodo: 'anos',
+                tipoTabela: 'SAC'
+            };
 
-  const { parcelas, resumo } = useMemo(() => {
-    const prazoMeses = prazoPeriodo === 'anos' ? prazo * 12 : prazo;
-    const valorFinanciado = valorImovel - valorEntrada;
-    if (valorFinanciado <= 0 || prazoMeses <= 0 || taxaJuros <= 0) {
-      return { parcelas: [], resumo: { prazoMeses: 0 } };
-    }
-    const taxaJurosMensal = taxaPeriodo === 'anual' ? taxaJuros / 100 / 12 : taxaJuros / 100;
-    let saldoDevedor = valorFinanciado;
-    let totalJuros = 0;
-    let totalPago = 0;
-    const parcelasCalculadas = [];
-    if (tipoTabela === 'SAC') {
-      const amortizacao = valorFinanciado / prazoMeses;
-      for (let i = 1; i <= prazoMeses; i++) {
-        const juros = saldoDevedor * taxaJurosMensal;
-        const prestacao = amortizacao + juros;
-        saldoDevedor -= amortizacao;
-        totalJuros += juros;
-        totalPago += prestacao;
-        parcelasCalculadas.push({ mes: i, prestacao, juros, amortizacao, saldoDevedor: saldoDevedor > 0 ? saldoDevedor : 0 });
-      }
-    } else {
-      const fator = Math.pow(1 + taxaJurosMensal, prazoMeses);
-      const prestacao = valorFinanciado * ((fator * taxaJurosMensal) / (fator - 1));
-      for (let i = 1; i <= prazoMeses; i++) {
-        const juros = saldoDevedor * taxaJurosMensal;
-        const amortizacao = prestacao - juros;
-        saldoDevedor -= amortizacao;
-        totalJuros += juros;
-        totalPago += prestacao;
-        parcelasCalculadas.push({ mes: i, prestacao, juros, amortizacao, saldoDevedor: saldoDevedor > 0 ? saldoDevedor : 0 });
-      }
-    }
-    return { parcelas: parcelasCalculadas, resumo: { valorFinanciado, primeiraParcela: parcelasCalculadas[0]?.prestacao || 0, ultimaParcela: parcelasCalculadas[parcelasCalculadas.length - 1]?.prestacao || 0, totalJuros, totalPago, prazoMeses }};
-  }, [valorImovel, valorEntrada, taxaJuros, taxaPeriodo, prazo, prazoPeriodo, tipoTabela]);
+            // --- ELEMENTOS DO DOM ---
+            const appContainer = document.getElementById('app-container');
+            let chartInstance = null;
+            
+            // --- FUNÇÕES AUXILIARES ---
+            const formatCurrency = (value) => {
+                if (isNaN(value)) return "R$ 0,00";
+                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+            };
 
-  const chartData = parcelas.map(p => ({ name: p.mes, Prestação: parseFloat(p.prestacao.toFixed(2)), 'Saldo Devedor': parseFloat(p.saldoDevedor.toFixed(2)) }));
+            const parseCurrency = (value) => {
+                if (typeof value !== 'string') return value;
+                return Number(value.replace(/\./g, '').replace(',', '.'));
+            };
+            
+            // --- LÓGICA DE CÁLCULO ---
+            function calculateFinancing() {
+                const prazoMeses = state.prazoPeriodo === 'anos' ? state.prazo * 12 : state.prazo;
+                const valorFinanciado = state.valorImovel - state.valorEntrada;
 
-  const prazoSubValue = () => {
-      if (!resumo.prazoMeses) return '';
-      const anos = Math.floor(resumo.prazoMeses / 12);
-      const meses = resumo.prazoMeses % 12;
-      if (anos > 0 && meses > 0) return `${anos} anos e ${meses} meses`;
-      if (anos > 0) return `${anos} anos`;
-      return '';
-  }
+                if (valorFinanciado <= 0 || prazoMeses <= 0 || state.taxaJuros <= 0) {
+                    return { parcelas: [], resumo: { valorFinanciado: 0, primeiraParcela: 0, ultimaParcela: 0, totalJuros: 0, totalPago: 0, prazoMeses: 0 } };
+                }
 
-  return (
-    <>
-      {showExplanationModal && <ExplanationModal onClose={() => setShowExplanationModal(false)} />}
-      <div className="bg-slate-50 min-h-screen font-sans text-slate-800">
-        <div className="container mx-auto p-4 md:p-8">
-          <header className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-600">Simulador de Financiamento Imobiliário</h1>
-            <p className="text-slate-500 mt-3 text-lg">Planeje a compra do seu imóvel com precisão.</p>
-          </header>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 bg-white p-8 rounded-2xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-6 text-slate-700">Parâmetros da Simulação</h2>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="block text-base font-medium text-slate-600">Sistema de Amortização</label>
-                    <button onClick={() => setShowExplanationModal(true)} className="text-blue-500 hover:text-blue-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
-                    </button>
-                  </div>
-                  <div className="flex bg-slate-100 rounded-lg p-1">
-                    <button onClick={() => setTipoTabela('SAC')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${tipoTabela === 'SAC' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Tabela SAC</button>
-                    <button onClick={() => setTipoTabela('Price')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${tipoTabela === 'Price' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Tabela Price</button>
-                  </div>
-                </div>
-                <InputManual label="Valor do Imóvel" id="valorImovel" value={valorImovel} onChange={setValorImovel} prefix="R$" />
-                <InputManual label="Valor da Entrada" id="valorEntrada" value={valorEntrada} onChange={setValorEntrada} prefix="R$" max={valorImovel} />
-                <div>
-                  <label className="block text-base font-medium text-slate-600 mb-3">Período da Taxa de Juros</label>
-                  <div className="flex bg-slate-100 rounded-lg p-1">
-                    <button onClick={() => setTaxaPeriodo('anual')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${taxaPeriodo === 'anual' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Anual</button>
-                    <button onClick={() => setTaxaPeriodo('mensal')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${taxaPeriodo === 'mensal' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Mensal</button>
-                  </div>
-                </div>
-                <InputManual label={`Taxa de Juros ${taxaPeriodo === 'anual' ? 'Anual' : 'Mensal'}`} id="taxaJuros" value={taxaJuros} onChange={setTaxaJuros} suffix="%" />
-                <div>
-                  <label className="block text-base font-medium text-slate-600 mb-3">Período do Prazo</label>
-                  <div className="flex bg-slate-100 rounded-lg p-1">
-                    <button onClick={() => setPrazoPeriodo('anos')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${prazoPeriodo === 'anos' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Anos</button>
-                    <button onClick={() => setPrazoPeriodo('meses')} className={`w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${prazoPeriodo === 'meses' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}`}>Meses</button>
-                  </div>
-                </div>
-                <InputManual label="Prazo do Financiamento" id="prazo" value={prazo} onChange={setPrazo} suffix={prazoPeriodo === 'anos' ? 'anos' : 'meses'} />
-              </div>
-            </div>
-            <div className="lg:col-span-2 space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <InfoCard title="Valor Financiado" value={formatCurrency(resumo.valorFinanciado || 0)} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
-                <InfoCard title="Total de Juros" value={formatCurrency(resumo.totalJuros || 0)} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>} />
-                <InfoCard title="Custo Total" value={formatCurrency(resumo.totalPago || 0)} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 8h6m-5 4h4m2 4h-4m-6 4h12a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
-                <InfoCard title="1ª Parcela" value={formatCurrency(resumo.primeiraParcela || 0)} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
-                <InfoCard title="Última Parcela" value={formatCurrency(resumo.ultimaParcela || 0)} subValue={tipoTabela === 'SAC' ? 'Decrescente' : 'Fixa'} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
-                <InfoCard title="Prazo" value={`${resumo.prazoMeses || 0} meses`} subValue={prazoSubValue()} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
-              </div>
-              <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-slate-700">Evolução do Financiamento</h3>
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart data={chartData} margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="name" tick={{fontSize: 12}} tickFormatter={(tick) => `Mês ${tick}`} dy={10} />
-                    <YAxis tickFormatter={(value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value)} tick={{fontSize: 12}} dx={-10} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{paddingTop: '20px'}} />
-                    <Line type="monotone" name="Prestação" dataKey="Prestação" stroke="#3b82f6" strokeWidth={2.5} dot={false} />
-                    <Line type="monotone" name="Saldo Devedor" dataKey="Saldo Devedor" stroke="#ef4444" strokeWidth={2.5} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-slate-700">Tabela de Amortização Detalhada</h3>
-                <div className="overflow-auto max-h-96">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Mês</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Prestação</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Juros</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Amortização</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Devedor</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                      {parcelas.map((p) => (
-                        <tr key={p.mes} className="even:bg-slate-50 hover:bg-slate-100">
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-800">{p.mes}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">{formatCurrency(p.prestacao)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-red-600">{formatCurrency(p.juros)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-600">{formatCurrency(p.amortizacao)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-semibold">{formatCurrency(p.saldoDevedor)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+                const taxaJurosMensal = state.taxaPeriodo === 'anual' 
+                    ? Math.pow(1 + state.taxaJuros / 100, 1/12) - 1 
+                    : state.taxaJuros / 100;
+
+                let saldoDevedor = valorFinanciado;
+                let totalJuros = 0;
+                let totalPago = 0;
+                const parcelasCalculadas = [];
+
+                if (state.tipoTabela === 'SAC') {
+                    const amortizacao = valorFinanciado / prazoMeses;
+                    for (let i = 1; i <= prazoMeses; i++) {
+                        const juros = saldoDevedor * taxaJurosMensal;
+                        const prestacao = amortizacao + juros;
+                        saldoDevedor -= amortizacao;
+                        totalJuros += juros;
+                        totalPago += prestacao;
+                        parcelasCalculadas.push({ mes: i, prestacao, juros, amortizacao, saldoDevedor: Math.max(0, saldoDevedor) });
+                    }
+                } else { // Price
+                    const fator = Math.pow(1 + taxaJurosMensal, prazoMeses);
+                    const prestacao = valorFinanciado * ((fator * taxaJurosMensal) / (fator - 1));
+                    for (let i = 1; i <= prazoMeses; i++) {
+                        const juros = saldoDevedor * taxaJurosMensal;
+                        const amortizacao = prestacao - juros;
+                        saldoDevedor -= amortizacao;
+                        totalJuros += juros;
+                        totalPago += prestacao;
+                        parcelasCalculadas.push({ mes: i, prestacao, juros, amortizacao, saldoDevedor: Math.max(0, saldoDevedor) });
+                    }
+                }
+                return { 
+                    parcelas: parcelasCalculadas, 
+                    resumo: { 
+                        valorFinanciado, 
+                        primeiraParcela: parcelasCalculadas[0]?.prestacao || 0, 
+                        ultimaParcela: parcelasCalculadas[parcelasCalculadas.length - 1]?.prestacao || 0, 
+                        totalJuros, 
+                        totalPago, 
+                        prazoMeses 
+                    }
+                };
+            }
+
+            // --- FUNÇÕES DE RENDERIZAÇÃO ---
+            function render() {
+                const { parcelas, resumo } = calculateFinancing();
+                
+                const prazoSubValue = () => {
+                    if (!resumo.prazoMeses) return '';
+                    const anos = Math.floor(resumo.prazoMeses / 12);
+                    const meses = resumo.prazoMeses % 12;
+                    if (anos > 0 && meses > 0) return `${anos} anos e ${meses} meses`;
+                    if (anos > 0) return `${anos} anos`;
+                    return '';
+                };
+
+                appContainer.innerHTML = `
+                    <div class="container mx-auto p-4 md:p-8">
+                        <header class="text-center mb-12">
+                            <h1 class="text-4xl md:text-5xl font-bold text-blue-600">Simulador de Financiamento Imobiliário</h1>
+                            <p class="text-slate-500 mt-3 text-lg">Planeje a compra do seu imóvel com precisão.</p>
+                        </header>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Coluna de Inputs -->
+                            <div class="lg:col-span-1 bg-white p-8 rounded-2xl shadow-lg">
+                                <h2 class="text-2xl font-bold mb-6 text-slate-700">Parâmetros da Simulação</h2>
+                                <div class="space-y-6">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <label class="block text-base font-medium text-slate-600">Sistema de Amortização</label>
+                                            <button id="open-modal-btn" class="text-blue-500 hover:text-blue-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                                            </button>
+                                        </div>
+                                        <div class="flex bg-slate-100 rounded-lg p-1">
+                                            <button data-value="SAC" class="btn-tabela w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.tipoTabela === 'SAC' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Tabela SAC</button>
+                                            <button data-value="Price" class="btn-tabela w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.tipoTabela === 'Price' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Tabela Price</button>
+                                        </div>
+                                    </div>
+                                    <!-- Inputs Manuais -->
+                                    <div>
+                                        <label for="valorImovel" class="block text-base font-medium text-slate-600 mb-2">Valor do Imóvel</label>
+                                        <div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">R$</span><input type="text" id="valorImovel" value="${state.valorImovel.toLocaleString('pt-BR')}" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pl-10" placeholder="0"></div>
+                                    </div>
+                                    <div>
+                                        <label for="valorEntrada" class="block text-base font-medium text-slate-600 mb-2">Valor da Entrada</label>
+                                        <div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">R$</span><input type="text" id="valorEntrada" value="${state.valorEntrada.toLocaleString('pt-BR')}" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pl-10" placeholder="0"></div>
+                                    </div>
+                                    <!-- Outros Controles -->
+                                    <div>
+                                        <label class="block text-base font-medium text-slate-600 mb-3">Período da Taxa de Juros</label>
+                                        <div class="flex bg-slate-100 rounded-lg p-1">
+                                            <button data-value="anual" class="btn-taxa-periodo w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.taxaPeriodo === 'anual' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Anual</button>
+                                            <button data-value="mensal" class="btn-taxa-periodo w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.taxaPeriodo === 'mensal' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Mensal</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="taxaJuros" class="block text-base font-medium text-slate-600 mb-2">Taxa de Juros ${state.taxaPeriodo === 'anual' ? 'Anual' : 'Mensal'}</label>
+                                        <div class="relative"><input type="number" id="taxaJuros" value="${state.taxaJuros}" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-12" placeholder="0" step="0.1"><span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500">%</span></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-medium text-slate-600 mb-3">Período do Prazo</label>
+                                        <div class="flex bg-slate-100 rounded-lg p-1">
+                                            <button data-value="anos" class="btn-prazo-periodo w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.prazoPeriodo === 'anos' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Anos</button>
+                                            <button data-value="meses" class="btn-prazo-periodo w-1/2 py-2.5 rounded-md text-sm font-bold transition-colors ${state.prazoPeriodo === 'meses' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 hover:bg-slate-200'}">Meses</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="prazo" class="block text-base font-medium text-slate-600 mb-2">Prazo do Financiamento</label>
+                                        <div class="relative"><input type="number" id="prazo" value="${state.prazo}" class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-20" placeholder="0"><span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500">${state.prazoPeriodo}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Coluna de Resultados -->
+                            <div class="lg:col-span-2 space-y-8">
+                                <div id="summary-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                    <!-- Cards serão inseridos aqui -->
+                                </div>
+                                <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-lg">
+                                    <h3 class="text-xl font-bold mb-4 text-slate-700">Evolução do Financiamento</h3>
+                                    <div class="h-[350px]"><canvas id="financing-chart"></canvas></div>
+                                </div>
+                                <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-lg">
+                                    <h3 class="text-xl font-bold mb-4 text-slate-700">Tabela de Amortização Detalhada</h3>
+                                    <div class="overflow-auto max-h-96">
+                                        <table class="min-w-full divide-y divide-slate-200">
+                                            <thead class="bg-slate-50 sticky top-0">
+                                                <tr>
+                                                    <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Mês</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Prestação</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Juros</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Amortização</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Devedor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="amortization-table-body" class="bg-white divide-y divide-slate-200">
+                                                <!-- Linhas da tabela serão inseridas aqui -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // --- ATUALIZAÇÃO PÓS-RENDERIZAÇÃO ---
+                updateSummaryCards(resumo, prazoSubValue());
+                updateTable(parcelas);
+                updateChart(parcelas);
+                attachEventListeners();
+            }
+
+            function updateSummaryCards(resumo, prazoSubValue) {
+                const summaryCardsContainer = document.getElementById('summary-cards');
+                const cards = [
+                    { title: "Valor Financiado", value: formatCurrency(resumo.valorFinanciado || 0), icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
+                    { title: "Total de Juros", value: formatCurrency(resumo.totalJuros || 0), icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>` },
+                    { title: "Custo Total", value: formatCurrency(resumo.totalPago + state.valorEntrada || 0), icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6m-5 4h4m2 4h-4m-6 4h12a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>` },
+                    { title: "1ª Parcela", value: formatCurrency(resumo.primeiraParcela || 0), icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>` },
+                    { title: "Última Parcela", value: formatCurrency(resumo.ultimaParcela || 0), subValue: state.tipoTabela === 'SAC' ? 'Decrescente' : 'Fixa', icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>` },
+                    { title: "Prazo", value: `${resumo.prazoMeses || 0} meses`, subValue: prazoSubValue, icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` }
+                ];
+
+                summaryCardsContainer.innerHTML = cards.map(card => {
+                    const len = String(card.value).length;
+                    let valueFontSizeClass = 'text-3xl';
+                    if (len > 10) valueFontSizeClass = 'text-2xl';
+                    if (len > 12) valueFontSizeClass = 'text-xl';
+                    if (len > 15) valueFontSizeClass = 'text-lg';
+
+                    return `
+                        <div class="bg-white p-5 rounded-xl shadow-md flex flex-col justify-between h-full transition-shadow hover:shadow-lg">
+                            <div>
+                                <div class="flex items-center text-slate-500 mb-3">
+                                    <span class="text-blue-500">${card.icon}</span>
+                                    <h3 class="text-base font-medium ml-3 truncate">${card.title}</h3>
+                                </div>
+                                <div class="${valueFontSizeClass} font-bold text-slate-800 whitespace-nowrap">${card.value}</div>
+                            </div>
+                            ${card.subValue ? `<p class="text-sm text-slate-400 mt-2 self-start">${card.subValue}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function updateTable(parcelas) {
+                const tableBody = document.getElementById('amortization-table-body');
+                tableBody.innerHTML = parcelas.map(p => `
+                    <tr class="even:bg-slate-50 hover:bg-slate-100">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800">${p.mes}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">${formatCurrency(p.prestacao)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600">${formatCurrency(p.juros)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600">${formatCurrency(p.amortizacao)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-semibold">${formatCurrency(p.saldoDevedor)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            function updateChart(parcelas) {
+                const ctx = document.getElementById('financing-chart').getContext('2d');
+                const chartData = {
+                    labels: parcelas.map(p => p.mes),
+                    datasets: [
+                        {
+                            label: 'Prestação',
+                            data: parcelas.map(p => p.prestacao.toFixed(2)),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                        },
+                        {
+                            label: 'Saldo Devedor',
+                            data: parcelas.map(p => p.saldoDevedor.toFixed(2)),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                        }
+                    ]
+                };
+
+                if (chartInstance) {
+                    chartInstance.data = chartData;
+                    chartInstance.update();
+                } else {
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'Meses' },
+                                    ticks: {
+                                        callback: (value, index, values) => (index % 12 === 0 || index === values.length -1) ? `Mês ${value+1}` : null,
+                                        maxRotation: 0,
+                                        autoSkip: false
+                                    }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Valor (R$)' },
+                                    ticks: {
+                                        callback: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value)
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)}`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // --- EVENT LISTENERS ---
+            function attachEventListeners() {
+                // Modal
+                document.getElementById('open-modal-btn').addEventListener('click', () => document.getElementById('explanation-modal').classList.add('active'));
+                document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('explanation-modal').classList.remove('active'));
+
+                // Botões de Toggle
+                document.querySelectorAll('.btn-tabela').forEach(btn => btn.addEventListener('click', (e) => { state.tipoTabela = e.target.dataset.value; render(); }));
+                document.querySelectorAll('.btn-taxa-periodo').forEach(btn => btn.addEventListener('click', (e) => { state.taxaPeriodo = e.target.dataset.value; render(); }));
+                document.querySelectorAll('.btn-prazo-periodo').forEach(btn => btn.addEventListener('click', (e) => { state.prazoPeriodo = e.target.dataset.value; render(); }));
+                
+                // Inputs
+                const valorImovelInput = document.getElementById('valorImovel');
+                valorImovelInput.addEventListener('change', (e) => {
+                    const value = parseCurrency(e.target.value);
+                    if (!isNaN(value)) {
+                        state.valorImovel = value;
+                        if (state.valorEntrada > value) {
+                            state.valorEntrada = value;
+                        }
+                        render();
+                    }
+                });
+
+                const valorEntradaInput = document.getElementById('valorEntrada');
+                valorEntradaInput.addEventListener('change', (e) => {
+                    const value = parseCurrency(e.target.value);
+                    if (!isNaN(value)) {
+                        state.valorEntrada = Math.min(value, state.valorImovel);
+                        render();
+                    }
+                });
+
+                document.getElementById('taxaJuros').addEventListener('change', (e) => {
+                    const value = parseFloat(e.target.value);
+                    if (!isNaN(value)) { state.taxaJuros = value; render(); }
+                });
+                document.getElementById('prazo').addEventListener('change', (e) => {
+                    const value = parseInt(e.target.value, 10);
+                    if (!isNaN(value)) { state.prazo = value; render(); }
+                });
+            }
+
+            // --- INICIALIZAÇÃO ---
+            render();
+        });
+    </script>
+</body>
+</html>
