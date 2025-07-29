@@ -424,8 +424,8 @@
                 });
             }
             
-            // --- NOVO: SCRIPT DE RASTREAMENTO DE ACESSO ---
-            const productId = 'ferramenta-simulador-financiamento'; // ID único para este produto gratuito
+            // --- SCRIPT DE RASTREAMENTO DE ACESSO ---
+            const productId = 'h4fjTNPIKcMGrDSn9TYW';
 
             function getOrCreateVisitorId() {
                 let visitorId = localStorage.getItem('plataMaisVisitorId');
@@ -438,7 +438,10 @@
             }
 
             async function logProductAccess() {
-                // A variável `db` já está disponível a partir de `firebase-config.js`
+                if (!productId) {
+                    console.warn("Rastreamento de acesso: ID do produto não configurado.");
+                    return;
+                }
                 if (typeof db === 'undefined') {
                     console.error("Firestore não foi inicializado. O rastreamento de acesso está desativado.");
                     return;
@@ -452,9 +455,9 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         userAgent: navigator.userAgent
                     });
-                    console.log('Acesso registrado para a ferramenta:', productId);
+                    console.log('Acesso registado para o produto:', productId);
                 } catch (error) {
-                    console.error("Erro ao registrar acesso:", error);
+                    console.error("Erro ao registar acesso:", error);
                 }
             }
 
