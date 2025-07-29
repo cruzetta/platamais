@@ -148,36 +148,89 @@
     <script src="firebase-config.js"></script>
 
     <script>
+        // --- NOVO: FUNÇÕES DE RASTREAMENTO ---
+        function getOrCreateVisitorId() {
+            let visitorId = localStorage.getItem('plataMaisVisitorId');
+            if (!visitorId) {
+                // Cria um ID único e anónimo para o visitante
+                visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('plataMaisVisitorId', visitorId);
+            }
+            return visitorId;
+        }
+
+        async function logAndRedirect(event, productId, externalUrl) {
+            event.preventDefault(); // Impede o redirecionamento imediato
+
+            if (!db) {
+                console.error("Firestore não foi inicializado. Redirecionando diretamente.");
+                window.open(externalUrl, '_blank');
+                return;
+            }
+            const visitorId = getOrCreateVisitorId();
+            try {
+                await db.collection('productAccessLogs').add({
+                    productId: productId,
+                    visitorId: visitorId,
+                    type: 'external_link_click', // Tipo de evento
+                    clickedUrl: externalUrl,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+                console.log('Clique registrado para:', productId);
+            } catch (error) {
+                console.error("Erro ao registrar clique:", error);
+            } finally {
+                // Redireciona o usuário após a tentativa de registro
+                window.open(externalUrl, '_blank');
+            }
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const productsGrid = document.getElementById('products-grid');
             const loadingMessage = document.getElementById('loading-products');
 
-            // Acessa a coleção 'products' no Firestore
+            // Adiciona o card estático "Sim Perfeito" primeiro
+            const simPerfeitoCard = document.createElement('div');
+            simPerfeitoCard.className = 'card rounded-2xl overflow-hidden';
+            const simPerfeitoProductId = 'sim-perfeito-externo';
+            const simPerfeitoExternalUrl = 'https://simperfeito.com.br';
+            simPerfeitoCard.innerHTML = `
+                <img src="https://placehold.co/600x400/0c0a09/4f46e5?text=Sim+Perfeito" alt="Imagem de Sim Perfeito" class="w-full h-48 object-cover">
+                <div class="p-6 card-content">
+                    <div class="flex-grow">
+                        <h2 class="text-2xl font-bold text-stone-100">Sim Perfeito</h2>
+                        <p class="text-stone-400 mt-2 mb-6 text-sm">Seu site de eventos: casamentos, aniversários e tudo para sua celebração. Crie um site personalizado, gerencie convidados e sua lista de presentes de forma fácil e elegante.</p>
+                    </div>
+                    <a href="${simPerfeitoExternalUrl}" onclick="logAndRedirect(event, '${simPerfeitoProductId}', '${simPerfeitoExternalUrl}')" class="mt-auto inline-block w-full text-center bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-500 transition-colors duration-300">
+                        Acessar Página
+                    </a>
+                </div>
+            `;
+            productsGrid.appendChild(simPerfeitoCard);
+
+
+            // Acessa a coleção 'products' no Firestore para os outros produtos
             db.collection('products').get().then(querySnapshot => {
-                // Esconde a mensagem de carregamento
                 loadingMessage.style.display = 'none';
                 
-                // Verifica se não há produtos
-                if (querySnapshot.empty) {
-                    productsGrid.innerHTML = '<p class="col-span-full text-center text-stone-400">Nenhum produto cadastrado ainda.</p>';
-                    return;
+                if (querySnapshot.empty && productsGrid.children.length === 1) {
+                     // Se não houver produtos do DB, e só tiver o card estático
+                    const noProductsMessage = document.createElement('p');
+                    noProductsMessage.className = 'col-span-full text-center text-stone-400';
+                    noProductsMessage.textContent = 'Nenhum outro produto cadastrado ainda.';
+                    // Não adicionamos, pois o loading já sumiu e o card estático está lá
                 }
 
-                // Itera sobre cada produto encontrado
                 querySnapshot.forEach(doc => {
                     const product = { id: doc.id, ...doc.data() };
-                    
-                    // Define a URL do produto: usa a URL customizada se existir, senão a página padrão
                     const productUrl = product.paginaUrl || `produto.html?id=${product.id}`;
-                    
-                    // Define uma imagem padrão caso não haja uma cadastrada
                     const imageUrl = product.imagemUrl || `https://placehold.co/600x400/0c0a09/4f46e5?text=${encodeURIComponent(product.nome)}`;
 
-                    // Cria o elemento do card
                     const productCard = document.createElement('div');
                     productCard.className = 'card rounded-2xl overflow-hidden';
                     
-                    // Define o conteúdo HTML do card
                     productCard.innerHTML = `
                         <img src="${imageUrl}" alt="Imagem de ${product.nome}" class="w-full h-48 object-cover">
                         <div class="p-6 card-content">
@@ -191,11 +244,9 @@
                         </div>
                     `;
                     
-                    // Adiciona o card ao grid
                     productsGrid.appendChild(productCard);
                 });
             }).catch(error => {
-                // Trata possíveis erros na busca dos dados
                 console.error("Erro ao buscar produtos: ", error);
                 loadingMessage.textContent = 'Ocorreu um erro ao carregar os produtos.';
             });
