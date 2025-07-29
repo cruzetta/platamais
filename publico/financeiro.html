@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Comando Financeiro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.378.0/dist/umd/lucide.min.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Estilos da barra de rolagem para melhor estética */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        /* Transição personalizada para fade-in/out do modal */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        /* Animação personalizada para os cartões KPI */
+        @keyframes pulse-bg {
+            0%, 100% { background-color: #3b82f6; }
+            50% { background-color: #60a5fa; }
+        }
+        .pulse-update {
+            animation: pulse-bg 0.7s ease-out;
+        }
+        /* Previne seleção de texto durante o arraste */
+        .select-none {
+           user-select: none;
+           -webkit-user-select: none;
+           -moz-user-select: none;
+           -ms-user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <!-- Container de Autenticação (Login/Cadastro) -->
+    <div id="auth-container" class="container mx-auto p-4 md:p-6 lg:p-8 flex items-center justify-center min-h-screen">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-sm">
+            <!-- Formulário de Login (visível por padrão) -->
+            <form id="login-form">
+                <h2 class="text-2xl font-bold text-center text-white mb-6">Acessar Painel</h2>
+                <div class="mb-4">
+                    <label for="login-email" class="block mb-2 text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="login-email" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="login-password" class="block mb-2 text-sm font-medium text-gray-300">Senha</label>
+                    <input type="password" id="login-password" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div id="login-error-message" class="text-red-500 text-center mb-4 min-h-[1.25rem]"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Entrar</button>
+                <p class="text-center text-sm text-gray-400 mt-4">
+                    Não tem uma conta? <button type="button" id="show-signup-btn" class="font-medium text-blue-400 hover:underline">Cadastre-se</button>
+                </p>
+            </form>
+            <!-- Formulário de Cadastro (oculto por padrão) -->
+            <form id="signup-form" class="hidden">
+                <h2 class="text-2xl font-bold text-center text-white mb-6">Criar Conta</h2>
+                <div class="mb-4">
+                    <label for="signup-email" class="block mb-2 text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="signup-email" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="signup-password" class="block mb-2 text-sm font-medium text-gray-300">Senha</label>
+                    <input type="password" id="signup-password" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div id="signup-error-message" class="text-red-500 text-center mb-4 min-h-[1.25rem]"></div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors">Criar Conta</button>
+                 <p class="text-center text-sm text-gray-400 mt-4">
+                    Já tem uma conta? <button type="button" id="show-login-btn" class="font-medium text-blue-400 hover:underline">Faça Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Container Principal da Aplicação (oculto por padrão) -->
+    <div id="app" class="container mx-auto p-4 md:p-6 lg:p-8 hidden">
+        
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8">
+             <div class="flex justify-end mb-4">
+                 <button id="logout-btn" class="flex items-center space-x-2 text-red-400 hover:text-red-300 transition-colors">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Centro de Comando Financeiro</h1>
+            <div class="flex items-center justify-center space-x-4 mt-4">
+                <button id="prev-period-btn" class="p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition-colors">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 id="period-display" class="text-lg md:text-xl font-semibold text-blue-400 w-72 text-center"></h2>
+                <button id="next-period-btn" class="p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition-colors">
+                    <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Área de Conteúdo Principal -->
+        <main id="main-content">
+            <!-- Visão do Dashboard -->
+            <div id="view-dashboard">
+                <!-- Dashboard de KPIs -->
+                <section id="kpi-dashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                    <!-- KPIs serão injetados aqui pelo JS -->
+                </section>
+
+                <!-- Atalhos e Ações -->
+                <section class="mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <!-- Atalhos -->
+                        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div id="revenue-shortcuts-section">
+                                <h3 class="text-xl font-bold mb-4 text-green-400 flex items-center"><i data-lucide="trending-up" class="mr-2"></i>Atalhos de Receita</h3>
+                                <div id="revenue-shortcuts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                            </div>
+                            <div id="expense-shortcuts-section">
+                                <h3 class="text-xl font-bold mb-4 text-red-400 flex items-center"><i data-lucide="trending-down" class="mr-2"></i>Atalhos de Despesa</h3>
+                                <div id="expense-shortcuts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                        <button id="add-shortcut-btn" class="flex-1 w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                            <i data-lucide="star" class="w-5 h-5"></i>
+                            <span>Novo Atalho</span>
+                        </button>
+                        <button id="add-transaction-btn" class="flex-1 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            <span>Nova Transação</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Lista de Transações -->
+                <section class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <h3 class="text-2xl font-bold text-white">Transações do Período</h3>
+                        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                                <input type="text" id="search-input" placeholder="Buscar por descrição..." class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="relative w-full sm:w-48">
+                                <i data-lucide="dollar-sign" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                                <input type="number" id="search-amount-input" placeholder="Buscar por valor..." class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="transactions-list" class="overflow-x-auto">
+                        <!-- Lista de transações será injetada aqui -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Container de Modais -->
+    <div id="modals">
+        <!-- Modal de Transação -->
+        <div id="transaction-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md relative">
+                <button class="close-modal-btn absolute top-3 right-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <h2 id="transaction-modal-title" class="text-2xl font-bold mb-6 text-center">Nova Transação</h2>
+                <form id="transaction-form">
+                    <input type="hidden" id="transaction-id" name="transaction-id">
+                    <input type="hidden" id="transaction-shortcut-id" name="transaction-shortcut-id">
+                    <div class="mb-4">
+                        <label for="transaction-description" class="block mb-2 text-sm font-medium text-gray-300">Descrição</label>
+                        <input type="text" id="transaction-description" name="transaction-description" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="transaction-amount" class="block mb-2 text-sm font-medium text-gray-300">Valor (R$)</label>
+                            <input type="number" step="0.01" id="transaction-amount" name="transaction-amount" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="transaction-due-date" class="block mb-2 text-sm font-medium text-gray-300">Vencimento</label>
+                            <input type="date" id="transaction-due-date" name="transaction-due-date" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                             <label for="transaction-type" class="block mb-2 text-sm font-medium text-gray-300">Tipo</label>
+                             <select id="transaction-type" name="transaction-type" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 <option value="expense">Despesa</option>
+                                 <option value="revenue">Receita</option>
+                             </select>
+                        </div>
+                        <div>
+                            <label for="transaction-status" class="block mb-2 text-sm font-medium text-gray-300">Status</label>
+                            <select id="transaction-status" name="transaction-status" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="pending">A Pagar/Receber</option>
+                                <option value="paid">Pago/Recebido</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="installments-section" class="mb-6">
+                        <label for="transaction-installments" class="block mb-2 text-sm font-medium text-gray-300">Parcelas (1 = à vista)</label>
+                        <input type="number" min="1" id="transaction-installments" name="transaction-installments" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" value="1">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Salvar Transação</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de Atalho -->
+        <div id="shortcut-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md relative">
+                <button class="close-modal-btn absolute top-3 right-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <h2 id="shortcut-modal-title" class="text-2xl font-bold mb-6 text-center">Novo Atalho</h2>
+                <form id="shortcut-form">
+                    <input type="hidden" id="shortcut-id" name="shortcut-id">
+                    <div class="mb-4">
+                        <label for="shortcut-name" class="block mb-2 text-sm font-medium text-gray-300">Nome do Atalho</label>
+                        <input type="text" id="shortcut-name" name="shortcut-name" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="shortcut-type" class="block mb-2 text-sm font-medium text-gray-300">Tipo</label>
+                            <select id="shortcut-type" name="shortcut-type" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="expense">Despesa</option>
+                                <option value="revenue">Receita</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label for="shortcut-frequency" class="block mb-2 text-sm font-medium text-gray-300">Frequência</label>
+                             <select id="shortcut-frequency" name="shortcut-frequency" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                 <option value="variable">Variável</option>
+                                 <option value="fixed">Fixa (Mensal)</option>
+                             </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="shortcut-value" class="block mb-2 text-sm font-medium text-gray-300">Valor Padrão (R$)</label>
+                            <input type="number" step="0.01" id="shortcut-value" name="shortcut-value" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div id="shortcut-due-day-section" class="hidden">
+                             <label for="shortcut-due-day" class="block mb-2 text-sm font-medium text-gray-300">Dia do Vencimento</label>
+                            <input type="number" id="shortcut-due-day" name="shortcut-due-day" min="1" max="28" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div id="shortcut-effective-date-section" class="mb-4 hidden">
+                        <label for="shortcut-effective-date" class="block mb-2 text-sm font-medium text-gray-300">Aplicar alteração a partir de:</label>
+                        <input type="date" id="shortcut-effective-date" name="shortcut-effective-date" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm font-medium text-gray-300">Ícone</label>
+                        <div id="shortcut-icon-selection" class="grid grid-cols-6 gap-2 bg-gray-700 p-2 rounded-lg">
+                           <!-- Ícones serão injetados aqui -->
+                        </div>
+                        <input type="hidden" id="shortcut-icon" name="shortcut-icon" required>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors">Salvar Atalho</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Modal de Confirmação -->
+        <div id="confirmation-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+                <div id="confirmation-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-200 mb-4">
+                  <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
+                </div>
+                <h3 id="confirmation-title" class="text-lg font-medium leading-6 text-white mb-2">Confirmar Ação</h3>
+                <div class="mt-2 text-sm text-gray-400">
+                  <p id="confirmation-message">Você tem certeza que deseja continuar?</p>
+                </div>
+                <div id="confirmation-buttons" class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                  <!-- Botões são inseridos dinamicamente aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Relógio Fixo -->
+    <div id="fixed-clock" class="fixed bottom-4 right-4 bg-gray-700 text-white text-sm font-mono py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2 z-50 cursor-move select-none">
+        <i data-lucide="clock" class="w-4 h-4 pointer-events-none"></i>
+        <span id="clock-display" class="pointer-events-none"></span>
+    </div>
+
+
+    <!-- SEÇÃO DE SCRIPTS -->
+    <script type="module">
+        // --- CONFIGURAÇÃO DO FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+        import { 
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            getDoc,
+            getDocs,
+            deleteDoc,
+            query,
+            onSnapshot,
+            Timestamp,
+            updateDoc,
+            where
+        } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+        // Configuração do Firebase do seu aplicativo web (substitua pelos seus dados)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBuB3dTMtejuuVMekhUVmzX343IG8zIzYg",
+            authDomain: "platamais.firebaseapp.com",
+            projectId: "platamais",
+            storageBucket: "platamais.appspot.com",
+            messagingSenderId: "1014260724484",
+            appId: "1:1014260724484:web:b6c3216ea4641714291651",
+            measurementId: "G-0GLM073GEG"
+        };
+
+        // Inicializar Firebase
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+
+        // --- LÓGICA DE AUTENTICAÇÃO E UI ---
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const logoutBtn = document.getElementById('logout-btn');
+        const showSignupBtn = document.getElementById('show-signup-btn');
+        const showLoginBtn = document.getElementById('show-login-btn');
+
+        // Alternar para o formulário de cadastro
+        showSignupBtn.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+        });
+        
+        // Alternar para o formulário de login
+        showLoginBtn.addEventListener('click', () => {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        // Lida com o envio do formulário de login
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = loginForm['login-email'].value;
+            const password = loginForm['login-password'].value;
+            const errorMessage = document.getElementById('login-error-message');
+            errorMessage.textContent = '';
+
+            signInWithEmailAndPassword(auth, email, password)
+                .catch((error) => {
+                    console.error('Login Error:', error);
+                    errorMessage.textContent = 'Email ou senha incorretos.';
+                });
+        });
+        
+        // Lida com o envio do formulário de cadastro
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = signupForm['signup-email'].value;
+            const password = signupForm['signup-password'].value;
+            const errorMessage = document.getElementById('signup-error-message');
+            errorMessage.textContent = '';
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .catch((error) => {
+                    console.error('Signup Error:', error);
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMessage.textContent = 'Este email já está em uso.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                    } else {
+                        errorMessage.textContent = 'Erro ao criar conta. Tente novamente.';
+                    }
+                });
+        });
+
+        // Lida com o clique no botão de logout
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).catch(error => console.error('Logout Error:', error));
+        });
+
+        // Ouve as mudanças no estado de autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // O usuário está logado
+                authContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                App.init(user.uid); // Inicializa a aplicação com o ID do usuário
+            } else {
+                // O usuário está deslogado
+                authContainer.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+                App.cleanup(); // Limpa dados e listeners
+            }
+        });
+
+        // --- OBJETO PRINCIPAL DA APLICAÇÃO ---
+        const App = {
+            isInitialized: false,
+            userId: null,
+            listeners: [], // Armazena os unsubscribers do onSnapshot
+
+            // --- GERENCIAMENTO DE ESTADO ---
+            state: {
+                currentDateForPeriod: new Date(),
+                transactions: [],
+                shortcuts: [],
+                filterText: '',
+                filterAmount: null,
+            },
+
+            // --- ELEMENTOS DO DOM ---
+            elements: {
+                periodDisplay: document.getElementById('period-display'),
+                prevPeriodBtn: document.getElementById('prev-period-btn'),
+                nextPeriodBtn: document.getElementById('next-period-btn'),
+                kpiDashboard: document.getElementById('kpi-dashboard'),
+                revenueShortcuts: document.getElementById('revenue-shortcuts'),
+                expenseShortcuts: document.getElementById('expense-shortcuts'),
+                transactionsList: document.getElementById('transactions-list'),
+                searchInput: document.getElementById('search-input'),
+                searchAmountInput: document.getElementById('search-amount-input'),
+                clockDisplay: document.getElementById('clock-display'),
+                transactionModal: document.getElementById('transaction-modal'),
+                transactionForm: document.getElementById('transaction-form'),
+                transactionModalTitle: document.getElementById('transaction-modal-title'),
+                installmentsSection: document.getElementById('installments-section'),
+                shortcutModal: document.getElementById('shortcut-modal'),
+                shortcutForm: document.getElementById('shortcut-form'),
+                shortcutModalTitle: document.getElementById('shortcut-modal-title'),
+                iconSelection: document.getElementById('shortcut-icon-selection'),
+                shortcutDueDaySection: document.getElementById('shortcut-due-day-section'),
+                shortcutEffectiveDateSection: document.getElementById('shortcut-effective-date-section'),
+                confirmationModal: document.getElementById('confirmation-modal'),
+                confirmationTitle: document.getElementById('confirmation-title'),
+                confirmationMessage: document.getElementById('confirmation-message'),
+                confirmationButtons: document.getElementById('confirmation-buttons'),
+                confirmationIcon: document.getElementById('confirmation-icon'),
+            },
+            
+            // --- CONSTANTES ---
+            iconList: ['landmark', 'shopping-cart', 'utensils-crossed', 'home', 'car', 'heart-pulse', 'graduation-cap', 'plane', 'briefcase', 'gift', 'paw-print', 'receipt', 'piggy-bank', 'scale', 'banknote', 'coins', 'credit-card', 'wallet', 'wrench', 'building', 'truck', 'sprout'],
+
+            // --- INICIALIZAÇÃO E LIMPEZA ---
+            init(userId) {
+                if (this.isInitialized) return;
+                
+                this.userId = userId;
+                this.isInitialized = true;
+                
+                this.setupRealtimeListeners();
+                this.setupEventListeners();
+                this.startClock();
+                this.setupDraggableClock();
+                this.updateUI(); // Chamar updateUI na inicialização
+                lucide.createIcons();
+            },
+            
+            cleanup() {
+                this.listeners.forEach(unsubscribe => unsubscribe());
+                this.listeners = [];
+                this.isInitialized = false;
+                this.userId = null;
+                this.state.transactions = [];
+                this.state.shortcuts = [];
+            },
+
+            // --- LÓGICA DO RELÓGIO E ARRASTE ---
+            startClock() {
+                const update = () => {
+                    const now = new Date();
+                    const date = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const time = now.toLocaleTimeString('pt-BR');
+                    if (this.elements.clockDisplay) {
+                       this.elements.clockDisplay.textContent = `${date} ${time}`;
+                    }
+                };
+                update(); 
+                setInterval(update, 1000); 
+            },
+
+            setupDraggableClock() {
+                const clock = document.getElementById('fixed-clock');
+                if (!clock) return;
+
+                let isDragging = false;
+                let offsetX, offsetY;
+
+                const startDrag = (e) => {
+                    isDragging = true;
+                    clock.style.transition = 'none';
+                    e.preventDefault(); 
+
+                    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+                    offsetX = clientX - clock.offsetLeft;
+                    offsetY = clientY - clock.offsetTop;
+                    
+                    document.addEventListener('mousemove', onDrag);
+                    document.addEventListener('touchmove', onDrag, { passive: false });
+                    document.addEventListener('mouseup', endDrag);
+                    document.addEventListener('touchend', endDrag);
+                };
+
+                const onDrag = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); 
+                    
+                    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                    let newLeft = clientX - offsetX;
+                    let newTop = clientY - offsetY;
+
+                    const screenWidth = window.innerWidth;
+                    const screenHeight = window.innerHeight;
+                    const clockWidth = clock.offsetWidth;
+                    const clockHeight = clock.offsetHeight;
+
+                    if (newLeft < 0) newLeft = 0;
+                    if (newTop < 0) newTop = 0;
+                    if (newLeft + clockWidth > screenWidth) newLeft = screenWidth - clockWidth;
+                    if (newTop + clockHeight > screenHeight) newTop = screenHeight - clockHeight;
+
+                    clock.style.left = `${newLeft}px`;
+                    clock.style.top = `${newTop}px`;
+                    clock.style.right = 'auto';
+                    clock.style.bottom = 'auto';
+                };
+
+                const endDrag = () => {
+                    isDragging = false;
+                    clock.style.transition = '';
+                    document.removeEventListener('mousemove', onDrag);
+                    document.removeEventListener('touchmove', onDrag);
+                    document.removeEventListener('mouseup', endDrag);
+                    document.removeEventListener('touchend', endDrag);
+                };
+
+                clock.addEventListener('mousedown', startDrag);
+                clock.addEventListener('touchstart', startDrag);
+            },
+
+            // --- PERSISTÊNCIA DE DADOS (Firestore) ---
+            setupRealtimeListeners() {
+                if (!this.userId) return;
+
+                const transactionsQuery = query(collection(db, "users", this.userId, "transactions"));
+                const unsubscribeTransactions = onSnapshot(transactionsQuery, (querySnapshot) => {
+                    this.state.transactions = querySnapshot.docs.map(doc => ({
+                        id: doc.id, 
+                        ...doc.data(),
+                        dueDate: doc.data().dueDate.toDate(),
+                    }));
+                    this.updateUI();
+                });
+                this.listeners.push(unsubscribeTransactions);
+
+                const shortcutsQuery = query(collection(db, "users", this.userId, "shortcuts"));
+                 const unsubscribeShortcuts = onSnapshot(shortcutsQuery, (querySnapshot) => {
+                    this.state.shortcuts = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
+                    }));
+                    this.updateUI();
+                });
+                this.listeners.push(unsubscribeShortcuts);
+            },
+            
+            // --- GERENCIAMENTO DE UI E VISÕES ---
+            async updateUI() {
+                if (!this.isInitialized) return;
+
+                await this.generateFixedTransactionsForCurrentPeriod();
+                
+                this.renderPeriodDisplay();
+                this.renderKPIs();
+                this.renderShortcuts();
+                this.renderTransactions();
+                
+                lucide.createIcons();
+            },
+
+            // --- LÓGICA DE PERÍODO ---
+            getPeriod(date) {
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const start = new Date(year, month, 1, 0, 0, 0, 0);
+                const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+                return { start, end };
+            },
+            
+            changePeriod(months) {
+                this.state.currentDateForPeriod.setMonth(this.state.currentDateForPeriod.getMonth() + months);
+                this.updateUI();
+            },
+            
+            renderPeriodDisplay() {
+                const period = this.getPeriod(this.state.currentDateForPeriod);
+                const monthName = period.start.toLocaleDateString('pt-BR', { month: 'long' });
+                const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                this.elements.periodDisplay.textContent = `${capitalizedMonth} de ${period.start.getFullYear()}`;
+            },
+
+            // --- RENDERIZAÇÃO DE KPIs ---
+            renderKPIs() {
+                const period = this.getPeriod(this.state.currentDateForPeriod);
+                
+                let transactionsInPeriod = this.state.transactions.filter(t => t.dueDate >= period.start && t.dueDate <= period.end);
+                const balanceTransaction = this.getPreviousPeriodBalanceTransaction();
+                if (balanceTransaction) {
+                    transactionsInPeriod.unshift(balanceTransaction);
+                }
+
+                const overdueExpenses = this.state.transactions.filter(t => 
+                    t.dueDate < period.start && 
+                    t.status === 'pending' &&
+                    t.type === 'expense'
+                ).reduce((sum, t) => sum + t.amount, 0);
+
+                const received = transactionsInPeriod.filter(t => t.type === 'revenue' && t.status === 'paid').reduce((sum, t) => sum + t.amount, 0);
+                const paid = transactionsInPeriod.filter(t => t.type === 'expense' && t.status === 'paid').reduce((sum, t) => sum + t.amount, 0);
+                const toReceive = transactionsInPeriod.filter(t => t.type === 'revenue' && t.status === 'pending').reduce((sum, t) => sum + t.amount, 0);
+                const toPayCurrentMonth = transactionsInPeriod.filter(t => t.type === 'expense' && t.status === 'pending').reduce((sum, t) => sum + t.amount, 0);
+                
+                const currentBalance = received - paid;
+                const projectedBalance = currentBalance + toReceive - (toPayCurrentMonth + overdueExpenses);
+
+                const kpis = [
+                    { label: 'Recebido', value: received, color: 'green', icon: 'arrow-down-circle' },
+                    { label: 'Pago', value: paid, color: 'red', icon: 'arrow-up-circle' },
+                    { label: 'Saldo Atual', value: currentBalance, color: 'blue', icon: 'scale' },
+                    { label: 'A Receber', value: toReceive, color: 'green', icon: 'calendar-plus' },
+                    { label: 'A Pagar', value: toPayCurrentMonth, overdueValue: overdueExpenses, color: 'red', icon: 'calendar-minus' },
+                    { label: 'Saldo Previsto', value: projectedBalance, color: 'blue', icon: 'bar-chart-2' },
+                ];
+
+                this.elements.kpiDashboard.innerHTML = kpis.map(kpi => {
+                    let valueHtml = `<p class="text-2xl font-bold text-white">${this.formatCurrency(kpi.value)}</p>`;
+                    
+                    if (kpi.label === 'A Pagar' && kpi.overdueValue > 0) {
+                        valueHtml = `
+                            <p class="text-2xl font-bold text-white" title="No mês: ${this.formatCurrency(kpi.value)} | Atrasado: ${this.formatCurrency(kpi.overdueValue)}">
+                                ${this.formatCurrency(kpi.value)} 
+                                <span class="text-base font-medium text-red-400">(+${this.formatCurrency(kpi.overdueValue)})</span>
+                            </p>
+                        `;
+                    }
+
+                    return `
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105" id="kpi-${kpi.label.replace(' ', '-')}">
+                            <div class="p-3 rounded-full bg-${kpi.color}-500 bg-opacity-20 text-${kpi.color}-400">
+                                <i data-lucide="${kpi.icon}" class="w-7 h-7"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">${kpi.label}</p>
+                                ${valueHtml}
+                            </div>
+                        </div>
+                    `
+                }).join('');
+            },
+
+            // --- RENDERIZAÇÃO DE ATALHOS E TRANSAÇÕES ---
+            renderShortcuts() {
+                this.elements.revenueShortcuts.innerHTML = '';
+                this.elements.expenseShortcuts.innerHTML = '';
+                const period = this.getPeriod(this.state.currentDateForPeriod);
+                this.state.shortcuts.forEach(shortcut => {
+                    let displayValue = this.formatCurrency(shortcut.defaultValue);
+                    if (shortcut.frequency === 'variable') {
+                        const accumulated = this.state.transactions
+                            .filter(t => t.shortcutId === shortcut.id && t.dueDate >= period.start && t.dueDate <= period.end)
+                            .reduce((sum, t) => sum + t.amount, 0);
+                        displayValue = this.formatCurrency(accumulated);
+                    }
+                    const shortcutCard = `
+                        <div data-shortcut-id="${shortcut.id}" class="shortcut-card bg-gray-700 p-3 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-600 transition-colors relative group">
+                            <div class="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="edit-shortcut-btn p-1 rounded-full bg-gray-800 hover:bg-blue-600" data-id="${shortcut.id}"><i data-lucide="edit-2" class="w-3 h-3 pointer-events-none"></i></button>
+                                <button class="delete-shortcut-btn p-1 rounded-full bg-gray-800 hover:bg-red-600" data-id="${shortcut.id}"><i data-lucide="trash-2" class="w-3 h-3 pointer-events-none"></i></button>
+                            </div>
+                            <i data-lucide="${shortcut.icon}" class="w-8 h-8 mb-2 ${shortcut.type === 'revenue' ? 'text-green-400' : 'text-red-400'}"></i>
+                            <p class="text-sm font-medium truncate w-full" title="${shortcut.name}">${shortcut.name}</p>
+                            <p class="text-xs text-gray-400">${displayValue}</p>
+                        </div>`;
+                    if (shortcut.type === 'revenue') {
+                        this.elements.revenueShortcuts.innerHTML += shortcutCard;
+                    } else {
+                        this.elements.expenseShortcuts.innerHTML += shortcutCard;
+                    }
+                });
+            },
+
+            renderTransactions() {
+                const period = this.getPeriod(this.state.currentDateForPeriod);
+                
+                let periodTransactions = this.state.transactions
+                    .filter(t => t.dueDate >= period.start && t.dueDate <= period.end);
+
+                // Aplicar filtros
+                if (this.state.filterText) {
+                    periodTransactions = periodTransactions.filter(t => 
+                        t.description.toLowerCase().includes(this.state.filterText.toLowerCase())
+                    );
+                }
+                if (this.state.filterAmount !== null && !isNaN(this.state.filterAmount)) {
+                     periodTransactions = periodTransactions.filter(t => t.amount === this.state.filterAmount);
+                }
+                
+                let transactionsToRender = [...periodTransactions];
+
+                const balanceTransaction = this.getPreviousPeriodBalanceTransaction();
+                const noFiltersActive = !this.state.filterText && (this.state.filterAmount === null || isNaN(this.state.filterAmount));
+                
+                if (balanceTransaction && noFiltersActive) {
+                    transactionsToRender.unshift(balanceTransaction);
+                }
+
+                transactionsToRender.sort((a, b) => {
+                    if (a.isBalanceTransfer) return -1;
+                    if (b.isBalanceTransfer) return 1;
+                    return a.dueDate - b.dueDate;
+                });
+
+                if (transactionsToRender.length === 0) {
+                    this.elements.transactionsList.innerHTML = `<div class="text-center py-8 text-gray-500"><i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2"></i><p>Nenhuma transação encontrada.</p></div>`;
+                } else {
+                    this.elements.transactionsList.innerHTML = `
+                        <div class="hidden md:grid grid-cols-12 gap-4 font-bold p-2 text-gray-400 text-sm">
+                            <div class="col-span-1"></div><div class="col-span-4">Descrição</div><div class="col-span-2 text-right">Valor</div><div class="col-span-2 text-center">Vencimento</div><div class="col-span-1 text-center">Tipo</div><div class="col-span-2 text-right">Ações</div>
+                        </div>
+                        ${transactionsToRender.map(t => this.createTransactionRow(t)).join('')}`;
+                }
+                lucide.createIcons();
+            },
+            
+            createTransactionRow(t) {
+                const isPaid = t.status === 'paid';
+                const typeColor = t.type === 'revenue' ? 'text-green-400' : 'text-red-400';
+                const descriptionClass = isPaid ? 'line-through text-gray-500' : 'text-gray-200';
+                const valueClass = isPaid ? 'line-through text-gray-500' : typeColor;
+                
+                const isAutoTransfer = t.isBalanceTransfer === true;
+
+                const actionButtonsHTML = isAutoTransfer
+                    ? `<div class="flex items-center justify-end pr-2" title="Transação automática de saldo"><i data-lucide="lock" class="w-5 h-5 text-gray-500"></i></div>`
+                    : `<button class="edit-transaction-btn p-2 text-gray-400 hover:text-blue-400 rounded-full hover:bg-gray-600 transition-colors" data-id="${t.id}"><i data-lucide="edit-2" class="w-4 h-4 pointer-events-none"></i></button>
+                       <button class="delete-transaction-btn p-2 text-gray-400 hover:text-red-400 rounded-full hover:bg-gray-600 transition-colors" data-id="${t.id}"><i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i></button>`;
+
+                return `
+                    <div class="grid grid-cols-2 md:grid-cols-12 gap-4 items-center p-3 rounded-lg ${isAutoTransfer ? 'bg-gray-800/50' : 'hover:bg-gray-700/50'} border-b border-gray-700 last:border-b-0">
+                        <div class="md:col-span-1 flex items-center justify-start">
+                            <input type="checkbox" data-id="${t.id}" class="transaction-status-check h-5 w-5 rounded bg-gray-600 border-gray-500 text-blue-500 focus:ring-blue-600 cursor-pointer" 
+                            ${isPaid ? 'checked' : ''} 
+                            ${isAutoTransfer ? 'disabled' : ''}>
+                        </div>
+                        <div class="md:col-span-4 flex items-center space-x-2"><span class="md:hidden font-bold text-gray-400">Desc:</span><p class="${descriptionClass} font-medium">${t.description}</p></div>
+                        <div class="md:col-span-2 flex justify-between md:justify-end items-center"><span class="md:hidden font-bold text-gray-400">Valor:</span><p class="${valueClass} font-bold text-right">${this.formatCurrency(t.amount)}</p></div>
+                        <div class="md:col-span-2 flex justify-between md:justify-center items-center"><span class="md:hidden font-bold text-gray-400">Venc:</span><p class="text-gray-400 text-sm text-center">${t.dueDate.toLocaleDateString('pt-BR')}</p></div>
+                        <div class="md:col-span-1 flex justify-between md:justify-center items-center"><span class="md:hidden font-bold text-gray-400">Tipo:</span><i data-lucide="${t.type === 'revenue' ? 'arrow-down' : 'arrow-up'}" class="${typeColor} w-5 h-5"></i></div>
+                        <div class="col-span-2 md:col-span-2 flex justify-end items-center space-x-2">
+                            ${actionButtonsHTML}
+                        </div>
+                    </div>`;
+            },
+            
+            // --- LISTENERS DE EVENTOS ---
+            setupEventListeners() {
+                this.elements.prevPeriodBtn.addEventListener('click', () => this.changePeriod(-1));
+                this.elements.nextPeriodBtn.addEventListener('click', () => this.changePeriod(1));
+                
+                this.elements.searchInput.addEventListener('input', e => { 
+                    this.state.filterText = e.target.value; 
+                    this.renderTransactions(); 
+                });
+                
+                this.elements.searchAmountInput.addEventListener('input', e => {
+                    const value = e.target.value;
+                    this.state.filterAmount = value === '' ? null : parseFloat(value);
+                    this.renderTransactions();
+                });
+                
+                document.getElementById('add-transaction-btn').addEventListener('click', () => this.openTransactionModal());
+                document.getElementById('add-shortcut-btn').addEventListener('click', () => this.openShortcutModal());
+                
+                document.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => this.closeAllModals()));
+                
+                this.elements.transactionForm.addEventListener('submit', e => this.handleTransactionFormSubmit(e));
+                this.elements.shortcutForm.addEventListener('submit', e => this.handleShortcutFormSubmit(e));
+
+                this.elements.shortcutForm.elements['shortcut-frequency'].addEventListener('change', e => {
+                    this.elements.shortcutDueDaySection.classList.toggle('hidden', e.target.value !== 'fixed');
+                });
+
+                document.body.addEventListener('click', e => {
+                    if (!this.isInitialized) return;
+                    const button = e.target.closest('button, .shortcut-card');
+                    if (!button) return;
+                    const id = button.dataset.id;
+                    
+                    if (button.matches('.edit-shortcut-btn')) this.openShortcutModal(id);
+                    if (button.matches('.delete-shortcut-btn')) this.confirmDeleteShortcut(id);
+                    if (button.matches('.shortcut-card')) this.openTransactionModal(null, button.dataset.shortcutId);
+                    if (button.matches('.edit-transaction-btn')) this.openTransactionModal(id);
+                    if (button.matches('.delete-transaction-btn')) this.confirmDeleteTransaction(id);
+                });
+                
+                document.body.addEventListener('change', e => { 
+                     if (!this.isInitialized) return;
+                    if (e.target.matches('.transaction-status-check')) {
+                         const id = e.target.dataset.id;
+                         const isPaid = e.target.checked;
+                         this.toggleTransactionStatus(id, isPaid);
+                    }
+                });
+                
+                this.elements.iconSelection.addEventListener('click', e => {
+                    const iconButton = e.target.closest('.icon-btn');
+                    if (iconButton) {
+                        document.querySelectorAll('.icon-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-blue-500'));
+                        iconButton.classList.add('ring-2', 'ring-blue-500');
+                        document.getElementById('shortcut-icon').value = iconButton.dataset.icon;
+                    }
+                });
+            },
+
+            // --- LÓGICA DE MODAL E FORMULÁRIO ---
+            openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); },
+            closeAllModals() { document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden')); },
+
+            openTransactionModal(id = null, shortcutId = null) {
+                const form = this.elements.transactionForm;
+                form.reset();
+                form.elements['transaction-id'].value = '';
+                this.elements.installmentsSection.style.display = 'block';
+
+                if (id) {
+                    const transaction = this.state.transactions.find(t => t.id === id); if (!transaction) return;
+                    this.elements.transactionModalTitle.textContent = 'Editar Transação';
+                    form.elements['transaction-id'].value = transaction.id;
+                    form.elements['transaction-description'].value = transaction.description;
+                    form.elements['transaction-amount'].value = transaction.amount;
+                    form.elements['transaction-due-date'].value = this.formatDateForInput(transaction.dueDate);
+                    form.elements['transaction-type'].value = transaction.type;
+                    form.elements['transaction-status'].value = transaction.status;
+                    form.elements['transaction-shortcut-id'].value = transaction.shortcutId || '';
+                    this.elements.installmentsSection.style.display = 'none';
+                } else if (shortcutId) {
+                    const shortcut = this.state.shortcuts.find(s => s.id === shortcutId); if (!shortcut) return;
+                    this.elements.transactionModalTitle.textContent = `Lançar: ${shortcut.name}`;
+                    form.elements['transaction-description'].value = shortcut.name;
+                    form.elements['transaction-amount'].value = shortcut.defaultValue;
+                    form.elements['transaction-type'].value = shortcut.type;
+                    form.elements['transaction-due-date'].value = this.formatDateForInput(new Date());
+                    form.elements['transaction-shortcut-id'].value = shortcut.id;
+                } else {
+                    this.elements.transactionModalTitle.textContent = 'Nova Transação';
+                    form.elements['transaction-due-date'].value = this.formatDateForInput(new Date());
+                    form.elements['transaction-shortcut-id'].value = '';
+                }
+                this.openModal('transaction-modal');
+            },
+
+            async handleTransactionFormSubmit(e) {
+                e.preventDefault();
+                const form = e.target.elements;
+                const dueDateValue = form['transaction-due-date'].value;
+                if (!dueDateValue) {
+                    this.showMessage('Erro de Validação', 'O campo de data é obrigatório.', 'error', [{ text: 'OK', class: 'bg-blue-600', action: () => this.closeAllModals() }]);
+                    return;
+                }
+
+                const id = form['transaction-id'].value;
+                const amount = parseFloat(form['transaction-amount'].value);
+                const installments = parseInt(form['transaction-installments'].value) || 1;
+                const baseDueDate = new Date(dueDateValue + 'T12:00:00');
+
+                try {
+                    if (id) {
+                        const docRef = doc(db, "users", this.userId, "transactions", id);
+                        await updateDoc(docRef, {
+                            description: form['transaction-description'].value,
+                            amount,
+                            dueDate: Timestamp.fromDate(baseDueDate),
+                            type: form['transaction-type'].value,
+                            status: form['transaction-status'].value
+                        });
+                    } else {
+                        const totalAmount = amount;
+                        const installmentAmount = parseFloat((totalAmount / installments).toFixed(2));
+                        const firstInstallmentAmount = parseFloat((totalAmount - (installmentAmount * (installments - 1))).toFixed(2));
+                        
+                        const baseTransaction = { 
+                            description: form['transaction-description'].value, 
+                            type: form['transaction-type'].value, 
+                            status: form['transaction-status'].value, 
+                            shortcutId: form['transaction-shortcut-id'].value || null 
+                        };
+                        const installmentGroupId = installments > 1 ? crypto.randomUUID() : null;
+
+                        for (let i = 0; i < installments; i++) {
+                            const newDate = new Date(baseDueDate);
+                            newDate.setMonth(baseDueDate.getMonth() + i);
+                            const newTransaction = {
+                                ...baseTransaction,
+                                amount: i === 0 ? firstInstallmentAmount : installmentAmount,
+                                dueDate: Timestamp.fromDate(newDate),
+                                description: installments > 1 ? `${baseTransaction.description} (${i+1}/${installments})` : baseTransaction.description,
+                                installmentGroupId: installmentGroupId
+                            };
+                            await addDoc(collection(db, "users", this.userId, "transactions"), newTransaction);
+                        }
+                    }
+                    this.closeAllModals();
+                } catch (error) {
+                    console.error("Erro ao salvar transação: ", error);
+                    this.showMessage('Erro no Servidor', 'Não foi possível salvar a transação.', 'error', [{ text: 'OK', class: 'bg-red-600', action: () => this.closeAllModals() }]);
+                }
+            },
+            
+            async toggleTransactionStatus(id, isPaid) {
+                const docRef = doc(db, "users", this.userId, "transactions", id);
+                try {
+                    await updateDoc(docRef, {
+                        status: isPaid ? 'paid' : 'pending'
+                    });
+                } catch (error) {
+                    console.error("Erro ao atualizar status: ", error);
+                }
+            },
+
+            async confirmDeleteTransaction(id) {
+                const transaction = this.state.transactions.find(t => t.id === id); if (!transaction) return;
+                
+                if (transaction.installmentGroupId) {
+                    this.showMessage(
+                        'Excluir Parcela', 'Esta transação faz parte de um parcelamento. Como deseja prosseguir?', 'warning',
+                        [
+                            { text: 'Excluir Apenas Esta', class: 'bg-yellow-600 hover:bg-yellow-700', action: async () => {
+                                await deleteDoc(doc(db, "users", this.userId, "transactions", id));
+                                this.closeAllModals();
+                            }},
+                            { text: 'Excluir Esta e Futuras', class: 'bg-red-600 hover:bg-red-700', action: async () => {
+                                const futureTransactions = this.state.transactions.filter(t => t.installmentGroupId === transaction.installmentGroupId && t.dueDate >= transaction.dueDate);
+                                for(const t of futureTransactions) {
+                                    await deleteDoc(doc(db, "users", this.userId, "transactions", t.id));
+                                }
+                                this.closeAllModals();
+                            }},
+                            { text: 'Cancelar', class: 'bg-gray-700 hover:bg-gray-600', action: () => this.closeAllModals() }
+                        ]
+                    );
+                } else {
+                    this.showMessage(
+                        'Excluir Transação', `Deseja realmente excluir a transação "${transaction.description}"?`, 'warning',
+                        [
+                            { text: 'Confirmar Exclusão', class: 'bg-red-600 hover:bg-red-700', action: async () => {
+                                try {
+                                    if (transaction.isAutoGenerated && transaction.shortcutId) {
+                                        const yearMonth = `${transaction.dueDate.getFullYear()}-${String(transaction.dueDate.getMonth() + 1).padStart(2, '0')}`;
+                                        const skippedDocId = `${transaction.shortcutId}_${yearMonth}`;
+                                        await setDoc(doc(db, "users", this.userId, "skippedFixed", skippedDocId), {
+                                            shortcutId: transaction.shortcutId,
+                                            period: yearMonth
+                                        });
+                                    }
+                                    await deleteDoc(doc(db, "users", this.userId, "transactions", id));
+                                    this.closeAllModals();
+                                } catch (error) {
+                                    console.error("Erro ao excluir transação:", error);
+                                    this.showMessage('Erro', 'Não foi possível excluir a transação.', 'error', [{ text: 'OK', action: () => this.closeAllModals() }]);
+                                }
+                            }},
+                            { text: 'Cancelar', class: 'bg-gray-700 hover:bg-gray-600', action: () => this.closeAllModals() }
+                        ]
+                    );
+                }
+            },
+            
+             openShortcutModal(id = null) {
+                const form = this.elements.shortcutForm;
+                form.reset();
+                form.elements['shortcut-id'].value = '';
+                this.elements.shortcutEffectiveDateSection.classList.add('hidden');
+                this.elements.shortcutDueDaySection.classList.add('hidden');
+                this.populateIcons();
+                lucide.createIcons();
+
+                if(id) { 
+                    const shortcut = this.state.shortcuts.find(s => s.id === id); if(!shortcut) return;
+                    this.elements.shortcutModalTitle.textContent = 'Editar Atalho';
+                    form.elements['shortcut-id'].value = shortcut.id; 
+                    form.elements['shortcut-name'].value = shortcut.name; 
+                    form.elements['shortcut-type'].value = shortcut.type;
+                    form.elements['shortcut-frequency'].value = shortcut.frequency; 
+                    form.elements['shortcut-value'].value = shortcut.defaultValue; 
+                    form.elements['shortcut-icon'].value = shortcut.icon;
+                    const iconBtn = this.elements.iconSelection.querySelector(`[data-icon="${shortcut.icon}"]`);
+                    if(iconBtn) iconBtn.classList.add('ring-2', 'ring-blue-500');
+
+                    if (shortcut.frequency === 'fixed') {
+                        this.elements.shortcutDueDaySection.classList.remove('hidden');
+                        this.elements.shortcutEffectiveDateSection.classList.remove('hidden');
+                        form.elements['shortcut-due-day'].value = shortcut.dueDay || 1;
+                        form.elements['shortcut-effective-date'].value = this.formatDateForInput(new Date());
+                    }
+
+                } else { 
+                    this.elements.shortcutModalTitle.textContent = 'Novo Atalho';
+                    form.elements['shortcut-due-day'].value = 1; 
+                    const firstIcon = this.elements.iconSelection.querySelector('.icon-btn');
+                    if(firstIcon) { firstIcon.classList.add('ring-2', 'ring-blue-500'); form.elements['shortcut-icon'].value = firstIcon.dataset.icon; }
+                }
+                this.openModal('shortcut-modal');
+            },
+
+            async handleShortcutFormSubmit(e) {
+                e.preventDefault();
+                const form = e.target.elements;
+                const id = form['shortcut-id'].value;
+                const shortcutData = { 
+                    name: form['shortcut-name'].value, 
+                    type: form['shortcut-type'].value, 
+                    frequency: form['shortcut-frequency'].value, 
+                    defaultValue: parseFloat(form['shortcut-value'].value), 
+                    icon: form['shortcut-icon'].value,
+                    dueDay: parseInt(form['shortcut-due-day'].value) || 1,
+                };
+                
+                try {
+                    if (id) {
+                        const docRef = doc(db, "users", this.userId, "shortcuts", id);
+                        await setDoc(docRef, shortcutData, { merge: true });
+                    } else { 
+                        const period = this.getPeriod(this.state.currentDateForPeriod);
+                        const newShortcut = { 
+                            ...shortcutData, 
+                            createdAt: Timestamp.fromDate(period.start) 
+                        };
+                        await addDoc(collection(db, "users", this.userId, "shortcuts"), newShortcut);
+                    }
+                    this.closeAllModals();
+                } catch (error) {
+                    console.error("Erro ao salvar atalho: ", error);
+                }
+            },
+            
+             async confirmDeleteShortcut(id) {
+                const shortcut = this.state.shortcuts.find(s => s.id === id); if (!shortcut) return;
+                const message = shortcut.frequency === 'fixed'
+                    ? `Isto também excluirá todas as transações futuras (pendentes) geradas por este atalho. O histórico passado será mantido.`
+                    : `As transações existentes não serão afetadas.`;
+                
+                this.showMessage(
+                    'Excluir Atalho',
+                    `Deseja realmente excluir o atalho "${shortcut.name}"? ${message}`,
+                    'warning',
+                    [
+                        { text: 'Confirmar Exclusão', class: 'bg-red-600 hover:bg-red-700', action: async () => {
+                             try {
+                                if (shortcut.frequency === 'fixed') {
+                                    const q = query(collection(db, "users", this.userId, "transactions"), 
+                                        where("shortcutId", "==", id), 
+                                        where("status", "==", "pending"));
+                                    const querySnapshot = await getDocs(q);
+                                    for (const docSnap of querySnapshot.docs) {
+                                        await deleteDoc(doc(db, "users", this.userId, "transactions", docSnap.id));
+                                    }
+                                }
+                                await deleteDoc(doc(db, "users", this.userId, "shortcuts", id));
+                                this.closeAllModals();
+                            } catch (error) {
+                                console.error("Erro ao excluir atalho: ", error);
+                            }
+                        }},
+                        { text: 'Cancelar', class: 'bg-gray-700 hover:bg-gray-600', action: () => this.closeAllModals() }
+                    ]
+                );
+            },
+
+            // --- LÓGICA AVANÇADA: TRANSAÇÕES FIXAS E DE SALDO ---
+            async generateFixedTransactionsForCurrentPeriod() {
+                const period = this.getPeriod(this.state.currentDateForPeriod);
+
+                for (const shortcut of this.state.shortcuts.filter(s => s.frequency === 'fixed')) {
+                    const dueDay = shortcut.dueDay || 1;
+                    const transactionDate = new Date(period.start.getFullYear(), period.start.getMonth(), dueDay);
+                    
+                    if (shortcut.createdAt && transactionDate < new Date(shortcut.createdAt.getFullYear(), shortcut.createdAt.getMonth(), 1)) {
+                        continue; 
+                    }
+
+                    try {
+                        const yearMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+                        const skippedDocId = `${shortcut.id}_${yearMonth}`;
+                        const skippedDocRef = doc(db, "users", this.userId, "skippedFixed", skippedDocId);
+                        const skippedDocSnap = await getDoc(skippedDocRef);
+
+                        if (skippedDocSnap.exists()) {
+                            continue;
+                        }
+
+                        const existingTransaction = this.state.transactions.find(t => 
+                            t.shortcutId === shortcut.id &&
+                            t.dueDate.getFullYear() === transactionDate.getFullYear() &&
+                            t.dueDate.getMonth() === transactionDate.getMonth()
+                        );
+                        
+                        if (!existingTransaction) {
+                            await addDoc(collection(db, "users", this.userId, "transactions"), {
+                                description: shortcut.name, 
+                                amount: shortcut.defaultValue, 
+                                dueDate: Timestamp.fromDate(transactionDate), 
+                                type: shortcut.type, 
+                                status: 'pending', 
+                                shortcutId: shortcut.id, 
+                                isAutoGenerated: true
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar ou gerar transação fixa: ", error);
+                    }
+                }
+            },
+
+            getPreviousPeriodBalanceTransaction() {
+                const currentPeriod = this.getPeriod(this.state.currentDateForPeriod);
+                const prevMonthDate = new Date(currentPeriod.start);
+                prevMonthDate.setDate(0); 
+                const prevPeriod = this.getPeriod(prevMonthDate);
+
+                const prevPeriodTransactions = this.state.transactions.filter(t =>
+                    t.dueDate >= prevPeriod.start && t.dueDate <= prevPeriod.end
+                );
+                const received = prevPeriodTransactions.filter(t => t.type === 'revenue' && t.status === 'paid').reduce((sum, t) => sum + t.amount, 0);
+                const paid = prevPeriodTransactions.filter(t => t.type === 'expense' && t.status === 'paid').reduce((sum, t) => sum + t.amount, 0);
+                const realizedBalance = received - paid;
+
+                if (realizedBalance === 0) {
+                    return null;
+                }
+
+                return {
+                    id: `balance_${prevPeriod.start.getTime()}`,
+                    description: `Saldo Mês Anterior (${prevMonthDate.toLocaleDateString('pt-BR', {month: 'long'})})`,
+                    amount: Math.abs(realizedBalance),
+                    dueDate: currentPeriod.start,
+                    type: realizedBalance >= 0 ? 'revenue' : 'expense',
+                    status: 'paid',
+                    isBalanceTransfer: true,
+                };
+            },
+            
+            // --- MODAL DE MENSAGEM DINÂMICO ---
+            showMessage(title, message, type = 'info', buttons) {
+                this.elements.confirmationTitle.textContent = title;
+                this.elements.confirmationMessage.innerHTML = message; 
+                this.elements.confirmationButtons.innerHTML = '';
+
+                const icons = {
+                    warning: { bg: 'bg-yellow-200', text: 'text-yellow-600', icon: 'alert-triangle' },
+                    error: { bg: 'bg-red-200', text: 'text-red-600', icon: 'alert-circle' },
+                    info: { bg: 'bg-blue-200', text: 'text-blue-600', icon: 'info' }
+                };
+                const selectedIcon = icons[type] || icons.info;
+                this.elements.confirmationIcon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full ${selectedIcon.bg} mb-4`;
+                this.elements.confirmationIcon.innerHTML = `<i data-lucide="${selectedIcon.icon}" class="h-6 w-6 ${selectedIcon.text}"></i>`;
+                
+                buttons.forEach(btnInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = btnInfo.text;
+                    button.className = `w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none ${btnInfo.class}`;
+                    button.onclick = btnInfo.action;
+                    this.elements.confirmationButtons.appendChild(button);
+                });
+                
+                lucide.createIcons();
+                this.openModal('confirmation-modal');
+            },
+
+            // --- FUNÇÕES AUXILIARES ---
+            formatCurrency(value) { return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); },
+            formatDateForInput(date) { const d = new Date(date); let month = '' + (d.getMonth() + 1), day = '' + d.getDate(); if (month.length < 2) month = '0' + month; if (day.length < 2) day = '0' + day; return [d.getFullYear(), month, day].join('-'); },
+            populateIcons() {
+                this.elements.iconSelection.innerHTML = this.iconList.map(icon => `<button type="button" class="icon-btn p-2 rounded-lg bg-gray-600 hover:bg-gray-500 flex items-center justify-center" data-icon="${icon}"><i data-lucide="${icon}" class="w-6 h-6 pointer-events-none"></i></button>`).join('');
+            }
+        };
+    </script>
+</body>
+</html>
