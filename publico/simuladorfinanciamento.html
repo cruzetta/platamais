@@ -104,8 +104,10 @@
             };
 
             const parseCurrency = (value) => {
-                if (typeof value !== 'string') return value;
-                return Number(value.replace(/\./g, '').replace(',', '.'));
+                if (typeof value === 'number') return value;
+                if (typeof value !== 'string') return 0;
+                const number = Number(value.replace(/\./g, '').replace(',', '.'));
+                return isNaN(number) ? 0 : number;
             };
             
             // --- LÓGICA DE CÁLCULO ---
@@ -442,7 +444,7 @@
                     console.warn("Rastreamento de acesso: ID do produto não configurado.");
                     return;
                 }
-                if (typeof db === 'undefined') {
+                if (typeof db === 'undefined' || typeof firebase.firestore === 'undefined') {
                     console.error("Firestore não foi inicializado. O rastreamento de acesso está desativado.");
                     return;
                 }
