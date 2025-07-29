@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor CSV e Excel - Gratuito</title>
+    <!-- Incluindo Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluindo a biblioteca SheetJS para manipulação de planilhas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Incluindo Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .drop-zone {
+            border: 2px dashed #4b5563; /* cinza mais escuro */
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .drop-zone.drag-over {
+            background-color: #374151; /* cinza ainda mais escuro */
+            border-color: #6366f1; /* indigo-500 */
+        }
+        .message-box {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, top 0.3s ease-in-out;
+        }
+        .message-box.show {
+            display: block;
+            opacity: 1;
+            top: 40px;
+        }
+        .message-box.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .message-box.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-gray-800 border border-gray-700 rounded-xl shadow-lg my-8 p-6 md:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white flex items-center justify-center">
+                Conversor CSV 
+                <!-- Ícone SVG da seta inserido diretamente -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mx-4 text-indigo-400">
+                    <path d="m17 2 4 4-4 4"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="m7 22-4-4 4-4"></path>
+                    <path d="M21 18H3"></path>
+                </svg>
+                Excel
+            </h1>
+            <p class="text-gray-400 mt-2 text-lg">Sua ferramenta gratuita para conversão de arquivos.</p>
+        </header>
+
+        <main>
+            <div id="dropZone" class="drop-zone w-full p-10 text-center rounded-lg cursor-pointer hover:bg-gray-700/50 mt-6">
+                <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv">
+                <!-- Ícone SVG de upload inserido diretamente -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto h-12 w-12 text-gray-500">
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                    <path d="M12 12v9"></path>
+                    <path d="m16 16-4-4-4 4"></path>
+                </svg>
+                <p class="mt-4 text-lg">Arraste e solte o arquivo aqui</p>
+                <p class="mt-2 font-semibold text-indigo-400">ou clique para selecionar</p>
+                <p class="text-xs text-gray-500 mt-4">Suporta: .xlsx, .xls, .csv</p>
+            </div>
+            <div id="fileOptions" class="hidden text-center mt-6">
+                <p class="font-semibold mb-4">Arquivo carregado: <span id="fileName" class="font-normal text-gray-400"></span></p>
+                <div id="conversionResult" class="bg-gray-900/50 p-4 rounded-lg">
+                    <p class="text-lg">Pronto para converter para <span id="outputFormatLabel" class="font-bold text-indigo-400"></span></p>
+                </div>
+                <button id="convertBtn" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-500 text-lg flex items-center justify-center">
+                    <!-- Ícone SVG de conversão inserido diretamente -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2">
+                        <path d="m17 2 4 4-4 4"></path>
+                        <path d="M3 11v-1a4 4 0 0 1 4-4h14"></path>
+                        <path d="m7 22-4-4 4-4"></path>
+                        <path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                    Converter e Baixar
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Caixa de Mensagem -->
+    <div id="messageBox" class="message-box">
+        <span id="messageText"></span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- ELEMENTOS DO DOM ---
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            const fileOptions = document.getElementById('fileOptions');
+            const fileNameEl = document.getElementById('fileName');
+            const convertBtn = document.getElementById('convertBtn');
+            const outputFormatLabel = document.getElementById('outputFormatLabel');
+            
+            // --- VARIÁVEIS DE ESTADO ---
+            let uploadedFile = null;
+            let fileData = null; // Armazenará os dados lidos da planilha
+            let outputFormat = '';
+
+            // --- FUNÇÕES DE MENSAGEM ---
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            function showMessage(msg, type = 'error') {
+                messageText.textContent = msg;
+                messageBox.className = `message-box ${type}`;
+                messageBox.classList.add('show');
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 4000);
+            }
+
+            // --- LÓGICA DE UPLOAD (DRAG & DROP E CLIQUE) ---
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('drag-over'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+                if (e.dataTransfer.files.length) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                }
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+
+            // --- PROCESSAMENTO DO ARQUIVO ---
+            function handleFileUpload(file) {
+                uploadedFile = file;
+                const extension = file.name.split('.').pop().toLowerCase();
+                fileNameEl.textContent = file.name;
+                
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        fileData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        if (extension === 'xlsx' || extension === 'xls') {
+                            outputFormat = 'csv';
+                            outputFormatLabel.textContent = 'CSV';
+                        } else if (extension === 'csv') {
+                            outputFormat = 'xlsx';
+                            outputFormatLabel.textContent = 'Excel (.xlsx)';
+                        } else {
+                            throw new Error('Formato de arquivo não suportado.');
+                        }
+                        
+                        fileOptions.style.display = 'block';
+                        dropZone.style.display = 'none'; // Esconde a área de upload
+                    } catch (err) {
+                        showMessage('Erro ao ler o arquivo. Formato inválido ou corrompido.');
+                        console.error(err);
+                        resetUI();
+                    }
+                };
+                
+                reader.onerror = () => {
+                     showMessage('Não foi possível ler o arquivo.');
+                     resetUI();
+                }
+
+                reader.readAsBinaryString(file);
+            }
+            
+            function resetUI() {
+                fileOptions.style.display = 'none';
+                dropZone.style.display = 'block';
+                fileInput.value = '';
+                uploadedFile = null;
+                fileData = null;
+                outputFormat = '';
+            }
+
+            // --- LÓGICA DE CONVERSÃO ---
+            convertBtn.addEventListener('click', () => {
+                if (!fileData || !outputFormat) {
+                    showMessage('Nenhum arquivo válido carregado para conversão.');
+                    return;
+                }
+                
+                const originalFileName = uploadedFile.name.split('.').slice(0, -1).join('.');
+
+                try {
+                    if (outputFormat === 'csv') {
+                        const worksheet = XLSX.utils.aoa_to_sheet(fileData);
+                        const csvData = XLSX.utils.sheet_to_csv(worksheet);
+                        downloadFile(csvData, `${originalFileName}.csv`, 'text/csv;charset=utf-8;');
+                    } else if (outputFormat === 'xlsx') {
+                        const worksheet = XLSX.utils.aoa_to_sheet(fileData);
+                        const newWorkbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(newWorkbook, worksheet, "Dados");
+                        XLSX.writeFile(newWorkbook, `${originalFileName}.xlsx`);
+                    }
+                    showMessage('Conversão concluída!', 'success');
+                    // Opcional: resetar a UI após o download
+                    setTimeout(resetUI, 1000);
+
+                } catch (err) {
+                    showMessage('Ocorreu um erro durante a conversão.');
+                    console.error(err);
+                }
+            });
+
+            // --- FUNÇÃO DE DOWNLOAD GENÉRICA ---
+            function downloadFile(data, filename, type) {
+                const blob = new Blob([data], { type: type });
+                // Adiciona BOM para CSV para garantir compatibilidade com Excel
+                const finalBlob = type.startsWith('text/csv') ? new Blob(["\uFEFF", blob], { type: type }) : blob;
+                const url = URL.createObjectURL(finalBlob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        });
+    </script>
+</body>
+</html>
