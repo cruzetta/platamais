@@ -276,7 +276,6 @@
     </div>
 
     <!-- SCRIPTS DO FIREBASE E LÓGICA DA PÁGINA -->
-    <!-- Estes são os mesmos scripts que você já usa, garantindo a compatibilidade -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -286,15 +285,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             // --- LÓGICA DE PAGAMENTO PIX (REUTILIZADA E ADAPTADA) ---
-            // Esta lógica é a mesma do seu sistema, garantindo que tudo funcione como esperado.
-            
-            // Inicializa as funções do Firebase
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
-            // A função foi renomeada para 'checkPaymentStatus' no seu backend (index.js)
             const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
 
-            // Mapeamento dos elementos do HTML para o JavaScript
             const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
             const generatePixButton = document.getElementById('generate-pix-button');
@@ -309,17 +303,14 @@
             const pixTimerEl = document.getElementById('pix-timer');
             const pixTimerContainer = document.getElementById('pix-timer-container');
             
-            // Variáveis para guardar o estado do pagamento
             let currentPaymentId = null;
             let currentProductId = null;
             let currentUserName = null;
             let countdownInterval;
 
-            // Adiciona o evento de clique ao botão principal de compra
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
                     currentProductId = buyButton.dataset.productId;
-                    // Validação importante para garantir que o ID do produto foi inserido
                     if (!currentProductId || currentProductId === "ID_DO_SEU_PRODUTO_AQUI") {
                         alert("Erro de configuração: O ID do produto não foi definido no botão de compra. Siga as instruções para configurá-lo.");
                         return;
@@ -328,7 +319,6 @@
                 });
             }
 
-            // Lógica do formulário de dados do utilizador
             if(userInfoForm) {
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -351,11 +341,9 @@
                             productId: currentProductId
                         };
                         
-                        // Chama a Cloud Function para criar o pagamento
                         const result = await createPixPayment(payload);
                         currentPaymentId = result.data.paymentId;
                         
-                        // Preenche o modal do PIX com os dados recebidos
                         pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                         pixCodeInput.value = result.data.qrCode;
 
@@ -375,7 +363,6 @@
                 });
             }
 
-            // Lógica do botão "Já Paguei"
             if(checkPaymentButton) {
                 checkPaymentButton.addEventListener('click', async () => {
                     if (!currentPaymentId) return;
@@ -384,10 +371,8 @@
                     checkPaymentMessage.textContent = "A verificar...";
 
                     try {
-                        // Chama a Cloud Function para verificar o status
                         const result = await checkPaymentStatus({ paymentId: currentPaymentId });
                         if (result.data.status === 'approved') {
-                            // Se aprovado, redireciona para a página/mensagem de sucesso
                             redirectToSuccess(currentUserName, currentPaymentId);
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
@@ -404,7 +389,6 @@
                 });
             }
             
-            // Função para o temporizador do PIX
             function startTimer(duration) {
                 let timer = duration;
                 clearInterval(countdownInterval);
@@ -423,17 +407,12 @@
                 }, 1000);
             }
             
-            // Função que define o que acontece após o pagamento ser aprovado
             function redirectToSuccess(userName, paymentId) {
                 clearInterval(countdownInterval);
-                // AQUI você define para onde o cliente vai após pagar.
-                // Pode ser uma página de "obrigado", o link direto para a planilha, ou o WhatsApp.
-                // Vou usar a lógica de redirecionar para o WhatsApp, que é reutilizável e eficaz.
                 const seuNumero = "5567999093031"; // SEU NÚMERO DE WHATSAPP AQUI
                 const mensagem = encodeURIComponent(`Olá! Meu nome é ${userName} e acabei de adquirir a ferramenta "O Fim do Salário Curto". (ID do Pagamento: ${paymentId})`);
                 const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
                 
-                // Atualiza o modal para dar feedback ao utilizador
                 pixTitle.textContent = "Pagamento Aprovado!";
                 pixSubtitle.textContent = "Você receberá o acesso no seu e-mail e será redirecionado para o suporte.";
                 checkPaymentButton.style.display = 'none';
@@ -441,13 +420,11 @@
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
 
-                // Redireciona após um pequeno atraso
                 setTimeout(() => {
                     window.location.href = whatsappUrl;
                 }, 2500);
             }
 
-            // Função para copiar o código PIX
             window.copyPixCode = function() {
                 pixCodeInput.select();
                 try {
@@ -460,7 +437,6 @@
                 }
             }
             
-            // Funções globais para controlar os modais
             window.openModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
@@ -475,6 +451,39 @@
                     setTimeout(() => modal.classList.remove('flex'), 300);
                 }
             }
+
+            // --- NOVO: SCRIPT DE RASTREAMENTO DE ACESSO ---
+            const productId = 'YTVaDOLx6nMJaHaR3uB5'; // ID deste produto específico
+
+            function getOrCreateVisitorId() {
+                let visitorId = localStorage.getItem('plataMaisVisitorId');
+                if (!visitorId) {
+                    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('plataMaisVisitorId', visitorId);
+                }
+                return visitorId;
+            }
+
+            async function logProductAccess() {
+                if (!db) {
+                    console.error("Firestore não foi inicializado.");
+                    return;
+                }
+                const visitorId = getOrCreateVisitorId();
+                try {
+                    await db.collection('productAccessLogs').add({
+                        productId: productId,
+                        visitorId: visitorId,
+                        pageUrl: window.location.href,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    console.log('Acesso registrado para o produto:', productId);
+                } catch (error) {
+                    console.error("Erro ao registrar acesso:", error);
+                }
+            }
+            logProductAccess();
         });
     </script>
 </body>

@@ -100,6 +100,11 @@
         <span id="messageText"></span>
     </div>
 
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // --- ELEMENTOS DO DOM ---
@@ -239,6 +244,42 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
             }
+
+            // --- NOVO: SCRIPT DE RASTREAMENTO DE ACESSO ---
+            const productId = 'ferramenta-conversor-csv'; // ID único para este produto gratuito
+
+            function getOrCreateVisitorId() {
+                let visitorId = localStorage.getItem('plataMaisVisitorId');
+                if (!visitorId) {
+                    // Cria um ID único e anónimo para o visitante
+                    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('plataMaisVisitorId', visitorId);
+                }
+                return visitorId;
+            }
+
+            async function logProductAccess() {
+                // A variável `db` já está disponível a partir de `firebase-config.js`
+                if (!db) {
+                    console.error("Firestore não foi inicializado. O rastreamento de acesso está desativado.");
+                    return;
+                }
+                const visitorId = getOrCreateVisitorId();
+                try {
+                    await db.collection('productAccessLogs').add({
+                        productId: productId,
+                        visitorId: visitorId,
+                        pageUrl: window.location.href,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    console.log('Acesso registrado para a ferramenta:', productId);
+                } catch (error) {
+                    console.error("Erro ao registrar acesso:", error);
+                }
+            }
+            // Chama a função de log assim que a página carrega
+            logProductAccess();
         });
     </script>
 </body>

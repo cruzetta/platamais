@@ -84,7 +84,7 @@
         </template>
     </main>
 
-    <!-- ===== MODAL PARA DADOS DO UTILIZADOR ===== -->
+    <!-- ===== MODAIS (sem alterações) ===== -->
     <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-indigo-500 relative">
             <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -106,8 +106,6 @@
             </form>
         </div>
     </div>
-    
-    <!-- ===== MODAL PARA O PIX ===== -->
     <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
          <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-indigo-500 relative">
             <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -154,6 +152,8 @@
 
                     if (this.productId) {
                         this.fetchProduct();
+                        // NOVO: Chama a função para registrar o acesso
+                        this.logProductAccess(this.productId);
                     } else {
                         this.isLoading = false;
                         document.title = "Produto não encontrado";
@@ -181,13 +181,46 @@
                         this.isLoading = false;
                     }
                 },
+
+                // NOVO: Função para registrar o acesso à página
+                logProductAccess(productId) {
+                    function getOrCreateVisitorId() {
+                        let visitorId = localStorage.getItem('plataMaisVisitorId');
+                        if (!visitorId) {
+                            visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                            localStorage.setItem('plataMaisVisitorId', visitorId);
+                        }
+                        return visitorId;
+                    }
+
+                    async function doLog() {
+                        if (!db) {
+                            console.error("Firestore não foi inicializado.");
+                            return;
+                        }
+                        const visitorId = getOrCreateVisitorId();
+                        try {
+                            await db.collection('productAccessLogs').add({
+                                productId: productId,
+                                visitorId: visitorId,
+                                pageUrl: window.location.href,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                userAgent: navigator.userAgent
+                            });
+                            console.log('Acesso registrado para o produto:', productId);
+                        } catch (error) {
+                            console.error("Erro ao registrar acesso:", error);
+                        }
+                    }
+                    doLog();
+                },
                 
                 initializePaymentLogic() {
+                    // A lógica de pagamento permanece a mesma
                     const functions = firebase.app().functions('us-central1');
                     const createPixPayment = functions.httpsCallable('createPixPayment');
                     const checkPaymentStatusAndGetLink = functions.httpsCallable('checkPaymentStatusAndGetLink');
 
-                    const buyButton = document.getElementById('buy-button');
                     const userInfoForm = document.getElementById('user-info-form');
                     const generatePixButton = document.getElementById('generate-pix-button');
                     const formMessage = document.getElementById('form-message');
@@ -204,9 +237,6 @@
                     let currentPaymentId = null;
                     let countdownInterval;
 
-                    // O evento de clique no buyButton já é gerido pelo Alpine com @click
-                    // então não precisamos de um event listener aqui.
-
                     if(userInfoForm) {
                         userInfoForm.addEventListener('submit', async (e) => {
                             e.preventDefault();
@@ -214,7 +244,6 @@
                             const userName = document.getElementById('firstName').value;
                             const userEmail = document.getElementById('email').value;
 
-                            // Usamos this.productId que já foi capturado pelo Alpine
                             if (!userName.trim() || !userEmail.trim() || !this.productId) {
                                 formMessage.textContent = 'Erro: ID do produto não encontrado.';
                                 return;
@@ -326,7 +355,6 @@
             }));
         });
         
-        // Funções de modal globais para simplicidade
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             if(modal) {

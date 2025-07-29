@@ -641,6 +641,39 @@
                     document.getElementById('whatsapp-message').value = ''; // Limpa o campo
                 });
             }
+
+            // --- NOVO: SCRIPT DE RASTREAMENTO DE ACESSO ---
+            const productId = 'hSZxb7PkKEVigk5C3jyA'; // ID deste produto específico
+
+            function getOrCreateVisitorId() {
+                let visitorId = localStorage.getItem('plataMaisVisitorId');
+                if (!visitorId) {
+                    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('plataMaisVisitorId', visitorId);
+                }
+                return visitorId;
+            }
+
+            async function logProductAccess() {
+                if (!db) {
+                    console.error("Firestore não foi inicializado.");
+                    return;
+                }
+                const visitorId = getOrCreateVisitorId();
+                try {
+                    await db.collection('productAccessLogs').add({
+                        productId: productId,
+                        visitorId: visitorId,
+                        pageUrl: window.location.href,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    console.log('Acesso registrado para o produto:', productId);
+                } catch (error) {
+                    console.error("Erro ao registrar acesso:", error);
+                }
+            }
+            logProductAccess();
         });
     </script>
 </body>

@@ -301,6 +301,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
 
     <script type="module">
@@ -804,6 +805,38 @@
             });
         }
 
+        // --- NOVO: SCRIPT DE RASTREAMENTO DE ACESSO ---
+        const productId = 'sistema-trafego-ia'; // ID único para este produto
+
+        function getOrCreateVisitorId() {
+            let visitorId = localStorage.getItem('plataMaisVisitorId');
+            if (!visitorId) {
+                visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('plataMaisVisitorId', visitorId);
+            }
+            return visitorId;
+        }
+
+        async function logProductAccess() {
+            if (!db) {
+                console.error("Firestore não foi inicializado.");
+                return;
+            }
+            const visitorId = getOrCreateVisitorId();
+            try {
+                await db.collection('productAccessLogs').add({
+                    productId: productId,
+                    visitorId: visitorId,
+                    pageUrl: window.location.href,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+                console.log('Acesso registrado para o produto:', productId);
+            } catch (error) {
+                console.error("Erro ao registrar acesso:", error);
+            }
+        }
+        logProductAccess();
     </script>
 </body>
 </html>
