@@ -117,11 +117,10 @@
 
         // --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
         
-        // CORREÇÃO: Usa as variáveis globais fornecidas pelo ambiente para segurança e flexibilidade.
-        // NUNCA exponha suas chaves de API diretamente no código.
+        // Usa as variáveis globais fornecidas pelo ambiente para segurança e flexibilidade.
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config)
-            : { /* Suas chaves de fallback aqui, se necessário, mas não recomendado */ };
+            : { apiKey: "YOUR_FALLBACK_API_KEY", authDomain: "...", projectId: "..." };
         
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -184,9 +183,7 @@
         
         // --- FUNÇÕES DE RENDERIZAÇÃO (UI) ---
         
-        // Função principal que atualiza a tela com base no estado
         function render() {
-            // Não renderiza a app principal se ainda estiver na tela de entrada
             if (entryPage.classList.contains('hidden')) {
                 mainNav.innerHTML = getNavHTML();
                 controlsPanel.innerHTML = getControlsHTML();
@@ -194,14 +191,7 @@
                 userIdDisplay.textContent = state.userId ? `ID do Usuário: ${state.userId}` : '';
             }
             
-            // Renderiza o modal ativo
-            if (state.activeModal) {
-                modalContainer.innerHTML = getModalHTML(state.activeModal);
-            } else {
-                modalContainer.innerHTML = '';
-            }
-            
-            // Atualiza os ícones na tela
+            modalContainer.innerHTML = state.activeModal ? getModalHTML(state.activeModal) : '';
             lucide.createIcons();
         }
         
@@ -396,16 +386,12 @@
             feedbackEl.innerHTML = `<i data-lucide="${icon}" class="mr-3"></i> <p>${message}</p>`;
             
             feedbackContainer.appendChild(feedbackEl);
-            lucide.createIcons({
-                nodes: [feedbackEl.querySelector('i')]
-            });
+            lucide.createIcons({ nodes: [feedbackEl.querySelector('i')] });
 
-            // Animação de entrada
             setTimeout(() => {
                 feedbackEl.classList.remove('translate-y-[-20px]', 'opacity-0');
             }, 10);
 
-            // Animação de saída
             setTimeout(() => {
                 feedbackEl.classList.add('opacity-0');
                 feedbackEl.addEventListener('transitionend', () => feedbackEl.remove());
@@ -416,7 +402,6 @@
 
         async function handleGeneratePrompt() {
             if (state.isLoadingPrompt) return;
-            
             setState({ isLoadingPrompt: true });
 
             const selectedCharacterDetails = state.userCharacters
@@ -446,57 +431,77 @@
             const finalPromptForAI = `Gere um prompt para uma IA de vídeo, em ${state.outputLanguage === 'english' ? 'inglês' : 'português'}, baseado na seguinte ideia: ${fullPrompt}. O prompt final deve ser direto, técnico e otimizado para modelos como Sora, Runway ou Pika Labs, sem incluir minha introdução.`;
 
             try {
-                // Lógica de chamada para a API Gemini
-                const apiKey = ""; // Deixe em branco, será injetado pelo ambiente
+                // Lógica de chamada para a API Gemini com retentativa
+                const apiKey = ""; // Deixado em branco para ser injetado pelo ambiente.
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: finalPromptForAI }] }]
                 };
 
-                const response = await fetch(apiUrl, {
+                const response = await fetchWithRetry(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Erro da API: ${response.statusText}`);
+                    const errorBody = await response.text();
+                    throw new Error(`Erro da API: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
                 }
 
                 const result = await response.json();
-                const generatedText = result.candidates[0].content.parts[0].text;
-                setState({ generatedPrompt: generatedText });
+                
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    setState({ generatedPrompt: generatedText });
+                } else {
+                    throw new Error("A resposta da API não contém o texto esperado.");
+                }
 
             } catch (error) {
                 console.error("Erro ao gerar prompt:", error);
                 showFeedback("Falha ao gerar o prompt. Tente novamente.", "error");
-                setState({ generatedPrompt: "Ocorreu um erro. Verifique o console para mais detalhes." });
+                setState({ generatedPrompt: `Ocorreu um erro: ${error.message}` });
             } finally {
                 setState({ isLoadingPrompt: false });
             }
         }
+
+        // Função auxiliar para fetch com retentativa (exponential backoff)
+        async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok && response.status >= 500) { // Tenta novamente em erros de servidor
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
+                }
+            }
+        }
+
 
         function handleCopy() {
             if (!state.generatedPrompt) {
                 showFeedback("Não há nada para copiar!", "error");
                 return;
             }
-            const textarea = document.getElementById('generated-prompt');
-            textarea.select();
-            // document.execCommand('copy') é usado para compatibilidade com iframes
-            try {
-                document.execCommand('copy');
+            // Usa navigator.clipboard para maior compatibilidade e segurança
+            navigator.clipboard.writeText(state.generatedPrompt).then(() => {
                 showFeedback("Prompt copiado para a área de transferência!");
-            } catch (err) {
+            }).catch(err => {
                 console.error('Falha ao copiar texto: ', err);
                 showFeedback("Não foi possível copiar o texto.", "error");
-            }
+            });
         }
 
         async function handleSavePrompt() {
             if (!state.generatedPrompt || !state.userId) {
-                showFeedback("Gere um prompt antes de salvar.", "error");
+                showFeedback("Gere um prompt e faça login para poder salvar.", "error");
                 return;
             }
             try {
@@ -549,7 +554,6 @@
                     await addDoc(charactersCollection, characterData);
                     showFeedback("Personagem adicionado!");
                 }
-                // Limpa o formulário e fecha o modo de edição
                 handleCancelEditCharacter();
             } catch (error) {
                 console.error("Erro ao salvar personagem:", error);
@@ -636,7 +640,8 @@
             switch (errorCode) {
                 case 'auth/invalid-email': return 'O formato do e-mail é inválido.';
                 case 'auth/user-not-found':
-                case 'auth/wrong-password': return 'E-mail ou senha incorretos.';
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': return 'E-mail ou senha incorretos.';
                 case 'auth/email-already-in-use': return 'Este e-mail já está em uso.';
                 case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
                 default: return 'Ocorreu um erro. Tente novamente.';
@@ -645,20 +650,17 @@
 
         // --- GERENCIAMENTO DE ESTADO E EVENTOS ---
 
-        // Função central para atualizar o estado e re-renderizar a UI
         function setState(newState) {
             Object.assign(state, newState);
             render();
         }
 
-        // Função para atualizar o estado a partir de inputs do formulário
         function handleFormInput(e) {
             const { id, value, type, checked } = e.target;
             if (state.hasOwnProperty(id)) {
                 const newValue = type === 'checkbox' ? checked : (type === 'range' || type === 'number' ? Number(value) : value);
                 setState({ [id]: newValue });
                 
-                // Sincroniza o input range com o number
                 if (id === 'duration') {
                     document.getElementById('duration-number').value = value;
                 }
@@ -667,7 +669,6 @@
             }
         }
         
-        // Listener de eventos centralizado (Event Delegation)
         function setupEventListeners() {
             document.body.addEventListener('click', (e) => {
                 const target = e.target.closest('[data-action]');
@@ -685,16 +686,14 @@
                             render();
                         }, { once: true });
                         break;
-                    case 'open-modal':
-                        setState({ activeModal: modal });
-                        break;
+                    case 'open-modal': setState({ activeModal: modal }); break;
                     case 'close-modal':
                     case 'close-modal-overlay':
-                         if (action === 'close-modal-overlay' && e.target !== e.currentTarget) return; // Clica apenas no overlay
+                         if (action === 'close-modal-overlay' && e.target !== e.currentTarget) return;
                          if (state.activeModal === 'confirmation') {
-                            setState({ activeModal: 'characters' }); // Regra específica para voltar
+                             setState({ activeModal: 'characters' });
                          } else {
-                            setState({ activeModal: null });
+                             setState({ activeModal: null });
                          }
                         break;
                     case 'generate': handleGeneratePrompt(); break;
@@ -717,16 +716,14 @@
                 }
             });
 
-            // Listeners para formulários
             document.body.addEventListener('submit', (e) => {
+                e.preventDefault();
                 if (e.target.id === 'character-form') handleSaveCharacter(e);
                 if (e.target.id === 'auth-form') handleAuthAction(e);
             });
 
-            // Listener para inputs
             document.body.addEventListener('input', handleFormInput);
 
-            // Listener para select múltiplo
             document.body.addEventListener('change', (e) => {
                 if (e.target.id === 'selectedCharacters') {
                     const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
@@ -737,46 +734,47 @@
 
         // --- INICIALIZAÇÃO DA APLICAÇÃO ---
         
-        let unsubscribeCharacters; // Para limpar o listener do Firestore
+        let unsubscribeCharacters;
         
         onAuthStateChanged(auth, async (user) => {
+            // Limpa listeners antigos para evitar duplicação ao trocar de usuário
+            if (unsubscribeCharacters) unsubscribeCharacters();
+            unsubscribeCharacters = null;
+
             if (user) {
                 // Usuário logado (seja anônimo ou real)
-                setState({ 
+                const newState = { 
                     userId: user.uid,
                     isUserLoggedIn: !user.isAnonymous,
                     userEmail: user.email || (user.isAnonymous ? 'Anônimo' : '')
-                });
-                
-                // Limpa listeners antigos para evitar duplicação
-                if (unsubscribeCharacters) unsubscribeCharacters();
+                };
+                setState(newState);
                 
                 // Configura novos listeners para os dados do usuário
                 const charactersRef = collection(db, `artifacts/${appId}/users/${user.uid}/characters`);
                 unsubscribeCharacters = onSnapshot(charactersRef, (snapshot) => {
                     const userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setState({ userCharacters });
+                }, (error) => {
+                    console.error("Erro ao ouvir personagens: ", error);
+                    showFeedback("Não foi possível carregar seus personagens.", "error");
                 });
 
             } else {
                 // Nenhum usuário, desloga e limpa o estado
-                if (unsubscribeCharacters) unsubscribeCharacters();
-                unsubscribeCharacters = null;
-                
                 setState({
-                    userId: null,
-                    isUserLoggedIn: false,
-                    userEmail: '',
-                    userCharacters: [],
-                    userPrompts: [],
-                    userCustomCameraTypes: []
+                    userId: null, isUserLoggedIn: false, userEmail: '',
+                    userCharacters: [], userPrompts: [], userCustomCameraTypes: []
                 });
             }
             // Marca que a autenticação está pronta e renderiza a UI
-            setState({ isAuthReady: true });
+            if (!state.isAuthReady) {
+                setState({ isAuthReady: true });
+            } else {
+                render(); // Re-renderiza se o estado de auth mudou depois da carga inicial
+            }
         });
 
-        // Tenta autenticar o usuário ao carregar a página
         async function initialAuth() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
