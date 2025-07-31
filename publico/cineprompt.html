@@ -1,1231 +1,440 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { initializeApp } from 'firebase/app';
-import {
-  getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup
-} from 'firebase/auth';
-import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, doc, deleteDoc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
-
-// Importar ícones do Lucide React
-import {
-  Film,
-  Building,
-  Edit,
-  User,
-  Camera,
-  Lightbulb,
-  Palette,
-  Clock,
-  Crop,
-  Sparkles,
-  Copy,
-  RotateCcw,
-  Save,
-  Menu,
-  X,
-  LogIn,
-  UserCircle,
-  History,
-  LayoutGrid,
-  DollarSign,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  PlusCircle,
-  Users,
-  Trash2,
-  PenSquare,
-  Languages,
-  Mic,
-  Mail,
-  Lock,
-  CreditCard,
-  LogOut,
-  UserPlus,
-  ArrowRightCircle,
-  Type,
-  Youtube,
-  Target,
-  BookCopy,
-  FileText
-} from 'lucide-react';
-
-// --- Variáveis Globais e Configuração do Firebase ---
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-let app;
-let db;
-let auth;
-
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  auth = getAuth(app);
-} catch (error) {
-  console.error("Erro ao inicializar o Firebase:", error);
-}
-
-// --- Funções Auxiliares (movidas para fora do componente) ---
-
-/**
- * Converte uma string para um ArrayBuffer.
- * @param {DataView} view O DataView para escrever.
- * @param {number} offset O deslocamento para começar a escrever.
- * @param {string} string A string a ser escrita.
- */
-const writeString = (view, offset, string) => {
-  for (let i = 0; i < string.length; i++) {
-    view.setUint8(offset + i, string.charCodeAt(i));
-  }
-};
-
-/**
- * Converte dados de áudio PCM para um Blob WAV.
- * @param {Int16Array} pcmData Os dados de áudio PCM de 16 bits.
- * @param {number} sampleRate A taxa de amostragem do áudio.
- * @returns {Blob} Um Blob contendo os dados de áudio em formato WAV.
- */
-const pcmToWav = (pcmData, sampleRate) => {
-    const pcmLength = pcmData.length;
-    const wavBuffer = new ArrayBuffer(44 + pcmLength * 2);
-    const view = new DataView(wavBuffer);
-    const channels = 1;
-    const bitsPerSample = 16;
-    const blockAlign = channels * (bitsPerSample / 8);
-    const byteRate = sampleRate * blockAlign;
-
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + pcmLength * 2, true);
-    writeString(view, 8, 'WAVE');
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, channels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-    writeString(view, 36, 'data');
-    view.setUint32(40, pcmLength * 2, true);
-
-    let offset = 44;
-    for (let i = 0; i < pcmLength; i++) {
-        view.setInt16(offset, pcmData[i], true);
-        offset += 2;
-    }
-
-    return new Blob([view], { type: 'audio/wav' });
-};
-
-
-/**
- * Realiza uma chamada fetch com retentativa exponencial.
- * @param {string} url O URL para a requisição.
- * @param {object} options As opções da requisição fetch.
- * @param {number} retries O número de tentativas restantes.
- * @param {number} delay O atraso antes da próxima tentativa.
- * @returns {Promise<any>} A resposta da API em JSON.
- */
-const fetchWithExponentialBackoff = async (url, options, retries = 5, delay = 1000) => {
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-            throw new Error(`API Error: ${response.status} - ${errorData.error?.message}`);
-        }
-        return await response.json();
-    } catch (error) {
-        if (retries > 0) {
-            await new Promise(res => setTimeout(res, delay));
-            return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
-        } else {
-            throw error;
-        }
-    }
-};
-
-
-// --- Opções Estáticas para Seleção ---
-const videoStyleOptions = [
-  'Realista', 'Anime', 'Cinematográfico', 'Futurista', 'Documentário', 'Animação 2D', 'Stop Motion', 'VFX',
-  'Fantasia Épica', 'Ficção Científica Clássica', 'Noir', 'Comédia Romântica', 'Terror Psicológico',
-  'Ação Dinâmica', 'Drama Histórico', 'Musical Vibrante', 'Cyberpunk', 'Steampunk', 'Vintage (Anos 80/90)'
-];
-const defaultCameraTypeOptions = [
-  'Travelling lento', 'Drone sobrevoando', 'POV (Ponto de Vista)', 'Plano sequência', 'Zoom in/out',
-  'Câmara fixa', 'Handheld', 'Panorâmica', 'Tilt', 'POV (Personagem)',
-  'Grande Angular', 'Close-up Extremo', 'Câmera Lenta (Slow Motion)', 'Time-lapse', 'Câmera no Ombro',
-  'Estabilizada (Gimbal)', 'Subaquática', 'Aérea (Helicóptero)', 'Visão Noturna', 'Olho de Peixe'
-];
-const lightingOptions = [
-  'Luz natural dourada', 'Neon vibrante', 'Sombra dramática', 'Luz suave difusa', 'Flash estroboscópico',
-  'Luz de velas', 'Contraluz', 'Luz ambiente', 'Luz de palco', 'Luz de rua (úmida)', 'Amanhecer/Crepúsculo',
-  'Luz de Fogueira', 'Reflexos de Água', 'Luz de Tempestade', 'Luz de Monitor (computador)'
-];
-const colorPaletteOptions = [
-  'Tons pastéis', 'Cores vibrantes', 'Monocromático', 'Cores quentes', 'Cores frias', 'Sépia',
-  'Preto e Branco', 'Cores Complementares', 'Tons Terrosos', 'Cores Metálicas', 'Gradiente Suave',
-  'Cores Neons (saturadas)', 'Tons Jóia', 'Paleta Desbotada (Vintage)', 'Cores Primárias Fortes'
-];
-const formatOptions = ['16:9 (Paisagem)', '9:16 (Vertical/TikTok)', '1:1 (Quadrado)', '4:3 (Clássico)'];
-const outputLanguageOptions = [{id: 'portuguese', name: 'Português'}, {id: 'english', name: 'Inglês'}];
-const voiceNarrationOptions = [
-  "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
-  "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba",
-  "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
-  "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi",
-  "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat", "Sem Narração"
-];
-const targetModelOptions = ['Padrão (Gemini)', 'Sora (OpenAI)', 'Veo (Google)', 'Runway', 'Pika'];
-const campaignObjectives = ['Reconhecimento', 'Tráfego', 'Engajamento', 'Vendas', 'Promoção de App'];
-
-// --- Componentes de UI Reutilizáveis ---
-
-const InputField = React.memo(({ label, icon: Icon, type = 'text', value, onChange, placeholder, options, min, max, step, tip, multiple = false }) => {
-  const controlledValue = value === null || value === undefined ? (multiple ? [] : '') : value;
-
-  const handleChangeEvent = useCallback((e) => {
-    if (type === 'range') {
-      onChange(Number(e.target.value));
-    } else if (multiple) {
-      onChange(Array.from(e.target.selectedOptions, option => option.value));
-    } else {
-      onChange(e.target.value);
-    }
-  }, [onChange, type, multiple]);
-
-  const renderOptions = () => {
-    if (!options) return null;
-    if (options.length === 0) {
-        return <option value="" disabled>Nenhuma opção disponível</option>;
-    }
-    return options.map((option) => {
-        const isObject = typeof option === 'object' && option !== null;
-        const optionValue = isObject ? option.id : option;
-        const optionLabel = isObject ? option.name : option;
-        return <option key={optionValue} value={optionValue}>{optionLabel}</option>;
-    });
-  };
-
-  const renderSelect = () => (
-    <select
-      value={controlledValue}
-      onChange={handleChangeEvent}
-      multiple={multiple}
-      className={`shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 glass-effect-input-subtle ${multiple ? 'h-32 overflow-y-auto' : ''}`}
-    >
-      {placeholder && <option value="" disabled>{placeholder}</option>}
-      {renderOptions()}
-    </select>
-  );
-
-  const renderTextarea = () => (
-    <textarea
-      value={controlledValue}
-      onChange={handleChangeEvent}
-      placeholder={placeholder}
-      rows="3"
-      className="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 glass-effect-input-subtle"
-    />
-  );
-
-  const renderRange = () => (
-    <div className="flex items-center space-x-3">
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={controlledValue}
-        onChange={handleChangeEvent}
-        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
-      />
-      <input
-        type="number"
-        value={controlledValue}
-        onChange={handleChangeEvent}
-        className="w-20 shadow appearance-none border border-gray-600 rounded-lg py-2 px-3 bg-gray-700 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        min={min}
-        max={max}
-      />
-    </div>
-  );
-
-  const renderInput = () => (
-    <input
-      type={type}
-      value={controlledValue}
-      onChange={handleChangeEvent}
-      placeholder={placeholder}
-      className="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 glass-effect-input-subtle"
-    />
-  );
-
-  return (
-    <div className="mb-4">
-      <label className="block text-gray-300 text-sm font-bold mb-2 flex items-center">
-        {Icon && <Icon size={18} className="mr-2 text-purple-400" />}
-        {label}
-      </label>
-      {type === 'select' || multiple ? renderSelect() :
-       type === 'textarea' ? renderTextarea() :
-       type === 'range' ? renderRange() :
-       renderInput()}
-      {tip && <p className="text-gray-400 text-xs mt-1">{tip}</p>}
-    </div>
-  );
-});
-
-const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4">
-            <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md border border-red-700 glass-effect">
-                <h2 className="text-2xl font-bold text-red-400 flex items-center mb-4">
-                    <AlertCircle size={24} className="mr-2" /> {title}
-                </h2>
-                <p className="text-gray-300 mb-6">{message}</p>
-                <div className="flex justify-end space-x-4">
-                    <button
-                        onClick={onCancel}
-                        className="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
-                    >
-                        Confirmar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-const App = () => {
-  // --- Estados da Aplicação ---
-  const [showEntryPage, setShowEntryPage] = useState(true);
-  const [videoStyle, setVideoStyle] = useState('');
-  const [theme, setTheme] = useState('');
-  const [narrative, setNarrative] = useState('');
-  const [selectedCharacters, setSelectedCharacters] = useState([]);
-  const [cameraType, setCameraType] = useState('');
-  const [lighting, setLighting] = useState('');
-  const [colorPalette, setColorPalette] = useState('');
-  const [duration, setDuration] = useState(10);
-  const [format, setFormat] = useState('');
-  const [quality, setQuality] = useState('');
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [outputLanguage, setOutputLanguage] = useState('portuguese');
-  const [voiceNarration, setVoiceNarration] = useState('');
-  const [isManualInputMode, setIsManualInputMode] = useState(false);
-  
-  // Estados de UI e Modais
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState({ type: '', text: '' });
-  const [isLoadingPrompt, setIsLoadingPrompt] = useState(false);
-  const [isCharacterManagerOpen, setIsCharacterManagerOpen] = useState(false);
-  const [isStoryManagerOpen, setIsStoryManagerOpen] = useState(false);
-  const [isCameraTypeManagerOpen, setIsCameraTypeManagerOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showPlansModal, setShowPlansModal] = useState(false);
-  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-
-  // Estados de Autenticação e Dados do Usuário
-  const [userId, setUserId] = useState(null);
-  const [userEmail, setUserEmail] = useState('');
-  const [userCPF, setUserCPF] = useState('');
-  const [isAuthReady, setIsAuthReady] = useState(false);
-  const [userPrompts, setUserPrompts] = useState([]);
-  const [userCharacters, setUserCharacters] = useState([]);
-  const [userStories, setUserStories] = useState([]);
-  const [userCustomCameraTypes, setUserCustomCameraTypes] = useState([]);
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-
-  // Estados de Gerenciamento de Personagens
-  const [newCharacterName, setNewCharacterName] = useState('');
-  const [newCharacterDescription, setNewCharacterDescription] = useState('');
-  const [newCharacterVisuals, setNewCharacterVisuals] = useState('');
-  const [newCharacterPersonality, setNewCharacterPersonality] = useState('');
-  const [editingCharacter, setEditingCharacter] = useState(null);
-
-  // Estados de Gerenciamento de Séries/Histórias
-  const [selectedStory, setSelectedStory] = useState(null);
-  const [newStoryTitle, setNewStoryTitle] = useState('');
-  const [newStoryDescription, setNewStoryDescription] = useState('');
-  const [newStoryCharacterId, setNewStoryCharacterId] = useState('');
-  const [newChapterNarrative, setNewChapterNarrative] = useState('');
-  const [generatedChapterAudioUrl, setGeneratedChapterAudioUrl] = useState('');
-  const [isGeneratingChapterContent, setIsGeneratingChapterContent] = useState(false);
-
-  // Estados de Gerenciamento de Tipos de Câmera
-  const [newCameraTypeName, setNewCameraTypeName] = useState('');
-  const [editingCameraType, setEditingCameraType] = useState(null);
-
-  // Estados de Mídia
-  const [youtubeVideoId1, setYoutubeVideoId1] = useState('');
-  const [youtubeVideoId2, setYoutubeVideoId2] = useState('');
-  const [youtubeVideoId3, setYoutubeVideoId3] = useState('');
-  const [youtubeVideoId4, setYoutubeVideoId4] = useState('');
-  const [headerMediaUrl, setHeaderMediaUrl] = useState('https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FUntitled%20design.mp4?alt=media&token=623eef00-b722-4a64-8e27-b2bf831d5ebc');
-  const [videoLoadError, setVideoLoadError] = useState(false);
-  const [entryPageVideoUrl, setEntryPageVideoUrl] = useState('https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FVIDEO%20CAPA%20NEO%20CINE%20PROMP.mp4?alt=media&token=a5037c56-def0-447d-8b22-5d18e7ec3e76');
-  const [entryPageVideoLoadError, setEntryPageVideoLoadError] = useState(false);
-
-  // --- Callbacks e Funções ---
-
-  const showFeedback = useCallback((type, text) => {
-    setFeedbackMessage({ type, text });
-    setTimeout(() => setFeedbackMessage({ type: '', text: '' }), 3000);
-  }, []);
-
-  // --- Efeitos (useEffect) ---
-
-  // Efeito de Autenticação
-  useEffect(() => {
-    if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUserId(user.uid);
-        setUserEmail(user.email || (user.isAnonymous ? 'Anônimo' : 'N/A'));
-        if (!user.isAnonymous) {
-            const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/data`);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                setUserCPF(userDocSnap.data().cpf || '');
-            } else {
-                setUserCPF('');
-            }
-        }
-      } else {
-        try {
-          if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-          } else {
-            await signInAnonymously(auth);
-          }
-        } catch (error) {
-          console.error("Erro na autenticação Firebase inicial:", error);
-          setUserId(crypto.randomUUID());
-          setUserEmail('Anônimo (Erro de Autenticação)');
-        }
-      }
-      setIsAuthReady(true);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Efeitos para buscar dados do Firestore
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db) return;
-    const promptsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/prompts`);
-    const qPrompts = query(promptsCollectionRef, orderBy('createdAt', 'desc'));
-    const unsubPrompts = onSnapshot(qPrompts, (snapshot) => {
-      setUserPrompts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => {
-      console.error("Erro ao buscar prompts:", error);
-      showFeedback('error', 'Erro ao carregar seu histórico.');
-    });
-    return () => unsubPrompts();
-  }, [isAuthReady, userId, showFeedback]);
-
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db) return;
-    const charactersCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/characters`);
-    const qCharacters = query(charactersCollectionRef, orderBy('name', 'asc'));
-    const unsubCharacters = onSnapshot(qCharacters, (snapshot) => {
-      setUserCharacters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => {
-      console.error("Erro ao buscar personagens:", error);
-      showFeedback('error', 'Erro ao carregar seus personagens.');
-    });
-    return () => unsubCharacters();
-  }, [isAuthReady, userId, showFeedback]);
-
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db) return;
-    const storiesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/stories`);
-    const qStories = query(storiesCollectionRef, orderBy('createdAt', 'desc'));
-    const unsubStories = onSnapshot(qStories, (snapshot) => {
-      setUserStories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => {
-      console.error("Erro ao buscar histórias:", error);
-      showFeedback('error', 'Erro ao carregar suas histórias.');
-    });
-    return () => unsubStories();
-  }, [isAuthReady, userId, showFeedback]);
-
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db) return;
-    const cameraTypesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/cameraTypes`);
-    const qCameraTypes = query(cameraTypesCollectionRef, orderBy('name', 'asc'));
-    const unsubCameraTypes = onSnapshot(qCameraTypes, (snapshot) => {
-      setUserCustomCameraTypes(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
-    }, (error) => {
-      console.error("Erro ao buscar tipos de câmera:", error);
-      showFeedback('error', 'Erro ao carregar tipos de câmera.');
-    });
-    return () => unsubCameraTypes();
-  }, [isAuthReady, userId, showFeedback]);
-  
-  // Efeito para buscar capítulos da história selecionada
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db || !selectedStory) return;
-    const chaptersCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/stories/${selectedStory.id}/chapters`);
-    const qChapters = query(chaptersCollectionRef, orderBy('chapterNumber', 'asc'));
-    const unsubChapters = onSnapshot(qChapters, (snapshot) => {
-        const chaptersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setSelectedStory(prev => ({ ...prev, chapters: chaptersData }));
-    }, (error) => {
-        console.error("Erro ao buscar capítulos:", error);
-        showFeedback('error', 'Erro ao carregar capítulos da história.');
-    });
-    return () => unsubChapters();
-  }, [isAuthReady, userId, selectedStory?.id, showFeedback]);
-
-
-  // --- Handlers de Geração de Conteúdo ---
-  
-  const buildInputPromptForAI = useCallback(() => {
-    let inputPrompt = `Gere um prompt de vídeo detalhado e profissional para IA (como Veo, Sora, Runway).`;
-    inputPrompt += ` O prompt final deve ser na língua ${outputLanguage === 'english' ? 'inglesa' : 'portuguesa'}.`;
-    inputPrompt += ` Inclua todos os detalhes fornecidos e adicione elementos cinematográficos para torná-lo envolvente. O prompt deve ser direto e otimizado para modelos de texto para vídeo.`;
-
-    if (selectedCharacters.length > 0) {
-      inputPrompt += "\n\nPersonagens Envolvidos e as suas Descrições (Mantenha Consistência):";
-      selectedCharacters.forEach(charId => {
-        const character = userCharacters.find(uc => uc.id === charId);
-        if (character) {
-          inputPrompt += `\n- Nome: ${character.name}`;
-          if (character.description) inputPrompt += `\n  Descrição: ${character.description}`;
-          if (character.visualTraits) inputPrompt += `\n  Traços Visuais: ${character.visualTraits}`;
-          if (character.personalityTraits) inputPrompt += `\n  Traços de Personalidade: ${character.personalityTraits}`;
-          inputPrompt += `\n  **É crucial que este personagem mantenha a sua aparência e personalidade consistentes em todas as cenas.**`;
-        }
-      });
-      inputPrompt += "\n\n";
-    }
-
-    if (videoStyle) inputPrompt += `\nEstilo do Vídeo: ${videoStyle}.`;
-    if (theme) inputPrompt += `\nTema/Ambiente: ${theme}.`;
-    if (narrative) inputPrompt += `\nNarrativa: ${narrative}.`;
-    if (cameraType) inputPrompt += `\nTipo de Câmara/Movimento: ${cameraType}.`;
-    if (lighting) inputPrompt += `\nIluminação: ${lighting}.`;
-    if (colorPalette) inputPrompt += `\nPaleta de Cores: ${colorPalette}.`;
-    if (duration) inputPrompt += `\nDuração: ${duration} segundos.`;
-    if (format) inputPrompt += `\nFormato: ${format}.`;
-    if (quality) inputPrompt += `\nQualidade e Detalhes: ${quality}.`;
-    if (voiceNarration && voiceNarration !== 'Sem Narração') inputPrompt += `\nVoz/Narração: Use uma voz com a característica: ${voiceNarration}.`;
-
-    inputPrompt += `\n\nO prompt final deve ser conciso, cinematográfico e pronto para uso em ferramentas de IA na língua ${outputLanguage === 'english' ? 'inglesa' : 'portuguesa'}. Priorize a consistência dos personagens descritos.`;
-    return inputPrompt;
-  }, [videoStyle, theme, narrative, selectedCharacters, cameraType, lighting, colorPalette, duration, format, quality, voiceNarration, userCharacters, outputLanguage]);
-
-  const generatePromptWithAI = useCallback(async () => {
-    setIsLoadingPrompt(true);
-    setGeneratedPrompt('');
-    showFeedback('', '');
-
-    const prompt = buildInputPromptForAI();
-    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-    const apiKey = ""; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-    try {
-      const result = await fetchWithExponentialBackoff(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) {
-        setGeneratedPrompt(text);
-        showFeedback('success', 'Prompt gerado com sucesso pela IA!');
-      } else {
-        throw new Error('A IA não conseguiu gerar um prompt. A resposta não continha texto.');
-      }
-    } catch (error) {
-      showFeedback('error', `Erro ao gerar prompt: ${error.message}`);
-      console.error("Erro ao chamar a API Gemini:", error);
-    } finally {
-      setIsLoadingPrompt(false);
-    }
-  }, [buildInputPromptForAI, showFeedback]);
-  
-  const copyPrompt = useCallback(() => {
-    if (!generatedPrompt) {
-        showFeedback('error', 'Nenhum prompt para copiar!');
-        return;
-    }
-    const textarea = document.createElement('textarea');
-    textarea.value = generatedPrompt;
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        showFeedback('success', 'Prompt copiado para a área de transferência!');
-    } catch (err) {
-        console.error('Falha ao copiar:', err);
-        showFeedback('error', 'Não foi possível copiar o prompt.');
-    }
-    document.body.removeChild(textarea);
-  }, [generatedPrompt, showFeedback]);
-
-  const savePrompt = useCallback(async () => {
-    if (!userId || !generatedPrompt) {
-      showFeedback('error', !userId ? "Por favor, inicie sessão para guardar prompts." : "Nenhum prompt para guardar!");
-      return;
-    }
-    try {
-      const promptsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/prompts`);
-      await addDoc(promptsCollectionRef, {
-        prompt: generatedPrompt,
-        createdAt: new Date(),
-        videoStyle, theme, narrative, characters: selectedCharacters, cameraType, lighting, colorPalette, duration, format, quality, voiceNarration
-      });
-      showFeedback('success', "Prompt guardado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao guardar o prompt:", error);
-      showFeedback('error', "Erro ao guardar o prompt. Tente novamente.");
-    }
-  }, [userId, generatedPrompt, videoStyle, theme, narrative, selectedCharacters, cameraType, lighting, colorPalette, duration, format, quality, voiceNarration, showFeedback]);
-
-  const resetForm = useCallback(() => {
-    setVideoStyle('');
-    setTheme('');
-    setNarrative('');
-    setSelectedCharacters([]);
-    setCameraType('');
-    setLighting('');
-    setColorPalette('');
-    setDuration(10);
-    setFormat('');
-    setQuality('');
-    setGeneratedPrompt('');
-    setOutputLanguage('portuguese');
-    setVoiceNarration('');
-    showFeedback('', '');
-  }, [showFeedback]);
-
-
-  // --- Handlers de Gerenciamento (Personagens, Séries, Câmeras) ---
-  
-  const handleSaveCharacter = useCallback(async () => {
-    if (!userId || !newCharacterName.trim()) {
-      showFeedback('error', !userId ? "Inicie sessão para guardar personagens." : "O nome do personagem é obrigatório.");
-      return;
-    }
-    try {
-      const charactersCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/characters`);
-      const data = {
-          name: newCharacterName,
-          description: newCharacterDescription,
-          visualTraits: newCharacterVisuals,
-          personalityTraits: newCharacterPersonality,
-          updatedAt: new Date()
-      };
-      if (editingCharacter) {
-        const charDocRef = doc(db, charactersCollectionRef.path, editingCharacter.id);
-        await updateDoc(charDocRef, data);
-        showFeedback('success', `Personagem "${newCharacterName}" atualizado!`);
-      } else {
-        await addDoc(charactersCollectionRef, { ...data, createdAt: new Date() });
-        showFeedback('success', `Personagem "${newCharacterName}" guardado!`);
-      }
-      setNewCharacterName('');
-      setNewCharacterDescription('');
-      setNewCharacterVisuals('');
-      setNewCharacterPersonality('');
-      setEditingCharacter(null);
-    } catch (error) {
-      console.error("Erro ao guardar personagem:", error);
-      showFeedback('error', "Erro ao guardar personagem. Tente novamente.");
-    }
-  }, [userId, newCharacterName, newCharacterDescription, newCharacterVisuals, newCharacterPersonality, editingCharacter, showFeedback]);
-
-  const handleEditCharacter = useCallback((character) => {
-    setEditingCharacter(character);
-    setNewCharacterName(character.name);
-    setNewCharacterDescription(character.description || '');
-    setNewCharacterVisuals(character.visualTraits || '');
-    setNewCharacterPersonality(character.personalityTraits || '');
-  }, []);
-
-  const handleDeleteCharacter = useCallback(async (charId) => {
-    if (!userId) return;
-    try {
-      const charDocRef = doc(db, `artifacts/${appId}/users/${userId}/characters`, charId);
-      await deleteDoc(charDocRef);
-      showFeedback('success', `Personagem excluído!`);
-    } catch (error) {
-      console.error("Erro ao excluir personagem:", error);
-      showFeedback('error', "Erro ao excluir personagem.");
-    } finally {
-        setConfirmationModal({ isOpen: false });
-    }
-  }, [userId, showFeedback]);
-
-  const openDeleteCharacterModal = (char) => {
-    setConfirmationModal({
-        isOpen: true,
-        title: 'Excluir Personagem',
-        message: `Tem a certeza que deseja excluir o personagem "${char.name}"? Esta ação não pode ser desfeita.`,
-        onConfirm: () => handleDeleteCharacter(char.id),
-        onCancel: () => setConfirmationModal({ isOpen: false })
-    });
-  };
-
-  const handleCreateStory = useCallback(async () => {
-    if (!userId || !newStoryTitle.trim() || !newStoryCharacterId) {
-      showFeedback('error', "Título da série e personagem principal são obrigatórios.");
-      return;
-    }
-    try {
-      const storiesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/stories`);
-      await addDoc(storiesCollectionRef, {
-        title: newStoryTitle,
-        description: newStoryDescription,
-        characterId: newStoryCharacterId,
-        createdAt: new Date(),
-      });
-      showFeedback('success', `Série "${newStoryTitle}" criada com sucesso!`);
-      setNewStoryTitle('');
-      setNewStoryDescription('');
-      setNewStoryCharacterId('');
-    } catch (error) {
-      console.error("Erro ao criar série:", error);
-      showFeedback('error', "Erro ao criar série. Tente novamente.");
-    }
-  }, [userId, newStoryTitle, newStoryDescription, newStoryCharacterId, showFeedback]);
-
-  const handleViewStoryChapters = useCallback((story) => {
-      setSelectedStory(story);
-  }, []);
-  
-  const handleAddChapter = useCallback(async () => {
-    // Implementation for adding a chapter...
-  }, []); // Dependencies to be added
-
-  const handleSaveCameraType = useCallback(async () => {
-    if (!userId || !newCameraTypeName.trim()) {
-      showFeedback('error', !userId ? "Inicie sessão para guardar." : "O nome do tipo de câmera é obrigatório.");
-      return;
-    }
-    try {
-      const cameraTypesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/cameraTypes`);
-      if (editingCameraType) {
-        const cameraTypeDocRef = doc(db, cameraTypesCollectionRef.path, editingCameraType.id);
-        await updateDoc(cameraTypeDocRef, { name: newCameraTypeName, updatedAt: new Date() });
-        showFeedback('success', `Tipo de câmera atualizado!`);
-      } else {
-        await addDoc(cameraTypesCollectionRef, { name: newCameraTypeName, createdAt: new Date() });
-        showFeedback('success', `Tipo de câmera guardado!`);
-      }
-      setNewCameraTypeName('');
-      setEditingCameraType(null);
-    } catch (error) {
-      console.error("Erro ao guardar tipo de câmera:", error);
-      showFeedback('error', "Erro ao guardar tipo de câmera.");
-    }
-  }, [userId, newCameraTypeName, editingCameraType, showFeedback]);
-
-  const handleEditCameraType = useCallback((cameraType) => {
-    setEditingCameraType(cameraType);
-    setNewCameraTypeName(cameraType.name);
-  }, []);
-
-  const handleDeleteCameraType = useCallback(async (cameraTypeId) => {
-    if (!userId) return;
-    try {
-      const cameraTypeDocRef = doc(db, `artifacts/${appId}/users/${userId}/cameraTypes`, cameraTypeId);
-      await deleteDoc(cameraTypeDocRef);
-      showFeedback('success', `Tipo de câmera excluído!`);
-    } catch (error) {
-      console.error("Erro ao excluir tipo de câmera:", error);
-      showFeedback('error', "Erro ao excluir tipo de câmera.");
-    } finally {
-        setConfirmationModal({ isOpen: false });
-    }
-  }, [userId, showFeedback]);
-  
-  const openDeleteCameraTypeModal = (cameraType) => {
-    setConfirmationModal({
-        isOpen: true,
-        title: 'Excluir Tipo de Câmera',
-        message: `Tem a certeza que deseja excluir o tipo de câmera "${cameraType.name}"?`,
-        onConfirm: () => handleDeleteCameraType(cameraType.id),
-        onCancel: () => setConfirmationModal({ isOpen: false })
-    });
-  };
-
-  // --- Handlers de Autenticação e Perfil ---
-  
-  const handleAuthAction = useCallback(async (e) => {
-    e.preventDefault();
-    const action = isRegisterMode ? createUserWithEmailAndPassword : signInWithEmailAndPassword;
-    const successMessage = isRegisterMode ? 'Registo concluído com sucesso!' : 'Sessão iniciada com sucesso!';
-    const errorMessage = isRegisterMode ? 'Erro no registo:' : 'Erro ao iniciar sessão:';
-
-    try {
-      const userCredential = await action(auth, authEmail, authPassword);
-      if (isRegisterMode) {
-        const user = userCredential.user;
-        await setDoc(doc(db, `artifacts/${appId}/users/${user.uid}/profile/data`), {
-          email: user.email,
-          createdAt: new Date(),
-          cpf: ''
-        });
-      }
-      showFeedback('success', successMessage);
-      setShowAuthModal(false);
-    } catch (error) {
-      showFeedback('error', `${errorMessage} ${error.message}`);
-      console.error(errorMessage, error);
-    }
-  }, [isRegisterMode, authEmail, authPassword, showFeedback]);
-
-  const handleGoogleSignIn = useCallback(async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-      const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/data`);
-      const userDocSnap = await getDoc(userDocRef);
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, {
-          email: user.email,
-          createdAt: new Date(),
-          cpf: ''
-        });
-      }
-      showFeedback('success', 'Sessão iniciada com Google com sucesso!');
-      setShowAuthModal(false);
-    } catch (error) {
-      showFeedback('error', `Erro ao iniciar sessão com Google: ${error.message}`);
-      console.error("Erro ao iniciar sessão com Google:", error);
-    }
-  }, [showFeedback]);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
-      showFeedback('success', 'Sessão terminada com sucesso!');
-      // A transição para anónimo é gerida pelo onAuthStateChanged
-    } catch (error) {
-      showFeedback('error', `Erro ao terminar sessão: ${error.message}`);
-      console.error("Erro ao terminar sessão:", error);
-    }
-  }, [showFeedback]);
-
-  const handleSaveProfile = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/data`);
-      await setDoc(userDocRef, { email: userEmail, cpf: userCPF, updatedAt: new Date() }, { merge: true });
-      showFeedback('success', 'Perfil atualizado com sucesso!');
-      setShowProfileModal(false);
-    } catch (error) {
-      showFeedback('error', `Erro ao guardar perfil: ${error.message}`);
-      console.error("Erro ao guardar perfil:", error);
-    }
-  }, [userId, userEmail, userCPF, showFeedback]);
-  
-  // --- Memos para Otimização ---
-  const allCameraTypeOptions = useMemo(() => 
-    [...defaultCameraTypeOptions, ...userCustomCameraTypes.map(c => c.name)], 
-    [userCustomCameraTypes]
-  );
-  
-  const isUserLoggedIn = auth.currentUser && !auth.currentUser.isAnonymous;
-
-  // --- Renderização ---
-
-  if (showEntryPage) {
-    return (
-      <div className="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col items-center justify-center p-4">
-         <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
-            body, h1, h2, h3, button, input, select, textarea { font-family: 'Inter', sans-serif; }
-            .futuristic-background { background: #0a0a0a; background-image: radial-gradient(circle at center, rgba(168, 85, 247, 0.08), rgba(59, 130, 246, 0.05), transparent 70%); }
-            .glass-effect { background-color: rgba(30, 41, 59, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(71, 85, 105, 0.15); }
-            .glass-effect-input-subtle { background-color: rgba(45, 55, 72, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(71, 85, 105, 0.15); }
-            button { transition: box-shadow 0.3s ease-in-out, transform 0.1s ease-out; }
-            button:hover { transform: translateY(-1px); }
-            .bg-purple-600:hover { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
-            @keyframes gradient-x {
-                0%, 100% {
-                    background-size: 200% 200%;
-                    background-position: left center;
-                }
-                50% {
-                    background-size: 200% 200%;
-                    background-position: right center;
-                }
-            }
-            .animate-gradient-x {
-                animation: gradient-x 5s ease infinite;
-            }
-         `}</style>
-        {entryPageVideoUrl && !entryPageVideoLoadError ? (
-          <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover z-0" src={entryPageVideoUrl} onError={() => setEntryPageVideoLoadError(true)} />
-        ) : (
-          <div className="absolute inset-0 w-full h-full object-cover z-0 flex items-center justify-center bg-gray-800 text-gray-400">
-            {entryPageVideoLoadError ? "Erro ao carregar vídeo." : "Vídeo da capa não disponível."}
-          </div>
-        )}
-        <div className="absolute inset-0 bg-black opacity-40 z-10"></div>
-        <div className="text-center relative z-20">
-          <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" className="h-48 md:h-64 w-auto mx-auto mb-8" />
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-            Bem-vindo ao <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-gradient-x">CinePrompt AI</span>
-          </h1>
-          <p className="text-xl md:text-2xl font-semibold mb-10">
-            <span className="text-purple-300">Sua Visão Grandiosa, Gerada com</span> <span className="bg-gradient-to-r from-gray-100 to-gray-400 bg-clip-text text-transparent font-extrabold">Inteligência</span>.
-          </p>
-          <button onClick={() => setShowEntryPage(false)} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-12 rounded-lg text-xl shadow-lg transition-all duration-300 border border-purple-500">
-            Entrar na Plataforma
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col futuristic-background">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinePrompt AI - Gerador de Prompts de Vídeo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+
+    <style>
         body, h1, h2, h3, button, input, select, textarea { font-family: 'Inter', sans-serif; }
         .futuristic-background { background: #0a0a0a; background-image: radial-gradient(circle at center, rgba(168, 85, 247, 0.08), rgba(59, 130, 246, 0.05), transparent 70%); }
         .glass-effect { background-color: rgba(30, 41, 59, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(71, 85, 105, 0.15); }
         .glass-effect-input-subtle { background-color: rgba(45, 55, 72, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(71, 85, 105, 0.15); }
-        button { transition: box-shadow 0.3s ease-in-out, transform 0.1s ease-out; }
-        button:hover { transform: translateY(-1px); }
-        .bg-purple-600:hover { box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
-        .bg-blue-600:hover { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.2); }
-        .bg-emerald-600:hover { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4), 0 0 15px rgba(16, 185, 129, 0.2); }
-        .bg-red-600:hover { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4), 0 0 15px rgba(239, 68, 68, 0.2); }
-        .bg-gray-700:hover { box-shadow: 0 0 8px rgba(156, 163, 175, 0.4), 0 0 10px rgba(156, 163, 175, 0.2); }
-        audio::-webkit-media-controls-panel { background-color: #4a5568; }
-        audio::-webkit-media-controls-play-button { color: #c084fc; }
-        audio::-webkit-media-controls-current-time-display, audio::-webkit-media-controls-time-remaining-display { color: #e2e8f0; }
+        button, .button { transition: box-shadow 0.3s ease-in-out, transform 0.1s ease-out; cursor: pointer; }
+        button:hover, .button:hover { transform: translateY(-1px); }
+        .btn-purple { background-color: #9333ea; color: white; }
+        .btn-purple:hover { background-color: #7e22ce; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
+        .hidden { display: none; }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
+        .modal-content { padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid #6b21a8; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes gradient-x {
-            0%, 100% {
-                background-size: 200% 200%;
-                background-position: left center;
-            }
-            50% {
-                background-size: 200% 200%;
-                background-position: right center;
-            }
+            0%, 100% { background-size: 200% 200%; background-position: left center; }
+            50% { background-size: 200% 200%; background-position: right center; }
         }
-        .animate-gradient-x {
-            animation: gradient-x 5s ease infinite;
-        }
-      `}</style>
-      
-      {/* Modais Globais */}
-      <ConfirmationModal {...confirmationModal} />
-      {feedbackMessage.text && (
-        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-[101] p-3 rounded-lg shadow-xl flex items-center space-x-2 ${feedbackMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
-            {feedbackMessage.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-            <span>{feedbackMessage.text}</span>
-        </div>
-      )}
+        .animate-gradient-x { animation: gradient-x 5s ease infinite; }
+    </style>
+</head>
+<body class="futuristic-background text-gray-100">
 
-      {/* Cabeçalho */}
-      <header className="bg-gray-900 p-4 shadow-lg glass-effect relative overflow-hidden min-h-[400px] flex flex-col justify-start">
-        {headerMediaUrl && !videoLoadError ? (
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover z-0" src={headerMediaUrl} onError={() => setVideoLoadError(true)} />
-        ) : (
-            <div className="absolute inset-0 w-full h-full object-cover z-0 flex items-center justify-center bg-gray-800 text-gray-400">
-                {videoLoadError ? "Erro ao carregar vídeo." : "Vídeo de apresentação indisponível."}
+    <div id="app-root">
+        <div id="entry-page" class="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col items-center justify-center p-4">
+            <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FVIDEO%20CAPA%20NEO%20CINE%20PROMP.mp4?alt=media&token=a5037c56-def0-447d-8b22-5d18e7ec3e76" id="entry-video"></video>
+            <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
+            <div class="text-center relative z-20">
+                <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-48 md:h-64 w-auto mx-auto mb-8" />
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-4">Bem-vindo ao <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-gradient-x">CinePrompt AI</span></h1>
+                <p class="text-xl md:text-2xl font-semibold mb-10">Sua Visão Grandiosa, Gerada com Inteligência.</p>
+                <button id="enter-platform-btn" class="btn-purple font-bold py-4 px-12 rounded-lg text-xl shadow-lg border border-purple-500">
+                    Entrar na Plataforma
+                </button>
             </div>
-        )}
-        <div className="absolute inset-0 bg-black opacity-40 z-10"></div>
-        <div className="container mx-auto flex justify-between items-start relative z-20 pt-4">
-            <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" className="h-16 w-auto" />
-            <div className="md:hidden">
-                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-100 focus:outline-none">{isSidebarOpen ? <X size={28} /> : <Menu size={28} />}</button>
-            </div>
-            <nav className="hidden md:flex items-center space-x-6">
-                 <button onClick={() => setIsCharacterManagerOpen(true)} className="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center">
-                    <Users size={18} className="mr-1" /> Meus Personagens
-                </button>
-                 <button onClick={() => setIsStoryManagerOpen(true)} className="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center">
-                    <Film size={18} className="mr-1" /> Minhas Séries
-                </button>
-                <button onClick={() => setIsCameraTypeManagerOpen(true)} className="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center">
-                    <Camera size={18} className="mr-1" /> Tipos de Câmera
-                </button>
-                 <button onClick={() => setShowPlansModal(true)} className="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center">
-                    <DollarSign size={18} className="mr-1" /> Planos
-                </button>
-                {isUserLoggedIn ? (
-                    <>
-                        <button onClick={() => setShowProfileModal(true)} className="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center">
-                            <UserCircle size={18} className="mr-1" /> Perfil
-                        </button>
-                        <button onClick={handleLogout} className="text-gray-300 hover:text-red-400 transition-colors duration-200 flex items-center">
-                            <LogOut size={18} className="mr-1" /> Sair
-                        </button>
-                    </>
-                ) : (
-                    <button onClick={() => setShowAuthModal(true)} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
-                        <LogIn size={18} className="mr-2" /> Login / Cadastro
-                    </button>
-                )}
-            </nav>
         </div>
-      </header>
-      
-      {/* Seção do Título */}
-      <div className="w-full bg-gray-950 py-6 text-center border-b-2 border-purple-900 shadow-lg">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-white">
-              Seu Prompt, <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Obra Cinematográfica</span>
-          </h2>
-          <p className="text-lg md:text-xl text-gray-300 mt-2">
-              Sua Visão Grandiosa, Gerada com <span className="font-bold text-white">Inteligência.</span>
-          </p>
-      </div>
-      
-      {/* Conteúdo Principal */}
-      <main className="container mx-auto flex-grow p-4 md:p-8">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-8 flex flex-col">
-            {/* Painel de Controles */}
-            <section className="p-6 rounded-xl shadow-lg mb-8 lg:mb-0 border border-purple-800 glass-effect">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                    <Sparkles size={24} className="mr-2 text-purple-300" /> Crie Seu Prompt de Vídeo
-                </h2>
-                <form>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <InputField label="Estilo do Vídeo" icon={Film} type="select" value={videoStyle} onChange={setVideoStyle} placeholder="Selecione o estilo..." options={videoStyleOptions} />
-                        <InputField label="Formato" icon={Crop} type="select" value={format} onChange={setFormat} placeholder="Selecione a proporção..." options={formatOptions} />
+
+        <div id="main-app" class="hidden">
+            <header id="app-header" class="bg-gray-900 p-4 shadow-lg glass-effect relative overflow-hidden min-h-[400px] flex flex-col justify-start">
+                 <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FUntitled%20design.mp4?alt=media&token=623eef00-b722-4a64-8e27-b2bf831d5ebc" id="header-video"></video>
+                 <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
+                 <div class="container mx-auto flex justify-between items-start relative z-20 pt-4">
+                     <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-16 w-auto" />
+                     <nav id="main-nav" class="hidden md:flex items-center space-x-6"></nav>
+                 </div>
+            </header>
+            
+             <div class="w-full bg-gray-950 py-6 text-center border-b-2 border-purple-900 shadow-lg">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-white">Seu Prompt, <span class="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Obra Cinematográfica</span></h2>
+                <p class="text-lg md:text-xl text-gray-300 mt-2">Sua Visão Grandiosa, Gerada com <span class="font-bold text-white">Inteligência.</span></p>
+            </div>
+
+            <main class="container mx-auto flex-grow p-4 md:p-8">
+                <div class="lg:grid lg:grid-cols-2 lg:gap-8 flex flex-col">
+                    <section id="controls-panel" class="p-6 rounded-xl shadow-lg mb-8 lg:mb-0 border border-purple-800 glass-effect"></section>
+                    <section id="result-panel" class="p-6 rounded-xl shadow-lg flex flex-col border border-purple-800 glass-effect"></section>
+                </div>
+            </main>
+
+            <footer class="bg-gray-900 p-4 text-center text-gray-400 text-sm border-t-2 border-purple-700 glass-effect">
+                <span id="user-id-display"></span>
+            </footer>
+        </div>
+
+        <div id="modal-container"></div>
+        <div id="feedback-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[101]"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script type="module">
+        // --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBuB3dTMtejuuVMekhUVmzX343IG8zIzYg", // IMPORTANTE: Substitua pela sua chave de API
+            authDomain: "platamais.firebaseapp.com",
+            projectId: "platamais",
+            storageBucket: "platamais.appspot.com",
+            messagingSenderId: "1014260724484",
+            appId: "1:1014260724484:web:b6c3216ea4641714291651"
+        };
+        
+        let app, db, auth;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+        } catch (error) {
+            console.error("Erro ao inicializar o Firebase:", error);
+            document.body.innerHTML = "<h1>Erro Crítico: Não foi possível conectar ao Firebase. Verifique a configuração e as chaves de API.</h1>";
+        }
+
+        // --- CONSTANTES ---
+        const appId = 'default-app-id'; // Defina um ID para seu app se necessário
+        const videoStyleOptions = ['Realista', 'Anime', 'Cinematográfico', 'Futurista', 'Documentário', 'Animação 2D', 'Stop Motion', 'VFX', 'Fantasia Épica', 'Ficção Científica Clássica', 'Noir', 'Comédia Romântica', 'Terror Psicológico', 'Ação Dinâmica', 'Drama Histórico', 'Musical Vibrante', 'Cyberpunk', 'Steampunk', 'Vintage (Anos 80/90)'];
+        const defaultCameraTypeOptions = ['Travelling lento', 'Drone sobrevoando', 'POV (Ponto de Vista)', 'Plano sequência', 'Zoom in/out', 'Câmara fixa', 'Handheld', 'Panorâmica', 'Tilt', 'POV (Personagem)', 'Grande Angular', 'Close-up Extremo', 'Câmera Lenta (Slow Motion)', 'Time-lapse', 'Câmera no Ombro', 'Estabilizada (Gimbal)', 'Subaquática', 'Aérea (Helicóptero)', 'Visão Noturna', 'Olho de Peixe'];
+        const lightingOptions = ['Luz natural dourada', 'Neon vibrante', 'Sombra dramática', 'Luz suave difusa', 'Flash estroboscópico', 'Luz de velas', 'Contraluz', 'Luz ambiente', 'Luz de palco', 'Luz de rua (úmida)', 'Amanhecer/Crepúsculo', 'Luz de Fogueira', 'Reflexos de Água', 'Luz de Tempestade', 'Luz de Monitor (computador)'];
+        const colorPaletteOptions = ['Tons pastéis', 'Cores vibrantes', 'Monocromático', 'Cores quentes', 'Cores frias', 'Sépia', 'Preto e Branco', 'Cores Complementares', 'Tons Terrosos', 'Cores Metálicas', 'Gradiente Suave', 'Cores Neons (saturadas)', 'Tons Jóia', 'Paleta Desbotada (Vintage)', 'Cores Primárias Fortes'];
+        const formatOptions = ['16:9 (Paisagem)', '9:16 (Vertical/TikTok)', '1:1 (Quadrado)', '4:3 (Clássico)'];
+        const outputLanguageOptions = [{id: 'portuguese', name: 'Português'}, {id: 'english', name: 'Inglês'}];
+        const voiceNarrationOptions = ["Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede", "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba", "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar", "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi", "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat", "Sem Narração"];
+
+        // --- ESTADO DA APLICAÇÃO ---
+        let state = {
+            isAuthReady: false,
+            userId: null,
+            isUserLoggedIn: false,
+            userEmail: '',
+            userPrompts: [],
+            userCharacters: [],
+            userStories: [],
+            userCustomCameraTypes: [],
+            
+            // Formulário principal
+            videoStyle: '', theme: '', narrative: '', selectedCharacters: [], cameraType: '', lighting: '',
+            colorPalette: '', duration: 10, format: '', quality: '', outputLanguage: 'portuguese', voiceNarration: '',
+
+            // UI
+            isLoadingPrompt: false,
+            generatedPrompt: '',
+            activeModal: null, // 'characters', 'stories', 'camera', 'auth', 'profile', 'plans', 'confirmation'
+            
+            // Gerenciadores
+            editingCharacter: null,
+            newCharacterName: '', newCharacterDescription: '', newCharacterVisuals: '', newCharacterPersonality: '',
+            
+            editingCameraType: null,
+            newCameraTypeName: '',
+        };
+
+        // --- ELEMENTOS DO DOM ---
+        const entryPage = document.getElementById('entry-page');
+        const mainApp = document.getElementById('main-app');
+        const enterPlatformBtn = document.getElementById('enter-platform-btn');
+        const controlsPanel = document.getElementById('controls-panel');
+        const resultPanel = document.getElementById('result-panel');
+        const modalContainer = document.getElementById('modal-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const mainNav = document.getElementById('main-nav');
+        const userIdDisplay = document.getElementById('user-id-display');
+        
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        
+        function render() {
+            if (entryPage.classList.contains('hidden')) {
+                mainNav.innerHTML = getNavHTML();
+                controlsPanel.innerHTML = getControlsHTML();
+                resultPanel.innerHTML = getResultHTML();
+                userIdDisplay.textContent = state.userId ? `ID do Usuário: ${state.userId}` : '';
+                
+                if (state.activeModal) {
+                    modalContainer.innerHTML = getModalHTML(state.activeModal);
+                } else {
+                    modalContainer.innerHTML = '';
+                }
+                
+                attachEventListeners();
+                lucide.createIcons();
+            }
+        }
+        
+        function getNavHTML() {
+            const loggedInMenu = `
+                <button data-action="open-modal" data-modal="characters" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="users" class="w-4 h-4 mr-1"></i> Meus Personagens</button>
+                <button data-action="open-modal" data-modal="camera" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="camera" class="w-4 h-4 mr-1"></i> Tipos de Câmera</button>
+                <button data-action="open-modal" data-modal="plans" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="dollar-sign" class="w-4 h-4 mr-1"></i> Planos</button>
+                <button data-action="open-modal" data-modal="profile" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="user-circle" class="w-4 h-4 mr-1"></i> Perfil</button>
+                <button data-action="logout" class="text-gray-300 hover:text-red-400 transition-colors duration-200 flex items-center"><i data-lucide="log-out" class="w-4 h-4 mr-1"></i> Sair</button>
+            `;
+            const loggedOutMenu = `
+                <button data-action="open-modal" data-modal="auth" class="btn-purple font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="log-in" class="w-4 h-4 mr-2"></i> Login / Cadastro</button>
+            `;
+            return state.isUserLoggedIn ? loggedInMenu : loggedOutMenu;
+        }
+
+        function getControlsHTML() {
+            const allCameraOptions = [...defaultCameraTypeOptions, ...state.userCustomCameraTypes.map(c => c.name)];
+            return `
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sparkles" class="mr-2 text-purple-300"></i> Crie Seu Prompt de Vídeo</h2>
+                <form id="prompt-form" onsubmit="return false;">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        ${createSelectHTML('Estilo do Vídeo', 'videoStyle', videoStyleOptions, state.videoStyle, 'film')}
+                        ${createSelectHTML('Formato', 'format', formatOptions, state.format, 'crop')}
                     </div>
-                    <InputField label="Tema ou Ambiente" icon={Building} value={theme} onChange={setTheme} placeholder="Ex: Floresta mística, metrópole cyberpunk..." />
-                    <InputField label="Narrativa / Descrição da Cena" icon={Edit} type="textarea" value={narrative} onChange={setNarrative} placeholder="Ex: Um explorador encontra um artefato antigo..." />
-                    <div className="mb-4">
-                        <label className="block text-gray-300 text-sm font-bold mb-2 flex items-center"><User size={18} className="mr-2 text-purple-400" /> Personagens</label>
-                        <InputField type="select" multiple={true} value={selectedCharacters} onChange={setSelectedCharacters} options={userCharacters} placeholder="Selecione personagens..." />
-                        <button type="button" onClick={() => setIsCharacterManagerOpen(true)} className="mt-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-2 px-4 rounded-lg"><PlusCircle size={16} className="inline mr-2" /> Gerenciar Personagens</button>
+                    ${createInputHTML('text', 'Tema ou Ambiente', 'theme', state.theme, 'Ex: Floresta mística...', 'building')}
+                    ${createTextAreaHTML('Narrativa', 'narrative', state.narrative, 'Ex: Um explorador encontra...', 'edit')}
+                     <div class="mb-4">
+                        <label class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="users" class="mr-2 text-purple-400"></i> Personagens</label>
+                        <select id="selectedCharacters" multiple class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-32 overflow-y-auto">
+                            ${state.userCharacters.map(c => `<option value="${c.id}" ${state.selectedCharacters.includes(c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        </select>
+                        <button type="button" data-action="open-modal" data-modal="characters" class="mt-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-2 px-4 rounded-lg"><i data-lucide="plus-circle" class="inline mr-2 w-4 h-4"></i> Gerenciar Personagens</button>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                         <InputField label="Tipo de Câmera" icon={Camera} type="select" value={cameraType} onChange={setCameraType} placeholder="Escolha o movimento..." options={allCameraTypeOptions} />
-                         <InputField label="Iluminação" icon={Lightbulb} type="select" value={lighting} onChange={setLighting} placeholder="Defina a luz..." options={lightingOptions} />
-                         <InputField label="Paleta de Cores" icon={Palette} type="select" value={colorPalette} onChange={setColorPalette} placeholder="Escolha as cores..." options={colorPaletteOptions} />
-                         <InputField label="Qualidade e Detalhes" icon={Sparkles} value={quality} onChange={setQuality} placeholder="Ex: 4K, fotorrealista..." />
+                    <div class="grid md:grid-cols-2 gap-4">
+                        ${createSelectHTML('Tipo de Câmera', 'cameraType', allCameraOptions, state.cameraType, 'camera')}
+                        ${createSelectHTML('Iluminação', 'lighting', lightingOptions, state.lighting, 'lightbulb')}
+                        ${createSelectHTML('Paleta de Cores', 'colorPalette', colorPaletteOptions, state.colorPalette, 'palette')}
+                        ${createInputHTML('text', 'Qualidade e Detalhes', 'quality', state.quality, 'Ex: 4K, fotorrealista...', 'sparkles')}
                     </div>
-                    <InputField label="Duração (segundos)" icon={Clock} type="range" value={duration} onChange={setDuration} min={1} max={60} step={1} />
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <InputField label="Idioma do Prompt" icon={Languages} type="select" value={outputLanguage} onChange={setOutputLanguage} options={outputLanguageOptions} />
-                        <InputField label="Voz da Narração" icon={Mic} type="select" value={voiceNarration} onChange={setVoiceNarration} placeholder="Selecione uma voz..." options={voiceNarrationOptions} />
+                     <div class="mb-4">
+                        <label class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="clock" class="mr-2 text-purple-400"></i> Duração (segundos)</label>
+                        <div class="flex items-center space-x-3">
+                            <input type="range" id="duration" min="1" max="60" step="1" value="${state.duration}" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                            <input type="number" value="${state.duration}" class="w-20 shadow appearance-none border border-gray-600 rounded-lg py-2 px-3 bg-gray-700" readonly>
+                        </div>
+                    </div>
+                     <div class="grid md:grid-cols-2 gap-4">
+                        ${createSelectHTML('Idioma do Prompt', 'outputLanguage', outputLanguageOptions.map(o => ({value: o.id, text: o.name})), state.outputLanguage, 'languages')}
+                        ${createSelectHTML('Voz da Narração', 'voiceNarration', voiceNarrationOptions, state.voiceNarration, 'mic')}
                     </div>
                 </form>
-            </section>
-
-            {/* Resultado do Prompt */}
-            <section className="p-6 rounded-xl shadow-lg flex flex-col border border-purple-800 glass-effect">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                    <Sparkles size={24} className="mr-2 text-purple-300" /> Resultado do Prompt
-                </h2>
-                <div className="flex-grow relative">
-                    <textarea
-                        readOnly={!isManualInputMode}
-                        value={isLoadingPrompt ? 'Gerando prompt com IA...' : generatedPrompt}
-                        onChange={(e) => isManualInputMode && setGeneratedPrompt(e.target.value)}
-                        className={`w-full h-full min-h-[250px] bg-gray-800 bg-opacity-80 text-gray-100 font-mono p-4 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-600 ${isLoadingPrompt ? 'italic' : ''}`}
-                        placeholder="Seu prompt gerado aparecerá aqui..."
-                    ></textarea>
-                     {isLoadingPrompt && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg">
-                            <Loader2 size={48} className="animate-spin text-purple-400" />
-                        </div>
-                    )}
+            `;
+        }
+        
+        function getResultHTML() {
+            return `
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sparkles" class="mr-2 text-purple-300"></i> Resultado do Prompt</h2>
+                <div class="flex-grow relative">
+                    <textarea id="generated-prompt" readonly class="w-full h-full min-h-[250px] bg-gray-800 bg-opacity-80 text-gray-100 font-mono p-4 rounded-lg resize-none border border-gray-600">${state.isLoadingPrompt ? 'Gerando...' : state.generatedPrompt}</textarea>
+                     ${state.isLoadingPrompt ? `<div class="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg"><i data-lucide="loader-2" class="animate-spin text-purple-400 h-12 w-12"></i></div>` : ''}
                 </div>
-                <div className="mt-6 flex flex-wrap gap-2 justify-center">
-                    <button onClick={generatePromptWithAI} disabled={isLoadingPrompt} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
-                        {isLoadingPrompt ? <><Loader2 size={20} className="mr-2 animate-spin" /> Gerando...</> : <><Sparkles size={20} className="mr-2" /> Gerar com IA</>}
+                 <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                    <button data-action="generate" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center disabled:opacity-50" ${state.isLoadingPrompt ? 'disabled' : ''}>
+                         ${state.isLoadingPrompt ? '<i data-lucide="loader-2" class="mr-2 w-5 h-5 animate-spin"></i> Gerando...' : '<i data-lucide="sparkles" class="mr-2 w-5 h-5"></i> Gerar com IA'}
                     </button>
-                    <button onClick={copyPrompt} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><Copy size={20} className="mr-2" /> Copiar</button>
-                    {isUserLoggedIn && <button onClick={savePrompt} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><Save size={20} className="mr-2" /> Salvar</button>}
-                    <button onClick={resetForm} className="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2 px-4 rounded-lg flex items-center"><RotateCcw size={20} className="mr-2" /> Limpar</button>
+                    <button data-action="copy" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="copy" class="mr-2 w-5 h-5"></i> Copiar</button>
+                    ${state.isUserLoggedIn ? `<button data-action="save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="save" class="mr-2 w-5 h-5"></i> Salvar</button>` : ''}
+                    <button data-action="reset" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="rotate-ccw" class="mr-2 w-5 h-5"></i> Limpar</button>
                 </div>
-            </section>
-        </div>
+            `;
+        }
 
-        {/* --- MODAIS --- */}
-
-        {/* Modal de Gerenciamento de Personagens */}
-        {isCharacterManagerOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-purple-700 glass-effect">
-                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                        <h2 className="text-2xl font-bold text-purple-400 flex items-center"><Users size={24} className="mr-2" /> Meus Personagens</h2>
-                        <button onClick={() => setIsCharacterManagerOpen(false)} className="text-gray-400 hover:text-white"><X size={28} /></button>
-                    </div>
-                    <div className="mb-8 p-4 border border-gray-700 rounded-lg glass-effect-input-subtle">
-                        <h3 className="text-xl font-semibold text-gray-200 mb-4">{editingCharacter ? 'Editar Personagem' : 'Adicionar Novo Personagem'}</h3>
-                        <InputField label="Nome" value={newCharacterName} onChange={setNewCharacterName} placeholder="Ex: Capitão Estelar" />
-                        <InputField label="Descrição" type="textarea" value={newCharacterDescription} onChange={setNewCharacterDescription} placeholder="Ex: Um líder corajoso..." />
-                        <InputField label="Traços Visuais" type="textarea" value={newCharacterVisuals} onChange={setNewCharacterVisuals} placeholder="Ex: Armadura futurista azul..." />
-                        <InputField label="Personalidade" type="textarea" value={newCharacterPersonality} onChange={setNewCharacterPersonality} placeholder="Ex: Determinado, sarcástico..." />
-                        <button onClick={handleSaveCharacter} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg"><Save size={20} className="inline mr-2" /> {editingCharacter ? 'Atualizar' : 'Salvar'}</button>
-                        {editingCharacter && <button onClick={() => setEditingCharacter(null)} className="mt-4 ml-2 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>}
-                    </div>
-                    <div className="space-y-4">
-                        {userCharacters.map((char) => (
-                            <div key={char.id} className="bg-gray-700 p-4 rounded-lg flex justify-between items-start">
-                                <div>
-                                    <p className="font-bold text-lg text-purple-300">{char.name}</p>
-                                    <p className="text-sm text-gray-300 mt-1">{char.description}</p>
-                                </div>
-                                <div className="flex space-x-2 flex-shrink-0">
-                                    <button onClick={() => handleEditCharacter(char)} className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white" title="Editar"><PenSquare size={18} /></button>
-                                    <button onClick={() => openDeleteCharacterModal(char)} className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white" title="Excluir"><Trash2 size={18} /></button>
-                                </div>
+        function getModalHTML(modalType) {
+            // ... (Implemente a lógica para retornar o HTML de cada modal: auth, characters, etc.)
+            // Por exemplo, para o modal de personagens:
+            if (modalType === 'characters') {
+                return `
+                    <div class="modal-overlay">
+                        <div class="modal-content bg-gray-800 w-full max-w-2xl glass-effect">
+                            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
+                                <h2 class="text-2xl font-bold text-purple-400 flex items-center"><i data-lucide="users" class="mr-2"></i> Meus Personagens</h2>
+                                <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400"></i></button>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {/* Modal de Gerenciamento de Séries/Histórias */}
-        {isStoryManagerOpen && (
-             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-purple-700 glass-effect">
-                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                        <h2 className="text-2xl font-bold text-purple-400 flex items-center"><Film size={24} className="mr-2" /> Gerenciar Séries/Histórias</h2>
-                        <button onClick={() => { setIsStoryManagerOpen(false); setSelectedStory(null); }} className="text-gray-400 hover:text-white"><X size={28} /></button>
-                    </div>
-                     {!selectedStory && (
-                        <>
-                            <div className="mb-8 p-4 border border-gray-700 rounded-lg glass-effect">
-                                <h3 className="text-xl font-semibold text-gray-200 mb-4 flex items-center"><PlusCircle size={20} className="mr-2" /> Criar Nova Série</h3>
-                                <InputField label="Título da Série" value={newStoryTitle} onChange={setNewStoryTitle} placeholder="Ex: A Saga do Cavaleiro Estelar" />
-                                <InputField label="Descrição da Série" type="textarea" value={newStoryDescription} onChange={setNewStoryDescription} placeholder="Ex: Uma épica jornada..." />
-                                <InputField label="Personagem Principal" type="select" value={newStoryCharacterId} onChange={setNewStoryCharacterId} options={userCharacters} placeholder="Selecione um personagem..." />
-                                <button onClick={handleCreateStory} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg"><Save size={20} className="mr-2" /> Criar Série</button>
+                            <div class="mb-8 p-4 border border-gray-700 rounded-lg glass-effect-input-subtle">
+                                <h3 class="text-xl font-semibold text-gray-200 mb-4">${state.editingCharacter ? 'Editar' : 'Adicionar'} Personagem</h3>
+                                <form id="character-form">
+                                   ${createInputHTML('text', 'Nome', 'newCharacterName', state.newCharacterName, 'Ex: Capitão Estelar', 'type')}
+                                   ${createTextAreaHTML('Descrição', 'newCharacterDescription', state.newCharacterDescription, 'Ex: Um líder corajoso...')}
+                                   ${createTextAreaHTML('Traços Visuais', 'newCharacterVisuals', state.newCharacterVisuals, 'Ex: Armadura azul...')}
+                                   ${createTextAreaHTML('Personalidade', 'newCharacterPersonality', state.newCharacterPersonality, 'Ex: Determinado...')}
+                                   <button type="submit" class="mt-4 btn-purple font-bold py-2 px-4 rounded-lg">${state.editingCharacter ? 'Atualizar' : 'Salvar'}</button>
+                                </form>
                             </div>
-                            <h3 className="text-xl font-semibold text-gray-200 mb-4 flex items-center"><Film size={20} className="mr-2" /> Suas Séries ({userStories.length})</h3>
-                            {userStories.length === 0 ? <p className="text-gray-400 text-center py-4">Nenhuma série salva ainda.</p> : (
-                                <div className="space-y-4">
-                                    {userStories.map((story) => (
-                                        <div key={story.id} className="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
-                                            <div>
-                                                <p className="font-bold text-lg text-purple-300">{story.title}</p>
-                                                <p className="text-sm text-gray-300 mt-1">{userCharacters.find(c => c.id === story.characterId)?.name || 'Desconhecido'}</p>
-                                            </div>
-                                            <button onClick={() => handleViewStoryChapters(story)} className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white" title="Ver Capítulos"><ArrowRightCircle size={18} /></button>
+                            <div class="space-y-4">
+                                ${state.userCharacters.map(char => `
+                                    <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-start">
+                                        <div>
+                                            <p class="font-bold text-lg text-purple-300">${char.name}</p>
+                                            <p class="text-sm text-gray-300 mt-1">${char.description}</p>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    )}
-                    {selectedStory && (
-                        <div>
-                            <button onClick={() => setSelectedStory(null)} className="mb-4 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-2 px-4 rounded-lg"><RotateCcw size={16} className="mr-2" /> Voltar para Séries</button>
-                            <h3 className="text-xl font-semibold text-gray-200 mb-4">Capítulos de "{selectedStory.title}"</h3>
-                             <div className="mb-8 p-4 border border-gray-700 rounded-lg glass-effect">
-                                <h4 className="text-lg font-semibold text-gray-200 mb-3">Adicionar Novo Capítulo</h4>
-                                <InputField label="Narrativa do Capítulo" type="textarea" value={newChapterNarrative} onChange={setNewChapterNarrative} placeholder="Deixe em branco para a IA criar a narrativa." />
-                                <button onClick={handleAddChapter} disabled={isGeneratingChapterContent} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">
-                                    {isGeneratingChapterContent ? <><Loader2 size={20} className="mr-2 animate-spin" /> Gerando...</> : <><Sparkles size={20} className="mr-2" /> Gerar Capítulo</>}
-                                </button>
-                            </div>
-                            {selectedStory.chapters && selectedStory.chapters.length > 0 ? (
-                                <div className="space-y-4">
-                                    {selectedStory.chapters.map((chapter) => (
-                                        <div key={chapter.id} className="bg-gray-700 p-4 rounded-lg">
-                                            <p className="font-bold text-lg text-purple-300">Capítulo {chapter.chapterNumber}</p>
-                                            <p className="text-sm text-gray-300 mt-1">{chapter.narrative}</p>
+                                        <div class="flex space-x-2">
+                                            <button data-action="edit-character" data-id="${char.id}" class="p-2 rounded-full bg-blue-600"><i data-lucide="pen-square" class="w-4 h-4"></i></button>
+                                            <button data-action="delete-character" data-id="${char.id}" data-name="${char.name}" class="p-2 rounded-full bg-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : <p className="text-gray-400 text-center py-4">Nenhum capítulo ainda.</p>}
-                        </div>
-                    )}
-                </div>
-            </div>
-        )}
-
-        {/* Modal de Planos de Assinatura */}
-        {showPlansModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-3xl border border-purple-700 glass-effect">
-                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                        <h2 className="text-2xl font-bold text-purple-400 flex items-center"><DollarSign size={24} className="mr-2" /> Nossos Planos</h2>
-                        <button onClick={() => setShowPlansModal(false)} className="text-gray-400 hover:text-white"><X size={28} /></button>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div className="bg-gray-700 p-6 rounded-lg border border-gray-600 flex flex-col">
-                            <h3 className="text-2xl font-bold text-blue-400 mb-3">Gratuito</h3>
-                            <p className="text-gray-300 mb-4 flex-grow">Perfeito para começar e experimentar a ferramenta.</p>
-                            <p className="text-4xl font-extrabold text-white mb-4">R$ 0<span className="text-lg text-gray-400">/mês</span></p>
-                            <button className="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg cursor-not-allowed opacity-70">Plano Atual</button>
-                        </div>
-                        <div className="bg-gradient-to-br from-purple-800 to-gray-800 p-6 rounded-lg border border-purple-500 flex flex-col">
-                            <h3 className="text-2xl font-bold text-purple-300 mb-3">Pro</h3>
-                            <p className="text-gray-300 mb-4 flex-grow">Para criadores que buscam resultados ilimitados.</p>
-                            <p className="text-4xl font-extrabold text-white mb-4">R$ 49,90<span className="text-lg text-gray-400">/mês</span></p>
-                            <button className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg">Assinar Plano Pro</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {/* Modal de Gerenciamento de Tipos de Câmera */}
-        {isCameraTypeManagerOpen && (
-             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto border border-purple-700 glass-effect">
-                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                        <h2 className="text-2xl font-bold text-purple-400 flex items-center"><Camera size={24} className="mr-2" /> Tipos de Câmera</h2>
-                        <button onClick={() => setIsCameraTypeManagerOpen(false)} className="text-gray-400 hover:text-white"><X size={28} /></button>
-                    </div>
-                    <div className="mb-8 p-4 border border-gray-700 rounded-lg glass-effect-input-subtle">
-                        <h3 className="text-xl font-semibold text-gray-200 mb-4">{editingCameraType ? 'Editar Tipo' : 'Adicionar Novo Tipo'}</h3>
-                        <InputField label="Nome" value={newCameraTypeName} onChange={setNewCameraTypeName} placeholder="Ex: Visão de Pássaro" />
-                        <button onClick={handleSaveCameraType} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg"><Save size={20} className="inline mr-2" /> {editingCameraType ? 'Atualizar' : 'Salvar'}</button>
-                        {editingCameraType && <button onClick={() => setEditingCameraType(null)} className="mt-4 ml-2 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-200 mb-4">Seus Tipos ({userCustomCameraTypes.length})</h3>
-                    <div className="space-y-2 mb-6">
-                        {userCustomCameraTypes.map((type) => (
-                            <div key={type.id} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center">
-                                <p className="text-purple-300">{type.name}</p>
-                                <div className="flex space-x-2">
-                                    <button onClick={() => handleEditCameraType(type)} className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white" title="Editar"><PenSquare size={18} /></button>
-                                    <button onClick={() => openDeleteCameraTypeModal(type)} className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white" title="Excluir"><Trash2 size={18} /></button>
-                                </div>
+                                    </div>
+                                `).join('')}
                             </div>
-                        ))}
+                        </div>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-200 mb-4">Tipos Padrão</h3>
-                    <div className="space-y-2 text-gray-300">
-                        {defaultCameraTypeOptions.map(type => <p key={type} className="bg-gray-700 p-2 rounded-lg">{type}</p>)}
+                `;
+            }
+             if (modalType === 'auth') {
+                return `
+                    <div class="modal-overlay">
+                        <div class="modal-content bg-gray-800 w-full max-w-sm glass-effect">
+                             <div class="flex justify-between items-center mb-6">
+                               <h2 id="auth-title" class="text-2xl font-bold text-purple-400">Login</h2>
+                               <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400"></i></button>
+                            </div>
+                            <form id="auth-form">
+                                ${createInputHTML('email', 'Email', 'authEmail', '', 'seu@email.com', 'mail')}
+                                ${createInputHTML('password', 'Senha', 'authPassword', '', '********', 'lock')}
+                                <div id="auth-error" class="text-red-400 text-center my-2"></div>
+                                <button type="submit" id="auth-submit-btn" class="w-full btn-purple font-bold py-2 px-4 rounded-lg">Entrar</button>
+                            </form>
+                            <button id="google-signin-btn" class="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-lg mt-4 flex items-center justify-center">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Entrar com Google
+                            </button>
+                            <p class="text-center text-sm text-gray-400 mt-4">
+                               <span id="auth-toggle-text">Não tem conta?</span>
+                               <button data-action="toggle-auth-mode" class="font-medium text-blue-400 hover:underline" id="auth-toggle-btn">Cadastre-se</button>
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </div>
-        )}
+                `;
+            }
+            // ... (Implemente os outros modais de forma similar)
+            return ''; // Retorna string vazia se o tipo de modal for desconhecido
+        }
+        
+        // --- FUNÇÕES AUXILIARES DE RENDERIZAÇÃO ---
+        function createInputHTML(type, label, id, value, placeholder, icon) {
+             return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100"></div>`;
+        }
+        function createTextAreaHTML(label, id, value, placeholder, icon) {
+            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><textarea id="${id}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-24">${value}</textarea></div>`;
+        }
+        function createSelectHTML(label, id, options, selectedValue, icon) {
+            const optionsHTML = options.map(opt => {
+                const value = typeof opt === 'object' ? opt.value : opt;
+                const text = typeof opt === 'object' ? opt.text : opt;
+                return `<option value="${value}" ${value === selectedValue ? 'selected' : ''}>${text}</option>`;
+            }).join('');
+            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><select id="${id}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100">${optionsHTML}</select></div>`;
+        }
+        
+        // --- FUNÇÕES DE LÓGICA E EVENTOS ---
+        function attachEventListeners() {
+            // Formulário principal
+            const form = document.getElementById('prompt-form');
+            if (form) {
+                form.addEventListener('input', (e) => {
+                    if (state.hasOwnProperty(e.target.id)) {
+                        state[e.target.id] = e.target.id === 'duration' ? Number(e.target.value) : e.target.value;
+                         if (e.target.id === 'duration' && e.target.type === 'range') {
+                            const numberInput = form.querySelector('input[type="number"]');
+                            if(numberInput) numberInput.value = e.target.value;
+                        }
+                    }
+                });
+                const charactersSelect = document.getElementById('selectedCharacters');
+                if(charactersSelect) {
+                    charactersSelect.addEventListener('change', () => {
+                        state.selectedCharacters = Array.from(charactersSelect.selectedOptions).map(opt => opt.value);
+                    });
+                }
+            }
+            
+            // Botões de ação e navegação
+            document.body.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-action]');
+                if (!target) return;
+                
+                const action = target.dataset.action;
+                const modalType = target.dataset.modal;
 
-      </main>
-      
-      {/* Rodapé */}
-      <footer className="bg-gray-900 p-4 text-center text-gray-400 text-sm border-t-2 border-purple-700 glass-effect">
-        {userId && (<span>ID do Usuário: <span className="font-mono text-xs">{userId}</span></span>)}
-      </footer>
-    </div>
-  );
-};
+                if (action === 'open-modal') {
+                    state.activeModal = modalType;
+                    render();
+                } else if (action === 'close-modal') {
+                    state.activeModal = null;
+                    render();
+                } else if (action === 'generate') {
+                    // ... chamar a função de gerar prompt
+                } else if (action === 'copy') {
+                    // ... chamar a função de copiar
+                } else if (action === 'save') {
+                    // ... chamar a função de salvar
+                } else if (action === 'reset') {
+                    // ... chamar a função de resetar
+                } else if (action === 'logout') {
+                    signOut(auth);
+                } else if (action === 'toggle-auth-mode') {
+                    // ... lógica para alternar entre login e cadastro
+                }
+                 // ... outros actions
+            });
+            
+            // Listeners específicos de modais
+            if (state.activeModal === 'characters') {
+                 document.getElementById('character-form').addEventListener('submit', handleSaveCharacter);
+            }
+             if (state.activeModal === 'auth') {
+                 document.getElementById('auth-form').addEventListener('submit', handleAuthAction);
+                 document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
+            }
+        }
+        
+        // ... (Implemente todas as funções de handlers: handleSaveCharacter, handleAuthAction, generatePromptWithAI, etc.)
+        // Lembre-se que, ao final de cada handler que modifica o estado, você deve chamar `render()` para atualizar a UI.
 
-export default App;
+        function handleSaveCharacter(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCharacterName').value;
+            // ... (pegar outros valores)
+            // ... (lógica do firestore para salvar/atualizar)
+            // ... no final:
+            state.activeModal = null; // ou talvez manter o modal aberto e só limpar o form
+            render();
+        }
+        
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+        enterPlatformBtn.addEventListener('click', () => {
+            entryPage.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            render();
+        });
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                state.userId = user.uid;
+                state.isUserLoggedIn = !user.isAnonymous;
+                state.userEmail = user.email || 'Anônimo';
+                // Iniciar listeners do Firestore aqui
+                setupFirestoreListeners(user.uid);
+            } else {
+                signInAnonymously(auth).catch(console.error);
+                state.userId = null;
+                state.isUserLoggedIn = false;
+                state.userEmail = '';
+            }
+            state.isAuthReady = true;
+            render();
+        });
+
+        function setupFirestoreListeners(uid) {
+            const charactersRef = firebase.firestore().collection(`artifacts/${appId}/users/${uid}/characters`);
+            charactersRef.onSnapshot(snapshot => {
+                state.userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                render();
+            });
+            // ... outros listeners
+        }
+    </script>
+</body>
+</html>
