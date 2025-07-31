@@ -5,19 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinePrompt AI - Gerador de Prompts de Vídeo</title>
 
+    <!-- Fontes e Ícones -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
 
+    <!-- Estilos CSS -->
     <style>
         body, h1, h2, h3, button, input, select, textarea { font-family: 'Inter', sans-serif; }
         .futuristic-background { background: #0a0a0a; background-image: radial-gradient(circle at center, rgba(168, 85, 247, 0.08), rgba(59, 130, 246, 0.05), transparent 70%); }
         .glass-effect { background-color: rgba(30, 41, 59, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(71, 85, 105, 0.15); }
         .glass-effect-input-subtle { background-color: rgba(45, 55, 72, 0.3); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(71, 85, 105, 0.15); }
-        button, .button { transition: box-shadow 0.3s ease-in-out, transform 0.1s ease-out; cursor: pointer; }
+        button, .button { transition: box-shadow 0.3s ease-in-out, transform 0.1s ease-out, background-color 0.3s; cursor: pointer; }
         button:hover, .button:hover { transform: translateY(-1px); }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
         .btn-purple { background-color: #9333ea; color: white; }
         .btn-purple:hover { background-color: #7e22ce; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
         .hidden { display: none; }
@@ -30,26 +33,32 @@
             50% { background-size: 200% 200%; background-position: right center; }
         }
         .animate-gradient-x { animation: gradient-x 5s ease infinite; }
+        /* Custom scrollbar for modals */
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #1e293b; }
+        .modal-content::-webkit-scrollbar-thumb { background-color: #4c1d95; border-radius: 20px; border: 3px solid #1e293b; }
     </style>
 </head>
 <body class="futuristic-background text-gray-100">
 
     <div id="app-root">
-        <div id="entry-page" class="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col items-center justify-center p-4">
+        <!-- PÁGINA DE ENTRADA -->
+        <div id="entry-page" class="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col items-center justify-center p-4 transition-opacity duration-1000">
             <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FVIDEO%20CAPA%20NEO%20CINE%20PROMP.mp4?alt=media&token=a5037c56-def0-447d-8b22-5d18e7ec3e76" id="entry-video"></video>
             <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
             <div class="text-center relative z-20">
                 <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-48 md:h-64 w-auto mx-auto mb-8" />
                 <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-4">Bem-vindo ao <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-gradient-x">CinePrompt AI</span></h1>
                 <p class="text-xl md:text-2xl font-semibold mb-10">Sua Visão Grandiosa, Gerada com Inteligência.</p>
-                <button id="enter-platform-btn" class="btn-purple font-bold py-4 px-12 rounded-lg text-xl shadow-lg border border-purple-500">
+                <button data-action="enter-platform" class="btn-purple font-bold py-4 px-12 rounded-lg text-xl shadow-lg border border-purple-500">
                     Entrar na Plataforma
                 </button>
             </div>
         </div>
 
-        <div id="main-app" class="hidden">
-            <header id="app-header" class="bg-gray-900 p-4 shadow-lg glass-effect relative overflow-hidden min-h-[400px] flex flex-col justify-start">
+        <!-- APLICAÇÃO PRINCIPAL -->
+        <div id="main-app" class="hidden transition-opacity duration-1000 opacity-0">
+            <header id="app-header" class="bg-gray-900 p-4 shadow-lg glass-effect relative overflow-hidden min-h-[300px] md:min-h-[400px] flex flex-col justify-start">
                  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FUntitled%20design.mp4?alt=media&token=623eef00-b722-4a64-8e27-b2bf831d5ebc" id="header-video"></video>
                  <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
                  <div class="container mx-auto flex justify-between items-start relative z-20 pt-4">
@@ -59,9 +68,9 @@
             </header>
             
              <div class="w-full bg-gray-950 py-6 text-center border-b-2 border-purple-900 shadow-lg">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-white">Seu Prompt, <span class="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Obra Cinematográfica</span></h2>
-                <p class="text-lg md:text-xl text-gray-300 mt-2">Sua Visão Grandiosa, Gerada com <span class="font-bold text-white">Inteligência.</span></p>
-            </div>
+                 <h2 class="text-2xl md:text-3xl font-extrabold text-white">Seu Prompt, <span class="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Obra Cinematográfica</span></h2>
+                 <p class="text-lg md:text-xl text-gray-300 mt-2">Sua Visão Grandiosa, Gerada com <span class="font-bold text-white">Inteligência.</span></p>
+             </div>
 
             <main class="container mx-auto flex-grow p-4 md:p-8">
                 <div class="lg:grid lg:grid-cols-2 lg:gap-8 flex flex-col">
@@ -75,37 +84,58 @@
             </footer>
         </div>
 
+        <!-- Container para Modais e Notificações -->
         <div id="modal-container"></div>
-        <div id="feedback-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[101]"></div>
+        <div id="feedback-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[101] flex flex-col gap-2"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+    <!-- Scripts do Firebase (versão modular) -->
     <script type="module">
+        // Importa as funções necessárias do Firebase SDK v11+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            signInAnonymously, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut,
+            signInWithCustomToken
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            onSnapshot, 
+            addDoc, 
+            doc, 
+            setDoc, 
+            deleteDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBuB3dTMtejuuVMekhUVmzX343IG8zIzYg", // IMPORTANTE: Substitua pela sua chave de API
-            authDomain: "platamais.firebaseapp.com",
-            projectId: "platamais",
-            storageBucket: "platamais.appspot.com",
-            messagingSenderId: "1014260724484",
-            appId: "1:1014260724484:web:b6c3216ea4641714291651"
-        };
         
+        // CORREÇÃO: Usa as variáveis globais fornecidas pelo ambiente para segurança e flexibilidade.
+        // NUNCA exponha suas chaves de API diretamente no código.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config)
+            : { /* Suas chaves de fallback aqui, se necessário, mas não recomendado */ };
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
         let app, db, auth;
         try {
-            app = firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            auth = firebase.auth();
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
         } catch (error) {
             console.error("Erro ao inicializar o Firebase:", error);
-            document.body.innerHTML = "<h1>Erro Crítico: Não foi possível conectar ao Firebase. Verifique a configuração e as chaves de API.</h1>";
+            document.body.innerHTML = "<h1>Erro Crítico: Não foi possível conectar ao Firebase. Verifique a configuração.</h1>";
         }
 
         // --- CONSTANTES ---
-        const appId = 'default-app-id'; // Defina um ID para seu app se necessário
         const videoStyleOptions = ['Realista', 'Anime', 'Cinematográfico', 'Futurista', 'Documentário', 'Animação 2D', 'Stop Motion', 'VFX', 'Fantasia Épica', 'Ficção Científica Clássica', 'Noir', 'Comédia Romântica', 'Terror Psicológico', 'Ação Dinâmica', 'Drama Histórico', 'Musical Vibrante', 'Cyberpunk', 'Steampunk', 'Vintage (Anos 80/90)'];
         const defaultCameraTypeOptions = ['Travelling lento', 'Drone sobrevoando', 'POV (Ponto de Vista)', 'Plano sequência', 'Zoom in/out', 'Câmara fixa', 'Handheld', 'Panorâmica', 'Tilt', 'POV (Personagem)', 'Grande Angular', 'Close-up Extremo', 'Câmera Lenta (Slow Motion)', 'Time-lapse', 'Câmera no Ombro', 'Estabilizada (Gimbal)', 'Subaquática', 'Aérea (Helicóptero)', 'Visão Noturna', 'Olho de Peixe'];
         const lightingOptions = ['Luz natural dourada', 'Neon vibrante', 'Sombra dramática', 'Luz suave difusa', 'Flash estroboscópico', 'Luz de velas', 'Contraluz', 'Luz ambiente', 'Luz de palco', 'Luz de rua (úmida)', 'Amanhecer/Crepúsculo', 'Luz de Fogueira', 'Reflexos de Água', 'Luz de Tempestade', 'Luz de Monitor (computador)'];
@@ -122,19 +152,19 @@
             userEmail: '',
             userPrompts: [],
             userCharacters: [],
-            userStories: [],
             userCustomCameraTypes: [],
             
             // Formulário principal
-            videoStyle: '', theme: '', narrative: '', selectedCharacters: [], cameraType: '', lighting: '',
-            colorPalette: '', duration: 10, format: '', quality: '', outputLanguage: 'portuguese', voiceNarration: '',
+            videoStyle: 'Cinematográfico', theme: '', narrative: '', selectedCharacters: [], cameraType: 'Travelling lento', lighting: 'Luz natural dourada',
+            colorPalette: 'Cores vibrantes', duration: 10, format: '16:9 (Paisagem)', quality: '4K', outputLanguage: 'portuguese', voiceNarration: 'Sem Narração',
 
             // UI
             isLoadingPrompt: false,
             generatedPrompt: '',
-            activeModal: null, // 'characters', 'stories', 'camera', 'auth', 'profile', 'plans', 'confirmation'
+            activeModal: null, // 'characters', 'camera', 'auth', 'profile', 'plans', 'confirmation'
+            confirmation: { message: '', onConfirm: () => {} },
             
-            // Gerenciadores
+            // Gerenciadores de modais
             editingCharacter: null,
             newCharacterName: '', newCharacterDescription: '', newCharacterVisuals: '', newCharacterPersonality: '',
             
@@ -145,7 +175,6 @@
         // --- ELEMENTOS DO DOM ---
         const entryPage = document.getElementById('entry-page');
         const mainApp = document.getElementById('main-app');
-        const enterPlatformBtn = document.getElementById('enter-platform-btn');
         const controlsPanel = document.getElementById('controls-panel');
         const resultPanel = document.getElementById('result-panel');
         const modalContainer = document.getElementById('modal-container');
@@ -153,32 +182,32 @@
         const mainNav = document.getElementById('main-nav');
         const userIdDisplay = document.getElementById('user-id-display');
         
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        // --- FUNÇÕES DE RENDERIZAÇÃO (UI) ---
         
+        // Função principal que atualiza a tela com base no estado
         function render() {
+            // Não renderiza a app principal se ainda estiver na tela de entrada
             if (entryPage.classList.contains('hidden')) {
                 mainNav.innerHTML = getNavHTML();
                 controlsPanel.innerHTML = getControlsHTML();
                 resultPanel.innerHTML = getResultHTML();
                 userIdDisplay.textContent = state.userId ? `ID do Usuário: ${state.userId}` : '';
-                
-                if (state.activeModal) {
-                    modalContainer.innerHTML = getModalHTML(state.activeModal);
-                } else {
-                    modalContainer.innerHTML = '';
-                }
-                
-                attachEventListeners();
-                lucide.createIcons();
             }
+            
+            // Renderiza o modal ativo
+            if (state.activeModal) {
+                modalContainer.innerHTML = getModalHTML(state.activeModal);
+            } else {
+                modalContainer.innerHTML = '';
+            }
+            
+            // Atualiza os ícones na tela
+            lucide.createIcons();
         }
         
         function getNavHTML() {
             const loggedInMenu = `
                 <button data-action="open-modal" data-modal="characters" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="users" class="w-4 h-4 mr-1"></i> Meus Personagens</button>
-                <button data-action="open-modal" data-modal="camera" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="camera" class="w-4 h-4 mr-1"></i> Tipos de Câmera</button>
-                <button data-action="open-modal" data-modal="plans" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="dollar-sign" class="w-4 h-4 mr-1"></i> Planos</button>
-                <button data-action="open-modal" data-modal="profile" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="user-circle" class="w-4 h-4 mr-1"></i> Perfil</button>
                 <button data-action="logout" class="text-gray-300 hover:text-red-400 transition-colors duration-200 flex items-center"><i data-lucide="log-out" class="w-4 h-4 mr-1"></i> Sair</button>
             `;
             const loggedOutMenu = `
@@ -190,35 +219,39 @@
         function getControlsHTML() {
             const allCameraOptions = [...defaultCameraTypeOptions, ...state.userCustomCameraTypes.map(c => c.name)];
             return `
-                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sparkles" class="mr-2 text-purple-300"></i> Crie Seu Prompt de Vídeo</h2>
-                <form id="prompt-form" onsubmit="return false;">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sliders-horizontal" class="mr-2 text-purple-300"></i> Crie Seu Prompt de Vídeo</h2>
+                <form id="prompt-form">
                     <div class="grid md:grid-cols-2 gap-4">
                         ${createSelectHTML('Estilo do Vídeo', 'videoStyle', videoStyleOptions, state.videoStyle, 'film')}
                         ${createSelectHTML('Formato', 'format', formatOptions, state.format, 'crop')}
                     </div>
-                    ${createInputHTML('text', 'Tema ou Ambiente', 'theme', state.theme, 'Ex: Floresta mística...', 'building')}
-                    ${createTextAreaHTML('Narrativa', 'narrative', state.narrative, 'Ex: Um explorador encontra...', 'edit')}
-                     <div class="mb-4">
+                    ${createInputHTML('text', 'Tema ou Ambiente', 'theme', state.theme, 'Ex: Floresta mística, cidade cyberpunk...', 'map-pin')}
+                    ${createTextAreaHTML('Narrativa', 'narrative', state.narrative, 'Ex: Um explorador encontra um artefato antigo...', 'scroll-text')}
+                    
+                    <div class="mb-4">
                         <label class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="users" class="mr-2 text-purple-400"></i> Personagens</label>
-                        <select id="selectedCharacters" multiple class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-32 overflow-y-auto">
+                        <select id="selectedCharacters" multiple class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-24 overflow-y-auto">
                             ${state.userCharacters.map(c => `<option value="${c.id}" ${state.selectedCharacters.includes(c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
                         </select>
                         <button type="button" data-action="open-modal" data-modal="characters" class="mt-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-2 px-4 rounded-lg"><i data-lucide="plus-circle" class="inline mr-2 w-4 h-4"></i> Gerenciar Personagens</button>
                     </div>
+
                     <div class="grid md:grid-cols-2 gap-4">
                         ${createSelectHTML('Tipo de Câmera', 'cameraType', allCameraOptions, state.cameraType, 'camera')}
                         ${createSelectHTML('Iluminação', 'lighting', lightingOptions, state.lighting, 'lightbulb')}
                         ${createSelectHTML('Paleta de Cores', 'colorPalette', colorPaletteOptions, state.colorPalette, 'palette')}
-                        ${createInputHTML('text', 'Qualidade e Detalhes', 'quality', state.quality, 'Ex: 4K, fotorrealista...', 'sparkles')}
+                        ${createInputHTML('text', 'Qualidade e Detalhes', 'quality', state.quality, 'Ex: 4K, fotorrealista, granulado...', 'sparkles')}
                     </div>
-                     <div class="mb-4">
+                    
+                    <div class="mb-4">
                         <label class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="clock" class="mr-2 text-purple-400"></i> Duração (segundos)</label>
                         <div class="flex items-center space-x-3">
                             <input type="range" id="duration" min="1" max="60" step="1" value="${state.duration}" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                            <input type="number" value="${state.duration}" class="w-20 shadow appearance-none border border-gray-600 rounded-lg py-2 px-3 bg-gray-700" readonly>
+                            <input type="number" id="duration-number" value="${state.duration}" class="w-20 shadow appearance-none border border-gray-600 rounded-lg py-2 px-3 bg-gray-700 text-center" readonly>
                         </div>
                     </div>
-                     <div class="grid md:grid-cols-2 gap-4">
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
                         ${createSelectHTML('Idioma do Prompt', 'outputLanguage', outputLanguageOptions.map(o => ({value: o.id, text: o.name})), state.outputLanguage, 'languages')}
                         ${createSelectHTML('Voz da Narração', 'voiceNarration', voiceNarrationOptions, state.voiceNarration, 'mic')}
                     </div>
@@ -228,14 +261,14 @@
         
         function getResultHTML() {
             return `
-                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sparkles" class="mr-2 text-purple-300"></i> Resultado do Prompt</h2>
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="clipboard-check" class="mr-2 text-purple-300"></i> Resultado do Prompt</h2>
                 <div class="flex-grow relative">
-                    <textarea id="generated-prompt" readonly class="w-full h-full min-h-[250px] bg-gray-800 bg-opacity-80 text-gray-100 font-mono p-4 rounded-lg resize-none border border-gray-600">${state.isLoadingPrompt ? 'Gerando...' : state.generatedPrompt}</textarea>
-                     ${state.isLoadingPrompt ? `<div class="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg"><i data-lucide="loader-2" class="animate-spin text-purple-400 h-12 w-12"></i></div>` : ''}
+                    <textarea id="generated-prompt" readonly class="w-full h-full min-h-[250px] bg-gray-800 bg-opacity-80 text-gray-100 font-mono p-4 rounded-lg resize-none border border-gray-600">${state.isLoadingPrompt ? 'Gerando com a força da IA...' : state.generatedPrompt}</textarea>
+                    ${state.isLoadingPrompt ? `<div class="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 rounded-lg"><i data-lucide="loader-2" class="animate-spin text-purple-400 h-12 w-12"></i></div>` : ''}
                 </div>
-                 <div class="mt-6 flex flex-wrap gap-2 justify-center">
-                    <button data-action="generate" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center disabled:opacity-50" ${state.isLoadingPrompt ? 'disabled' : ''}>
-                         ${state.isLoadingPrompt ? '<i data-lucide="loader-2" class="mr-2 w-5 h-5 animate-spin"></i> Gerando...' : '<i data-lucide="sparkles" class="mr-2 w-5 h-5"></i> Gerar com IA'}
+                <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                    <button data-action="generate" class="btn-purple font-bold py-2 px-4 rounded-lg flex items-center" ${state.isLoadingPrompt ? 'disabled' : ''}>
+                        ${state.isLoadingPrompt ? '<i data-lucide="loader-2" class="mr-2 w-5 h-5 animate-spin"></i> Gerando...' : '<i data-lucide="sparkles" class="mr-2 w-5 h-5"></i> Gerar com IA'}
                     </button>
                     <button data-action="copy" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="copy" class="mr-2 w-5 h-5"></i> Copiar</button>
                     ${state.isUserLoggedIn ? `<button data-action="save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="save" class="mr-2 w-5 h-5"></i> Salvar</button>` : ''}
@@ -245,79 +278,103 @@
         }
 
         function getModalHTML(modalType) {
-            // ... (Implemente a lógica para retornar o HTML de cada modal: auth, characters, etc.)
-            // Por exemplo, para o modal de personagens:
-            if (modalType === 'characters') {
-                return `
-                    <div class="modal-overlay">
-                        <div class="modal-content bg-gray-800 w-full max-w-2xl glass-effect">
-                            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
-                                <h2 class="text-2xl font-bold text-purple-400 flex items-center"><i data-lucide="users" class="mr-2"></i> Meus Personagens</h2>
-                                <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400"></i></button>
-                            </div>
-                            <div class="mb-8 p-4 border border-gray-700 rounded-lg glass-effect-input-subtle">
-                                <h3 class="text-xl font-semibold text-gray-200 mb-4">${state.editingCharacter ? 'Editar' : 'Adicionar'} Personagem</h3>
-                                <form id="character-form">
-                                   ${createInputHTML('text', 'Nome', 'newCharacterName', state.newCharacterName, 'Ex: Capitão Estelar', 'type')}
-                                   ${createTextAreaHTML('Descrição', 'newCharacterDescription', state.newCharacterDescription, 'Ex: Um líder corajoso...')}
-                                   ${createTextAreaHTML('Traços Visuais', 'newCharacterVisuals', state.newCharacterVisuals, 'Ex: Armadura azul...')}
-                                   ${createTextAreaHTML('Personalidade', 'newCharacterPersonality', state.newCharacterPersonality, 'Ex: Determinado...')}
-                                   <button type="submit" class="mt-4 btn-purple font-bold py-2 px-4 rounded-lg">${state.editingCharacter ? 'Atualizar' : 'Salvar'}</button>
-                                </form>
-                            </div>
-                            <div class="space-y-4">
-                                ${state.userCharacters.map(char => `
-                                    <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-start">
-                                        <div>
-                                            <p class="font-bold text-lg text-purple-300">${char.name}</p>
-                                            <p class="text-sm text-gray-300 mt-1">${char.description}</p>
-                                        </div>
-                                        <div class="flex space-x-2">
-                                            <button data-action="edit-character" data-id="${char.id}" class="p-2 rounded-full bg-blue-600"><i data-lucide="pen-square" class="w-4 h-4"></i></button>
-                                            <button data-action="delete-character" data-id="${char.id}" data-name="${char.name}" class="p-2 rounded-full bg-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
+            switch(modalType) {
+                case 'characters': return getCharactersModalHTML();
+                case 'auth': return getAuthModalHTML();
+                case 'confirmation': return getConfirmationModalHTML();
+                default: return '';
             }
-             if (modalType === 'auth') {
-                return `
-                    <div class="modal-overlay">
-                        <div class="modal-content bg-gray-800 w-full max-w-sm glass-effect">
-                             <div class="flex justify-between items-center mb-6">
-                               <h2 id="auth-title" class="text-2xl font-bold text-purple-400">Login</h2>
-                               <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400"></i></button>
-                            </div>
-                            <form id="auth-form">
-                                ${createInputHTML('email', 'Email', 'authEmail', '', 'seu@email.com', 'mail')}
-                                ${createInputHTML('password', 'Senha', 'authPassword', '', '********', 'lock')}
-                                <div id="auth-error" class="text-red-400 text-center my-2"></div>
-                                <button type="submit" id="auth-submit-btn" class="w-full btn-purple font-bold py-2 px-4 rounded-lg">Entrar</button>
+        }
+
+        function getCharactersModalHTML() {
+            return `
+                <div class="modal-overlay" data-action="close-modal-overlay">
+                    <div class="modal-content bg-gray-800 w-full max-w-2xl glass-effect">
+                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
+                            <h2 class="text-2xl font-bold text-purple-400 flex items-center"><i data-lucide="users" class="mr-2"></i> Meus Personagens</h2>
+                            <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400 hover:text-white"></i></button>
+                        </div>
+                        <div class="mb-8 p-4 border border-gray-700 rounded-lg glass-effect-input-subtle">
+                            <h3 class="text-xl font-semibold text-gray-200 mb-4">${state.editingCharacter ? 'Editar' : 'Adicionar'} Personagem</h3>
+                            <form id="character-form">
+                                ${createInputHTML('text', 'Nome', 'newCharacterName', state.newCharacterName, 'Ex: Capitão Estelar', 'user')}
+                                ${createTextAreaHTML('Descrição', 'newCharacterDescription', state.newCharacterDescription, 'Ex: Um líder corajoso de uma galáxia distante.', 'align-left')}
+                                ${createTextAreaHTML('Traços Visuais', 'newCharacterVisuals', state.newCharacterVisuals, 'Ex: Armadura azul com detalhes dourados, capacete com visor vermelho.', 'eye')}
+                                ${createTextAreaHTML('Personalidade', 'newCharacterPersonality', state.newCharacterPersonality, 'Ex: Determinado, justo, um pouco impulsivo.', 'smile')}
+                                <button type="submit" class="mt-4 btn-purple font-bold py-2 px-4 rounded-lg">${state.editingCharacter ? 'Atualizar Personagem' : 'Adicionar Personagem'}</button>
+                                ${state.editingCharacter ? `<button type="button" data-action="cancel-edit-character" class="mt-4 ml-2 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar Edição</button>` : ''}
                             </form>
-                            <button id="google-signin-btn" class="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-lg mt-4 flex items-center justify-center">
-                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Entrar com Google
-                            </button>
-                            <p class="text-center text-sm text-gray-400 mt-4">
-                               <span id="auth-toggle-text">Não tem conta?</span>
-                               <button data-action="toggle-auth-mode" class="font-medium text-blue-400 hover:underline" id="auth-toggle-btn">Cadastre-se</button>
-                            </p>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.userCharacters.length === 0 ? '<p class="text-center text-gray-400">Você ainda não criou nenhum personagem.</p>' : ''}
+                            ${[...state.userCharacters].reverse().map(char => `
+                                <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-start">
+                                    <div>
+                                        <p class="font-bold text-lg text-purple-300">${char.name}</p>
+                                        <p class="text-sm text-gray-300 mt-1">${char.description}</p>
+                                    </div>
+                                    <div class="flex space-x-2 flex-shrink-0 ml-4">
+                                        <button data-action="edit-character" data-id="${char.id}" class="p-2 rounded-full bg-blue-600 hover:bg-blue-700"><i data-lucide="pen-square" class="w-4 h-4"></i></button>
+                                        <button data-action="delete-character" data-id="${char.id}" data-name="${char.name}" class="p-2 rounded-full bg-red-600 hover:bg-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
-                `;
-            }
-            // ... (Implemente os outros modais de forma similar)
-            return ''; // Retorna string vazia se o tipo de modal for desconhecido
+                </div>
+            `;
+        }
+
+        function getAuthModalHTML() {
+            return `
+                <div class="modal-overlay" data-action="close-modal-overlay">
+                    <div class="modal-content bg-gray-800 w-full max-w-sm glass-effect">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 id="auth-title" class="text-2xl font-bold text-purple-400">Login</h2>
+                            <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400 hover:text-white"></i></button>
+                        </div>
+                        <form id="auth-form">
+                            ${createInputHTML('email', 'Email', 'authEmail', '', 'seu@email.com', 'mail')}
+                            ${createInputHTML('password', 'Senha', 'authPassword', '', '********', 'lock')}
+                            <div id="auth-error" class="text-red-400 text-center my-2 text-sm"></div>
+                            <button type="submit" id="auth-submit-btn" class="w-full btn-purple font-bold py-2 px-4 rounded-lg">Entrar</button>
+                        </form>
+                        <div class="my-4 flex items-center before:flex-1 before:border-t before:border-gray-600 after:flex-1 after:border-t after:border-gray-600">
+                            <p class="mx-4 text-center font-semibold text-gray-400">OU</p>
+                        </div>
+                        <button data-action="google-signin" class="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-lg flex items-center justify-center hover:bg-gray-200">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Entrar com Google
+                        </button>
+                        <p class="text-center text-sm text-gray-400 mt-4">
+                            <span id="auth-toggle-text">Não tem conta?</span>
+                            <button data-action="toggle-auth-mode" class="font-medium text-blue-400 hover:underline" id="auth-toggle-btn">Cadastre-se</button>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getConfirmationModalHTML() {
+            return `
+                <div class="modal-overlay">
+                    <div class="modal-content bg-gray-800 w-full max-w-sm glass-effect">
+                        <h2 class="text-xl font-bold text-white mb-4">Confirmação</h2>
+                        <p class="text-gray-300 mb-6">${state.confirmation.message}</p>
+                        <div class="flex justify-end gap-4">
+                            <button data-action="close-modal" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                            <button data-action="confirm-action" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
         // --- FUNÇÕES AUXILIARES DE RENDERIZAÇÃO ---
         function createInputHTML(type, label, id, value, placeholder, icon) {
-             return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100"></div>`;
+            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"></div>`;
         }
         function createTextAreaHTML(label, id, value, placeholder, icon) {
-            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><textarea id="${id}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-24">${value}</textarea></div>`;
+            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><textarea id="${id}" placeholder="${placeholder}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-24 focus:outline-none focus:ring-2 focus:ring-purple-500">${value}</textarea></div>`;
         }
         function createSelectHTML(label, id, options, selectedValue, icon) {
             const optionsHTML = options.map(opt => {
@@ -325,116 +382,420 @@
                 const text = typeof opt === 'object' ? opt.text : opt;
                 return `<option value="${value}" ${value === selectedValue ? 'selected' : ''}>${text}</option>`;
             }).join('');
-            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><select id="${id}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100">${optionsHTML}</select></div>`;
+            return `<div class="mb-4"><label for="${id}" class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="${icon}" class="w-4 h-4 mr-2 text-purple-400"></i> ${label}</label><select id="${id}" class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500">${optionsHTML}</select></div>`;
         }
-        
-        // --- FUNÇÕES DE LÓGICA E EVENTOS ---
-        function attachEventListeners() {
-            // Formulário principal
-            const form = document.getElementById('prompt-form');
-            if (form) {
-                form.addEventListener('input', (e) => {
-                    if (state.hasOwnProperty(e.target.id)) {
-                        state[e.target.id] = e.target.id === 'duration' ? Number(e.target.value) : e.target.value;
-                         if (e.target.id === 'duration' && e.target.type === 'range') {
-                            const numberInput = form.querySelector('input[type="number"]');
-                            if(numberInput) numberInput.value = e.target.value;
+
+        function showFeedback(message, type = 'success') {
+            const id = `feedback-${Date.now()}`;
+            const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+
+            const feedbackEl = document.createElement('div');
+            feedbackEl.id = id;
+            feedbackEl.className = `flex items-center p-4 rounded-lg text-white shadow-lg ${bgColor} transform transition-all duration-300 translate-y-[-20px] opacity-0`;
+            feedbackEl.innerHTML = `<i data-lucide="${icon}" class="mr-3"></i> <p>${message}</p>`;
+            
+            feedbackContainer.appendChild(feedbackEl);
+            lucide.createIcons({
+                nodes: [feedbackEl.querySelector('i')]
+            });
+
+            // Animação de entrada
+            setTimeout(() => {
+                feedbackEl.classList.remove('translate-y-[-20px]', 'opacity-0');
+            }, 10);
+
+            // Animação de saída
+            setTimeout(() => {
+                feedbackEl.classList.add('opacity-0');
+                feedbackEl.addEventListener('transitionend', () => feedbackEl.remove());
+            }, 4000);
+        }
+
+        // --- LÓGICA DA APLICAÇÃO ---
+
+        async function handleGeneratePrompt() {
+            if (state.isLoadingPrompt) return;
+            
+            setState({ isLoadingPrompt: true });
+
+            const selectedCharacterDetails = state.userCharacters
+                .filter(char => state.selectedCharacters.includes(char.id))
+                .map(char => `Personagem: ${char.name}. Descrição: ${char.description}. Visual: ${char.visuals}. Personalidade: ${char.personality}.`)
+                .join(' ');
+
+            const promptParts = [
+                `Crie um prompt de vídeo detalhado para uma IA de geração de vídeo.`,
+                `Estilo: ${state.videoStyle}.`,
+                `Tema/Ambiente: ${state.theme}.`,
+                `Narrativa: ${state.narrative}.`,
+                selectedCharacterDetails,
+                `Movimento de Câmera: ${state.cameraType}.`,
+                `Iluminação: ${state.lighting}.`,
+                `Paleta de Cores: ${state.colorPalette}.`,
+                `Qualidade e Detalhes: ${state.quality}.`,
+                `Formato: ${state.format}.`,
+                `Duração aproximada: ${state.duration} segundos.`
+            ];
+            
+            if (state.voiceNarration !== 'Sem Narração') {
+                promptParts.push(`Inclua uma narração com a voz "${state.voiceNarration}". O texto da narração deve ser gerado com base na narrativa.`);
+            }
+
+            const fullPrompt = promptParts.filter(p => p).join(' ');
+            const finalPromptForAI = `Gere um prompt para uma IA de vídeo, em ${state.outputLanguage === 'english' ? 'inglês' : 'português'}, baseado na seguinte ideia: ${fullPrompt}. O prompt final deve ser direto, técnico e otimizado para modelos como Sora, Runway ou Pika Labs, sem incluir minha introdução.`;
+
+            try {
+                // Lógica de chamada para a API Gemini
+                const apiKey = ""; // Deixe em branco, será injetado pelo ambiente
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: finalPromptForAI }] }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro da API: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const generatedText = result.candidates[0].content.parts[0].text;
+                setState({ generatedPrompt: generatedText });
+
+            } catch (error) {
+                console.error("Erro ao gerar prompt:", error);
+                showFeedback("Falha ao gerar o prompt. Tente novamente.", "error");
+                setState({ generatedPrompt: "Ocorreu um erro. Verifique o console para mais detalhes." });
+            } finally {
+                setState({ isLoadingPrompt: false });
+            }
+        }
+
+        function handleCopy() {
+            if (!state.generatedPrompt) {
+                showFeedback("Não há nada para copiar!", "error");
+                return;
+            }
+            const textarea = document.getElementById('generated-prompt');
+            textarea.select();
+            // document.execCommand('copy') é usado para compatibilidade com iframes
+            try {
+                document.execCommand('copy');
+                showFeedback("Prompt copiado para a área de transferência!");
+            } catch (err) {
+                console.error('Falha ao copiar texto: ', err);
+                showFeedback("Não foi possível copiar o texto.", "error");
+            }
+        }
+
+        async function handleSavePrompt() {
+            if (!state.generatedPrompt || !state.userId) {
+                showFeedback("Gere um prompt antes de salvar.", "error");
+                return;
+            }
+            try {
+                const promptsCollection = collection(db, `artifacts/${appId}/users/${state.userId}/prompts`);
+                await addDoc(promptsCollection, {
+                    prompt: state.generatedPrompt,
+                    settings: {
+                        videoStyle: state.videoStyle, theme: state.theme, narrative: state.narrative, 
+                        cameraType: state.cameraType, lighting: state.lighting, colorPalette: state.colorPalette, 
+                        duration: state.duration, format: state.format, quality: state.quality
+                    },
+                    createdAt: serverTimestamp()
+                });
+                showFeedback("Prompt salvo com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar prompt:", error);
+                showFeedback("Falha ao salvar o prompt.", "error");
+            }
+        }
+
+        function handleReset() {
+            setState({
+                videoStyle: 'Cinematográfico', theme: '', narrative: '', selectedCharacters: [], cameraType: 'Travelling lento', 
+                lighting: 'Luz natural dourada', colorPalette: 'Cores vibrantes', duration: 10, format: '16:9 (Paisagem)', 
+                quality: '4K', outputLanguage: 'portuguese', voiceNarration: 'Sem Narração', generatedPrompt: ''
+            });
+        }
+
+        async function handleSaveCharacter(e) {
+            e.preventDefault();
+            const characterData = {
+                name: state.newCharacterName,
+                description: state.newCharacterDescription,
+                visuals: state.newCharacterVisuals,
+                personality: state.newCharacterPersonality,
+            };
+
+            if (!characterData.name) {
+                showFeedback("O nome do personagem é obrigatório.", "error");
+                return;
+            }
+
+            try {
+                if (state.editingCharacter) {
+                    const charDoc = doc(db, `artifacts/${appId}/users/${state.userId}/characters`, state.editingCharacter.id);
+                    await setDoc(charDoc, characterData, { merge: true });
+                    showFeedback("Personagem atualizado!");
+                } else {
+                    const charactersCollection = collection(db, `artifacts/${appId}/users/${state.userId}/characters`);
+                    await addDoc(charactersCollection, characterData);
+                    showFeedback("Personagem adicionado!");
+                }
+                // Limpa o formulário e fecha o modo de edição
+                handleCancelEditCharacter();
+            } catch (error) {
+                console.error("Erro ao salvar personagem:", error);
+                showFeedback("Falha ao salvar o personagem.", "error");
+            }
+        }
+
+        function handleEditCharacter(id) {
+            const character = state.userCharacters.find(c => c.id === id);
+            if (character) {
+                setState({
+                    editingCharacter: character,
+                    newCharacterName: character.name,
+                    newCharacterDescription: character.description,
+                    newCharacterVisuals: character.visuals,
+                    newCharacterPersonality: character.personality,
+                });
+            }
+        }
+
+        function handleCancelEditCharacter() {
+            setState({
+                editingCharacter: null,
+                newCharacterName: '', newCharacterDescription: '', newCharacterVisuals: '', newCharacterPersonality: '',
+            });
+        }
+
+        function handleDeleteCharacter(id, name) {
+            setState({
+                activeModal: 'confirmation',
+                confirmation: {
+                    message: `Tem certeza que deseja excluir o personagem "${name}"? Esta ação não pode ser desfeita.`,
+                    onConfirm: async () => {
+                        try {
+                            await deleteDoc(doc(db, `artifacts/${appId}/users/${state.userId}/characters`, id));
+                            showFeedback("Personagem excluído com sucesso.");
+                            setState({ activeModal: 'characters' }); // Volta para a lista
+                        } catch (error) {
+                            console.error("Erro ao excluir personagem:", error);
+                            showFeedback("Falha ao excluir o personagem.", "error");
                         }
                     }
-                });
-                const charactersSelect = document.getElementById('selectedCharacters');
-                if(charactersSelect) {
-                    charactersSelect.addEventListener('change', () => {
-                        state.selectedCharacters = Array.from(charactersSelect.selectedOptions).map(opt => opt.value);
-                    });
                 }
-            }
+            });
+        }
+
+        // --- AUTENTICAÇÃO ---
+        
+        function handleAuthAction(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const errorDiv = document.getElementById('auth-error');
+            const isSignUp = document.getElementById('auth-toggle-btn').textContent === 'Entrar';
             
-            // Botões de ação e navegação
+            errorDiv.textContent = '';
+
+            const action = isSignUp 
+                ? createUserWithEmailAndPassword(auth, email, password)
+                : signInWithEmailAndPassword(auth, email, password);
+
+            action
+                .then(userCredential => {
+                    setState({ activeModal: null });
+                    showFeedback(isSignUp ? "Cadastro realizado com sucesso!" : "Login efetuado com sucesso!");
+                })
+                .catch(error => {
+                    errorDiv.textContent = getFirebaseAuthErrorMessage(error.code);
+                });
+        }
+
+        function handleGoogleSignIn() {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(result => {
+                    setState({ activeModal: null });
+                    showFeedback("Login com Google efetuado com sucesso!");
+                }).catch(error => {
+                    document.getElementById('auth-error').textContent = getFirebaseAuthErrorMessage(error.code);
+                });
+        }
+
+        function getFirebaseAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email': return 'O formato do e-mail é inválido.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password': return 'E-mail ou senha incorretos.';
+                case 'auth/email-already-in-use': return 'Este e-mail já está em uso.';
+                case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
+                default: return 'Ocorreu um erro. Tente novamente.';
+            }
+        }
+
+        // --- GERENCIAMENTO DE ESTADO E EVENTOS ---
+
+        // Função central para atualizar o estado e re-renderizar a UI
+        function setState(newState) {
+            Object.assign(state, newState);
+            render();
+        }
+
+        // Função para atualizar o estado a partir de inputs do formulário
+        function handleFormInput(e) {
+            const { id, value, type, checked } = e.target;
+            if (state.hasOwnProperty(id)) {
+                const newValue = type === 'checkbox' ? checked : (type === 'range' || type === 'number' ? Number(value) : value);
+                setState({ [id]: newValue });
+                
+                // Sincroniza o input range com o number
+                if (id === 'duration') {
+                    document.getElementById('duration-number').value = value;
+                }
+            } else if (id.startsWith('newCharacter')) {
+                 setState({ [id]: value });
+            }
+        }
+        
+        // Listener de eventos centralizado (Event Delegation)
+        function setupEventListeners() {
             document.body.addEventListener('click', (e) => {
                 const target = e.target.closest('[data-action]');
                 if (!target) return;
-                
-                const action = target.dataset.action;
-                const modalType = target.dataset.modal;
 
-                if (action === 'open-modal') {
-                    state.activeModal = modalType;
-                    render();
-                } else if (action === 'close-modal') {
-                    state.activeModal = null;
-                    render();
-                } else if (action === 'generate') {
-                    // ... chamar a função de gerar prompt
-                } else if (action === 'copy') {
-                    // ... chamar a função de copiar
-                } else if (action === 'save') {
-                    // ... chamar a função de salvar
-                } else if (action === 'reset') {
-                    // ... chamar a função de resetar
-                } else if (action === 'logout') {
-                    signOut(auth);
-                } else if (action === 'toggle-auth-mode') {
-                    // ... lógica para alternar entre login e cadastro
+                const { action, modal, id, name } = target.dataset;
+
+                switch (action) {
+                    case 'enter-platform':
+                        entryPage.classList.add('opacity-0');
+                        entryPage.addEventListener('transitionend', () => {
+                            entryPage.classList.add('hidden');
+                            mainApp.classList.remove('hidden');
+                            setTimeout(() => mainApp.classList.remove('opacity-0'), 50);
+                            render();
+                        }, { once: true });
+                        break;
+                    case 'open-modal':
+                        setState({ activeModal: modal });
+                        break;
+                    case 'close-modal':
+                    case 'close-modal-overlay':
+                         if (action === 'close-modal-overlay' && e.target !== e.currentTarget) return; // Clica apenas no overlay
+                         if (state.activeModal === 'confirmation') {
+                            setState({ activeModal: 'characters' }); // Regra específica para voltar
+                         } else {
+                            setState({ activeModal: null });
+                         }
+                        break;
+                    case 'generate': handleGeneratePrompt(); break;
+                    case 'copy': handleCopy(); break;
+                    case 'save': handleSavePrompt(); break;
+                    case 'reset': handleReset(); break;
+                    case 'logout': signOut(auth); showFeedback("Você foi desconectado."); break;
+                    case 'toggle-auth-mode':
+                        const isLogin = target.textContent === 'Cadastre-se';
+                        document.getElementById('auth-title').textContent = isLogin ? 'Cadastro' : 'Login';
+                        document.getElementById('auth-submit-btn').textContent = isLogin ? 'Cadastrar' : 'Entrar';
+                        document.getElementById('auth-toggle-text').textContent = isLogin ? 'Já tem conta?' : 'Não tem conta?';
+                        target.textContent = isLogin ? 'Entrar' : 'Cadastre-se';
+                        break;
+                    case 'google-signin': handleGoogleSignIn(); break;
+                    case 'edit-character': handleEditCharacter(id); break;
+                    case 'delete-character': handleDeleteCharacter(id, name); break;
+                    case 'cancel-edit-character': handleCancelEditCharacter(); break;
+                    case 'confirm-action': state.confirmation.onConfirm(); break;
                 }
-                 // ... outros actions
             });
-            
-            // Listeners específicos de modais
-            if (state.activeModal === 'characters') {
-                 document.getElementById('character-form').addEventListener('submit', handleSaveCharacter);
-            }
-             if (state.activeModal === 'auth') {
-                 document.getElementById('auth-form').addEventListener('submit', handleAuthAction);
-                 document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
-            }
-        }
-        
-        // ... (Implemente todas as funções de handlers: handleSaveCharacter, handleAuthAction, generatePromptWithAI, etc.)
-        // Lembre-se que, ao final de cada handler que modifica o estado, você deve chamar `render()` para atualizar a UI.
 
-        function handleSaveCharacter(e) {
-            e.preventDefault();
-            const name = document.getElementById('newCharacterName').value;
-            // ... (pegar outros valores)
-            // ... (lógica do firestore para salvar/atualizar)
-            // ... no final:
-            state.activeModal = null; // ou talvez manter o modal aberto e só limpar o form
-            render();
+            // Listeners para formulários
+            document.body.addEventListener('submit', (e) => {
+                if (e.target.id === 'character-form') handleSaveCharacter(e);
+                if (e.target.id === 'auth-form') handleAuthAction(e);
+            });
+
+            // Listener para inputs
+            document.body.addEventListener('input', handleFormInput);
+
+            // Listener para select múltiplo
+            document.body.addEventListener('change', (e) => {
+                if (e.target.id === 'selectedCharacters') {
+                    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                    setState({ selectedCharacters: selected });
+                }
+            });
         }
-        
+
         // --- INICIALIZAÇÃO DA APLICAÇÃO ---
-        enterPlatformBtn.addEventListener('click', () => {
-            entryPage.classList.add('hidden');
-            mainApp.classList.remove('hidden');
-            render();
-        });
-
-        onAuthStateChanged(auth, user => {
+        
+        let unsubscribeCharacters; // Para limpar o listener do Firestore
+        
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                state.userId = user.uid;
-                state.isUserLoggedIn = !user.isAnonymous;
-                state.userEmail = user.email || 'Anônimo';
-                // Iniciar listeners do Firestore aqui
-                setupFirestoreListeners(user.uid);
+                // Usuário logado (seja anônimo ou real)
+                setState({ 
+                    userId: user.uid,
+                    isUserLoggedIn: !user.isAnonymous,
+                    userEmail: user.email || (user.isAnonymous ? 'Anônimo' : '')
+                });
+                
+                // Limpa listeners antigos para evitar duplicação
+                if (unsubscribeCharacters) unsubscribeCharacters();
+                
+                // Configura novos listeners para os dados do usuário
+                const charactersRef = collection(db, `artifacts/${appId}/users/${user.uid}/characters`);
+                unsubscribeCharacters = onSnapshot(charactersRef, (snapshot) => {
+                    const userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setState({ userCharacters });
+                });
+
             } else {
-                signInAnonymously(auth).catch(console.error);
-                state.userId = null;
-                state.isUserLoggedIn = false;
-                state.userEmail = '';
+                // Nenhum usuário, desloga e limpa o estado
+                if (unsubscribeCharacters) unsubscribeCharacters();
+                unsubscribeCharacters = null;
+                
+                setState({
+                    userId: null,
+                    isUserLoggedIn: false,
+                    userEmail: '',
+                    userCharacters: [],
+                    userPrompts: [],
+                    userCustomCameraTypes: []
+                });
             }
-            state.isAuthReady = true;
-            render();
+            // Marca que a autenticação está pronta e renderiza a UI
+            setState({ isAuthReady: true });
         });
 
-        function setupFirestoreListeners(uid) {
-            const charactersRef = firebase.firestore().collection(`artifacts/${appId}/users/${uid}/characters`);
-            charactersRef.onSnapshot(snapshot => {
-                state.userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                render();
-            });
-            // ... outros listeners
+        // Tenta autenticar o usuário ao carregar a página
+        async function initialAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Falha na autenticação inicial:", error);
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth).catch(e => console.error("Falha no login anônimo de fallback:", e));
+                }
+            } finally {
+                setupEventListeners();
+            }
         }
+        
+        initialAuth();
+
     </script>
 </body>
 </html>
