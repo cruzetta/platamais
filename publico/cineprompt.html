@@ -22,17 +22,12 @@
         button:hover, .button:hover { transform: translateY(-1px); }
         button:disabled { cursor: not-allowed; opacity: 0.6; }
         .btn-purple { background-color: #9333ea; color: white; }
-        .btn-purple:hover { background-color: #7e22ce; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
+        .btn-purple:hover:not(:disabled) { background-color: #7e22ce; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), 0 0 15px rgba(168, 85, 247, 0.2); }
         .hidden { display: none; }
         .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
         .modal-content { padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid #6b21a8; }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes gradient-x {
-            0%, 100% { background-size: 200% 200%; background-position: left center; }
-            50% { background-size: 200% 200%; background-position: right center; }
-        }
-        .animate-gradient-x { animation: gradient-x 5s ease infinite; }
         /* Custom scrollbar for modals */
         .modal-content::-webkit-scrollbar { width: 8px; }
         .modal-content::-webkit-scrollbar-track { background: #1e293b; }
@@ -42,28 +37,20 @@
 <body class="futuristic-background text-gray-100">
 
     <div id="app-root">
-        <!-- PÁGINA DE ENTRADA -->
-        <div id="entry-page" class="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col items-center justify-center p-4 transition-opacity duration-1000">
-            <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FVIDEO%20CAPA%20NEO%20CINE%20PROMP.mp4?alt=media&token=a5037c56-def0-447d-8b22-5d18e7ec3e76" id="entry-video"></video>
-            <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
-            <div class="text-center relative z-20">
-                <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-48 md:h-64 w-auto mx-auto mb-8" />
-                <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-4">Bem-vindo ao <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-gradient-x">CinePrompt AI</span></h1>
-                <p class="text-xl md:text-2xl font-semibold mb-10">Sua Visão Grandiosa, Gerada com Inteligência.</p>
-                <button data-action="enter-platform" class="btn-purple font-bold py-4 px-12 rounded-lg text-xl shadow-lg border border-purple-500">
-                    Entrar na Plataforma
-                </button>
-            </div>
+        <!-- Indicador de Carregamento Inicial -->
+        <div id="initial-loading" class="min-h-screen flex flex-col items-center justify-center text-center">
+            <i data-lucide="loader-2" class="animate-spin text-purple-400 h-16 w-16"></i>
+            <p class="mt-4 text-lg text-gray-300">A verificar autenticação...</p>
         </div>
 
-        <!-- APLICAÇÃO PRINCIPAL -->
-        <div id="main-app" class="hidden transition-opacity duration-1000 opacity-0">
+        <!-- APLICAÇÃO PRINCIPAL (inicialmente oculta) -->
+        <div id="main-app" class="hidden">
             <header id="app-header" class="bg-gray-900 p-4 shadow-lg glass-effect relative overflow-hidden min-h-[300px] md:min-h-[400px] flex flex-col justify-start">
                  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2FUntitled%20design.mp4?alt=media&token=623eef00-b722-4a64-8e27-b2bf831d5ebc" id="header-video"></video>
                  <div class="absolute inset-0 bg-black opacity-40 z-10"></div>
                  <div class="container mx-auto flex justify-between items-start relative z-20 pt-4">
                      <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-16 w-auto" />
-                     <nav id="main-nav" class="hidden md:flex items-center space-x-6"></nav>
+                     <nav id="main-nav" class="flex items-center space-x-6"></nav>
                  </div>
             </header>
             
@@ -80,7 +67,7 @@
             </main>
 
             <footer class="bg-gray-900 p-4 text-center text-gray-400 text-sm border-t-2 border-purple-700 glass-effect">
-                <span id="user-id-display"></span>
+                <p>Logado como: <span id="user-email-display" class="font-semibold"></span></p>
             </footer>
         </div>
 
@@ -89,53 +76,15 @@
         <div id="feedback-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[101] flex flex-col gap-2"></div>
     </div>
 
-    <!-- Scripts do Firebase (versão modular) -->
+    <!-- Firebase SDKs (v8, conforme o seu firebase-config.js) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="firebase-config.js"></script>
+
+
     <script type="module">
-        // Importa as funções necessárias do Firebase SDK v11+
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            onAuthStateChanged, 
-            signInAnonymously, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            signOut,
-            signInWithCustomToken
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            onSnapshot, 
-            addDoc, 
-            doc, 
-            setDoc, 
-            deleteDoc,
-            serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // IMPORTANTE: Adiciona o SDK do Firebase Functions
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
-
-        // --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config)
-            : { apiKey: "YOUR_FALLBACK_API_KEY", authDomain: "...", projectId: "..." };
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        let app, db, auth, functions;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            // Inicializa o Firebase Functions, especificando a região para melhor performance
-            functions = getFunctions(app, 'southamerica-east1');
-        } catch (error) {
-            console.error("Erro ao inicializar o Firebase:", error);
-            document.body.innerHTML = "<h1>Erro Crítico: Não foi possível conectar ao Firebase. Verifique a configuração.</h1>";
-        }
-
         // --- CONSTANTES ---
         const videoStyleOptions = ['Realista', 'Anime', 'Cinematográfico', 'Futurista', 'Documentário', 'Animação 2D', 'Stop Motion', 'VFX', 'Fantasia Épica', 'Ficção Científica Clássica', 'Noir', 'Comédia Romântica', 'Terror Psicológico', 'Ação Dinâmica', 'Drama Histórico', 'Musical Vibrante', 'Cyberpunk', 'Steampunk', 'Vintage (Anos 80/90)'];
         const defaultCameraTypeOptions = ['Travelling lento', 'Drone sobrevoando', 'POV (Ponto de Vista)', 'Plano sequência', 'Zoom in/out', 'Câmara fixa', 'Handheld', 'Panorâmica', 'Tilt', 'POV (Personagem)', 'Grande Angular', 'Close-up Extremo', 'Câmera Lenta (Slow Motion)', 'Time-lapse', 'Câmera no Ombro', 'Estabilizada (Gimbal)', 'Subaquática', 'Aérea (Helicóptero)', 'Visão Noturna', 'Olho de Peixe'];
@@ -147,13 +96,9 @@
 
         // --- ESTADO DA APLICAÇÃO ---
         let state = {
-            isAuthReady: false,
             userId: null,
-            isUserLoggedIn: false,
             userEmail: '',
-            userPrompts: [],
             userCharacters: [],
-            userCustomCameraTypes: [],
             
             // Formulário principal
             videoStyle: 'Cinematográfico', theme: '', narrative: '', selectedCharacters: [], cameraType: 'Travelling lento', lighting: 'Luz natural dourada',
@@ -162,54 +107,46 @@
             // UI
             isLoadingPrompt: false,
             generatedPrompt: '',
-            activeModal: null, // 'characters', 'camera', 'auth', 'profile', 'plans', 'confirmation'
+            activeModal: null, // 'characters', 'confirmation'
             confirmation: { message: '', onConfirm: () => {} },
             
             // Gerenciadores de modais
             editingCharacter: null,
             newCharacterName: '', newCharacterDescription: '', newCharacterVisuals: '', newCharacterPersonality: '',
-            
-            editingCameraType: null,
-            newCameraTypeName: '',
         };
 
         // --- ELEMENTOS DO DOM ---
-        const entryPage = document.getElementById('entry-page');
+        const initialLoading = document.getElementById('initial-loading');
         const mainApp = document.getElementById('main-app');
         const controlsPanel = document.getElementById('controls-panel');
         const resultPanel = document.getElementById('result-panel');
         const modalContainer = document.getElementById('modal-container');
         const feedbackContainer = document.getElementById('feedback-container');
         const mainNav = document.getElementById('main-nav');
-        const userIdDisplay = document.getElementById('user-id-display');
+        const userEmailDisplay = document.getElementById('user-email-display');
         
         // --- FUNÇÕES DE RENDERIZAÇÃO (UI) ---
         
         function render() {
-            if (entryPage.classList.contains('hidden')) {
-                mainNav.innerHTML = getNavHTML();
-                controlsPanel.innerHTML = getControlsHTML();
-                resultPanel.innerHTML = getResultHTML();
-                userIdDisplay.textContent = state.userId ? `ID do Usuário: ${state.userId}` : '';
-            }
+            mainNav.innerHTML = getNavHTML();
+            controlsPanel.innerHTML = getControlsHTML();
+            resultPanel.innerHTML = getResultHTML();
+            userEmailDisplay.textContent = state.userEmail || 'Não identificado';
             
             modalContainer.innerHTML = state.activeModal ? getModalHTML(state.activeModal) : '';
             lucide.createIcons();
         }
         
         function getNavHTML() {
-            const loggedInMenu = `
+            return `
                 <button data-action="open-modal" data-modal="characters" class="text-gray-300 hover:text-purple-400 transition-colors duration-200 flex items-center"><i data-lucide="users" class="w-4 h-4 mr-1"></i> Meus Personagens</button>
                 <button data-action="logout" class="text-gray-300 hover:text-red-400 transition-colors duration-200 flex items-center"><i data-lucide="log-out" class="w-4 h-4 mr-1"></i> Sair</button>
             `;
-            const loggedOutMenu = `
-                <button data-action="open-modal" data-modal="auth" class="btn-purple font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="log-in" class="w-4 h-4 mr-2"></i> Login / Cadastro</button>
-            `;
-            return state.isUserLoggedIn ? loggedInMenu : loggedOutMenu;
         }
 
         function getControlsHTML() {
-            const allCameraOptions = [...defaultCameraTypeOptions, ...state.userCustomCameraTypes.map(c => c.name)];
+            // A lógica para criar os controlos permanece a mesma
+            const allCameraOptions = [...defaultCameraTypeOptions]; // Simplificado para este exemplo
             return `
                 <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sliders-horizontal" class="mr-2 text-purple-300"></i> Crie Seu Prompt de Vídeo</h2>
                 <form id="prompt-form">
@@ -223,7 +160,7 @@
                     <div class="mb-4">
                         <label class="block text-gray-300 text-sm font-bold mb-2 flex items-center"><i data-lucide="users" class="mr-2 text-purple-400"></i> Personagens</label>
                         <select id="selectedCharacters" multiple class="shadow appearance-none border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-700 text-gray-100 h-24 overflow-y-auto">
-                            ${state.userCharacters.map(c => `<option value="${c.id}" ${state.selectedCharacters.includes(c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
+                            ${state.userCharacters.map(c => `<option value="${c.id}" ${state.selectedCharacters.some(sc => sc.id === c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
                         </select>
                         <button type="button" data-action="open-modal" data-modal="characters" class="mt-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-2 px-4 rounded-lg"><i data-lucide="plus-circle" class="inline mr-2 w-4 h-4"></i> Gerenciar Personagens</button>
                     </div>
@@ -263,7 +200,7 @@
                         ${state.isLoadingPrompt ? '<i data-lucide="loader-2" class="mr-2 w-5 h-5 animate-spin"></i> Gerando...' : '<i data-lucide="sparkles" class="mr-2 w-5 h-5"></i> Gerar com IA'}
                     </button>
                     <button data-action="copy" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="copy" class="mr-2 w-5 h-5"></i> Copiar</button>
-                    ${state.isUserLoggedIn ? `<button data-action="save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="save" class="mr-2 w-5 h-5"></i> Salvar</button>` : ''}
+                    <button data-action="save" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center" title="Salvar Prompt (funcionalidade futura)"><i data-lucide="save" class="mr-2 w-5 h-5"></i> Salvar</button>
                     <button data-action="reset" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2 px-4 rounded-lg flex items-center"><i data-lucide="rotate-ccw" class="mr-2 w-5 h-5"></i> Limpar</button>
                 </div>
             `;
@@ -272,14 +209,13 @@
         function getModalHTML(modalType) {
             switch(modalType) {
                 case 'characters': return getCharactersModalHTML();
-                case 'auth': return getAuthModalHTML();
                 case 'confirmation': return getConfirmationModalHTML();
                 default: return '';
             }
         }
 
         function getCharactersModalHTML() {
-            return `
+             return `
                 <div class="modal-overlay" data-action="close-modal-overlay">
                     <div class="modal-content bg-gray-800 w-full max-w-2xl glass-effect">
                         <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
@@ -312,35 +248,6 @@
                                 </div>
                             `).join('')}
                         </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function getAuthModalHTML() {
-            return `
-                <div class="modal-overlay" data-action="close-modal-overlay">
-                    <div class="modal-content bg-gray-800 w-full max-w-sm glass-effect">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 id="auth-title" class="text-2xl font-bold text-purple-400">Login</h2>
-                            <button data-action="close-modal"><i data-lucide="x" class="w-7 h-7 text-gray-400 hover:text-white"></i></button>
-                        </div>
-                        <form id="auth-form">
-                            ${createInputHTML('email', 'Email', 'authEmail', '', 'seu@email.com', 'mail')}
-                            ${createInputHTML('password', 'Senha', 'authPassword', '', '********', 'lock')}
-                            <div id="auth-error" class="text-red-400 text-center my-2 text-sm"></div>
-                            <button type="submit" id="auth-submit-btn" class="w-full btn-purple font-bold py-2 px-4 rounded-lg">Entrar</button>
-                        </form>
-                        <div class="my-4 flex items-center before:flex-1 before:border-t before:border-gray-600 after:flex-1 after:border-t after:border-gray-600">
-                            <p class="mx-4 text-center font-semibold text-gray-400">OU</p>
-                        </div>
-                        <button data-action="google-signin" class="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-lg flex items-center justify-center hover:bg-gray-200">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Entrar com Google
-                        </button>
-                        <p class="text-center text-sm text-gray-400 mt-4">
-                            <span id="auth-toggle-text">Não tem conta?</span>
-                            <button data-action="toggle-auth-mode" class="font-medium text-blue-400 hover:underline" id="auth-toggle-btn">Cadastre-se</button>
-                        </p>
                     </div>
                 </div>
             `;
@@ -407,15 +314,18 @@
             setState({ isLoadingPrompt: true });
 
             try {
-                // Prepara a chamada para a Cloud Function
-                const gerarCinePrompt = httpsCallable(functions, 'gerarCinePrompt');
+                const functions = firebase.app().functions('southamerica-east1');
+                const gerarCinePrompt = functions.httpsCallable('gerarCinePrompt');
                 
-                // Coleta todos os dados do formulário do estado atual
+                const selectedCharacterData = state.userCharacters.filter(char => {
+                    return state.selectedCharacters.includes(char.id);
+                });
+
                 const payload = {
                     videoStyle: state.videoStyle,
                     theme: state.theme,
                     narrative: state.narrative,
-                    selectedCharacters: state.userCharacters.filter(char => state.selectedCharacters.includes(char.id)),
+                    selectedCharacters: selectedCharacterData,
                     cameraType: state.cameraType,
                     lighting: state.lighting,
                     colorPalette: state.colorPalette,
@@ -426,16 +336,16 @@
                     voiceNarration: state.voiceNarration,
                 };
 
-                // Chama a função e aguarda o resultado
                 const result = await gerarCinePrompt(payload);
-
-                // O resultado da função callable fica em `result.data`
                 const generatedText = result.data.prompt;
                 setState({ generatedPrompt: generatedText });
 
             } catch (error) {
                 console.error("Erro ao chamar a Cloud Function:", error);
-                showFeedback(`Falha ao gerar o prompt: ${error.message}`, "error");
+                const errorMessage = error.code === 'unauthenticated' 
+                    ? 'Erro de autenticação. Por favor, faça login novamente.'
+                    : `Falha ao gerar o prompt: ${error.message}`;
+                showFeedback(errorMessage, "error");
                 setState({ generatedPrompt: `Ocorreu um erro: ${error.message}` });
             } finally {
                 setState({ isLoadingPrompt: false });
@@ -455,27 +365,8 @@
             });
         }
 
-        async function handleSavePrompt() {
-            if (!state.generatedPrompt || !state.userId) {
-                showFeedback("Gere um prompt e faça login para poder salvar.", "error");
-                return;
-            }
-            try {
-                const promptsCollection = collection(db, `artifacts/${appId}/users/${state.userId}/prompts`);
-                await addDoc(promptsCollection, {
-                    prompt: state.generatedPrompt,
-                    settings: {
-                        videoStyle: state.videoStyle, theme: state.theme, narrative: state.narrative, 
-                        cameraType: state.cameraType, lighting: state.lighting, colorPalette: state.colorPalette, 
-                        duration: state.duration, format: state.format, quality: state.quality
-                    },
-                    createdAt: serverTimestamp()
-                });
-                showFeedback("Prompt salvo com sucesso!");
-            } catch (error) {
-                console.error("Erro ao salvar prompt:", error);
-                showFeedback("Falha ao salvar o prompt.", "error");
-            }
+        function handleSavePrompt() {
+            showFeedback("Funcionalidade de salvar prompts será implementada em breve!", "success");
         }
 
         function handleReset() {
@@ -502,12 +393,11 @@
 
             try {
                 if (state.editingCharacter) {
-                    const charDoc = doc(db, `artifacts/${appId}/users/${state.userId}/characters`, state.editingCharacter.id);
-                    await setDoc(charDoc, characterData, { merge: true });
+                    const charDoc = db.collection('characters').doc(state.userId).collection('userCharacters').doc(state.editingCharacter.id);
+                    await charDoc.set(characterData, { merge: true });
                     showFeedback("Personagem atualizado!");
                 } else {
-                    const charactersCollection = collection(db, `artifacts/${appId}/users/${state.userId}/characters`);
-                    await addDoc(charactersCollection, characterData);
+                    await db.collection('characters').doc(state.userId).collection('userCharacters').add(characterData);
                     showFeedback("Personagem adicionado!");
                 }
                 handleCancelEditCharacter();
@@ -544,9 +434,9 @@
                     message: `Tem certeza que deseja excluir o personagem "${name}"? Esta ação não pode ser desfeita.`,
                     onConfirm: async () => {
                         try {
-                            await deleteDoc(doc(db, `artifacts/${appId}/users/${state.userId}/characters`, id));
+                            await db.collection('characters').doc(state.userId).collection('userCharacters').doc(id).delete();
                             showFeedback("Personagem excluído com sucesso.");
-                            setState({ activeModal: 'characters' }); // Volta para a lista
+                            setState({ activeModal: 'characters' });
                         } catch (error) {
                             console.error("Erro ao excluir personagem:", error);
                             showFeedback("Falha ao excluir o personagem.", "error");
@@ -554,54 +444,6 @@
                     }
                 }
             });
-        }
-
-        // --- AUTENTICAÇÃO ---
-        
-        function handleAuthAction(e) {
-            e.preventDefault();
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            const errorDiv = document.getElementById('auth-error');
-            const isSignUp = document.getElementById('auth-toggle-btn').textContent === 'Entrar';
-            
-            errorDiv.textContent = '';
-
-            const action = isSignUp 
-                ? createUserWithEmailAndPassword(auth, email, password)
-                : signInWithEmailAndPassword(auth, email, password);
-
-            action
-                .then(userCredential => {
-                    setState({ activeModal: null });
-                    showFeedback(isSignUp ? "Cadastro realizado com sucesso!" : "Login efetuado com sucesso!");
-                })
-                .catch(error => {
-                    errorDiv.textContent = getFirebaseAuthErrorMessage(error.code);
-                });
-        }
-
-        function handleGoogleSignIn() {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider)
-                .then(result => {
-                    setState({ activeModal: null });
-                    showFeedback("Login com Google efetuado com sucesso!");
-                }).catch(error => {
-                    document.getElementById('auth-error').textContent = getFirebaseAuthErrorMessage(error.code);
-                });
-        }
-
-        function getFirebaseAuthErrorMessage(errorCode) {
-            switch (errorCode) {
-                case 'auth/invalid-email': return 'O formato do e-mail é inválido.';
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                case 'auth/invalid-credential': return 'E-mail ou senha incorretos.';
-                case 'auth/email-already-in-use': return 'Este e-mail já está em uso.';
-                case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
-                default: return 'Ocorreu um erro. Tente novamente.';
-            }
         }
 
         // --- GERENCIAMENTO DE ESTADO E EVENTOS ---
@@ -633,15 +475,6 @@
                 const { action, modal, id, name } = target.dataset;
 
                 switch (action) {
-                    case 'enter-platform':
-                        entryPage.classList.add('opacity-0');
-                        entryPage.addEventListener('transitionend', () => {
-                            entryPage.classList.add('hidden');
-                            mainApp.classList.remove('hidden');
-                            setTimeout(() => mainApp.classList.remove('opacity-0'), 50);
-                            render();
-                        }, { once: true });
-                        break;
                     case 'open-modal': setState({ activeModal: modal }); break;
                     case 'close-modal':
                     case 'close-modal-overlay':
@@ -656,15 +489,7 @@
                     case 'copy': handleCopy(); break;
                     case 'save': handleSavePrompt(); break;
                     case 'reset': handleReset(); break;
-                    case 'logout': signOut(auth); showFeedback("Você foi desconectado."); break;
-                    case 'toggle-auth-mode':
-                        const isLogin = target.textContent === 'Cadastre-se';
-                        document.getElementById('auth-title').textContent = isLogin ? 'Cadastro' : 'Login';
-                        document.getElementById('auth-submit-btn').textContent = isLogin ? 'Cadastrar' : 'Entrar';
-                        document.getElementById('auth-toggle-text').textContent = isLogin ? 'Já tem conta?' : 'Não tem conta?';
-                        target.textContent = isLogin ? 'Entrar' : 'Cadastre-se';
-                        break;
-                    case 'google-signin': handleGoogleSignIn(); break;
+                    case 'logout': auth.signOut().then(() => showFeedback("Você foi desconectado.")); break;
                     case 'edit-character': handleEditCharacter(id); break;
                     case 'delete-character': handleDeleteCharacter(id, name); break;
                     case 'cancel-edit-character': handleCancelEditCharacter(); break;
@@ -675,15 +500,15 @@
             document.body.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (e.target.id === 'character-form') handleSaveCharacter(e);
-                if (e.target.id === 'auth-form') handleAuthAction(e);
             });
 
-            document.body.addEventListener('change', handleFormInput);
+            document.body.addEventListener('input', handleFormInput);
 
             document.body.addEventListener('change', (e) => {
                 if (e.target.id === 'selectedCharacters') {
-                    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-                    setState({ selectedCharacters: selected });
+                    const selectedIds = Array.from(e.target.selectedOptions).map(opt => opt.value);
+                    const selectedObjects = state.userCharacters.filter(c => selectedIds.includes(c.id));
+                    setState({ selectedCharacters: selectedObjects });
                 }
             });
         }
@@ -692,58 +517,39 @@
         
         let unsubscribeCharacters;
         
-        onAuthStateChanged(auth, async (user) => {
+        auth.onAuthStateChanged((user) => {
             if (unsubscribeCharacters) unsubscribeCharacters();
             unsubscribeCharacters = null;
 
-            if (user) {
-                const newState = { 
+            if (user && !user.isAnonymous) {
+                initialLoading.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+
+                setState({ 
                     userId: user.uid,
-                    isUserLoggedIn: !user.isAnonymous,
-                    userEmail: user.email || (user.isAnonymous ? 'Anônimo' : '')
-                };
-                setState(newState);
+                    userEmail: user.email
+                });
                 
-                const charactersRef = collection(db, `artifacts/${appId}/users/${user.uid}/characters`);
-                unsubscribeCharacters = onSnapshot(charactersRef, (snapshot) => {
+                const charactersRef = db.collection('characters').doc(user.uid).collection('userCharacters');
+                unsubscribeCharacters = charactersRef.onSnapshot((snapshot) => {
                     const userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setState({ userCharacters });
                 }, (error) => {
                     console.error("Erro ao ouvir personagens: ", error);
                     showFeedback("Não foi possível carregar seus personagens.", "error");
                 });
+                
+                render();
 
             } else {
-                setState({
-                    userId: null, isUserLoggedIn: false, userEmail: '',
-                    userCharacters: [], userPrompts: [], userCustomCameraTypes: []
-                });
-            }
-            if (!state.isAuthReady) {
-                setState({ isAuthReady: true });
-            } else {
-                render();
+                // Se não houver usuário ou for anônimo, redireciona para o login
+                const currentPath = window.location.pathname.split('/').pop();
+                window.location.href = `login.html?redirect=${currentPath}`;
             }
         });
-
-        async function initialAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Falha na autenticação inicial:", error);
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth).catch(e => console.error("Falha no login anônimo de fallback:", e));
-                }
-            } finally {
-                setupEventListeners();
-            }
-        }
         
-        initialAuth();
+        setupEventListeners();
+        lucide.createIcons();
 
     </script>
 </body>

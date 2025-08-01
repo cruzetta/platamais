@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Painel Administrativo</title>
+    <title>Acesso - CinePrompt AI</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,39 +11,70 @@
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            background-image: radial-gradient(circle at center, rgba(168, 85, 247, 0.08), rgba(59, 130, 246, 0.05), transparent 70%);
+        }
+        .glass-effect {
+            background-color: rgba(30, 41, 59, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(71, 85, 105, 0.15);
+        }
+        .btn-purple {
+            background-color: #9333ea;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .btn-purple:hover {
+            background-color: #7e22ce;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
         }
     </style>
 </head>
-<body class="bg-gray-900">
+<body class="text-gray-100">
 
-    <div id="login-section">
-        <div class="min-h-screen flex items-center justify-center">
-            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                <h1 class="text-2xl font-bold text-center mb-2">Painel Administrativo</h1>
-                <p class="text-center text-gray-500 mb-6">Acesse para gerenciar seus produtos.</p>
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/projeto%20vm%2Flogo%20conecta.png?alt=media&token=320f1061-918f-4bda-8585-c741efd227c1" alt="Logo Conecta" class="h-32 w-auto mx-auto mb-6" />
+
+        <div class="glass-effect p-8 rounded-xl shadow-2xl w-full max-w-sm">
+            <h1 id="auth-title" class="text-2xl font-bold text-center mb-2 text-white">Acessar CinePrompt</h1>
+            <p id="auth-subtitle" class="text-center text-gray-400 mb-6">Entre para continuar.</p>
+            
+            <form id="auth-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                    <input type="email" id="email" name="email" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="seu@email.com">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Senha</label>
+                    <input type="password" id="password" name="password" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="********">
+                </div>
                 
-                <form id="login-form">
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="seu@email.com">
-                    </div>
-                    <div class="mb-6">
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                        <input type="password" id="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="********">
-                    </div>
-                    
-                    <p id="login-error" class="text-red-500 text-sm text-center mb-4"></p>
+                <p id="auth-error" class="text-red-400 text-sm text-center mb-4 min-h-[20px]"></p>
 
-                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                        Entrar
-                    </button>
-                </form>
+                <button type="submit" id="auth-submit-btn" class="w-full btn-purple text-white font-bold py-2 px-4 rounded-md transition-colors">
+                    Entrar
+                </button>
+            </form>
+            
+            <!-- Divisor "OU" -->
+            <div class="my-4 flex items-center before:flex-1 before:border-t before:border-gray-600 after:flex-1 after:border-t after:border-gray-600">
+                <p class="mx-4 text-center font-semibold text-gray-400">OU</p>
             </div>
+
+            <!-- Botão de Login com Google -->
+            <button id="google-signin-btn" class="w-full bg-white text-gray-800 font-bold py-2 px-4 rounded-md flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-2"> Entrar com Google
+            </button>
+
+            <p class="text-center text-sm text-gray-400 mt-4">
+                <span id="auth-toggle-text">Não tem conta?</span>
+                <button type="button" id="auth-toggle-btn" class="font-medium text-purple-400 hover:underline">Cadastre-se</button>
+            </p>
         </div>
     </div>
 
@@ -57,33 +88,103 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const auth = firebase.auth();
-            const loginForm = document.getElementById('login-form');
-            const loginError = document.getElementById('login-error');
+            const authForm = document.getElementById('auth-form');
+            const authError = document.getElementById('auth-error');
+            const authToggleBtn = document.getElementById('auth-toggle-btn');
+            const googleSignInBtn = document.getElementById('google-signin-btn'); // Novo botão
+            
+            const authTitle = document.getElementById('auth-title');
+            const authSubtitle = document.getElementById('auth-subtitle');
+            const authSubmitBtn = document.getElementById('auth-submit-btn');
+            const authToggleText = document.getElementById('auth-toggle-text');
 
-            // Verifica se o usuário JÁ está logado. Se sim, redireciona direto.
+            let isLoginMode = true;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect') || 'cineprompt.html';
+
             auth.onAuthStateChanged(user => {
-                if (user) {
-                    window.location.href = 'admin.html';
+                if (user && !user.isAnonymous) {
+                    window.location.href = redirectUrl;
                 }
             });
 
-            // Lógica do formulário de login
-            loginForm.addEventListener('submit', (e) => {
+            authToggleBtn.addEventListener('click', () => {
+                isLoginMode = !isLoginMode;
+                authForm.reset();
+                authError.textContent = '';
+
+                if (isLoginMode) {
+                    authTitle.textContent = 'Acessar CinePrompt';
+                    authSubtitle.textContent = 'Entre para continuar.';
+                    authSubmitBtn.textContent = 'Entrar';
+                    authToggleText.textContent = 'Não tem conta?';
+                    authToggleBtn.textContent = 'Cadastre-se';
+                } else {
+                    authTitle.textContent = 'Criar Conta';
+                    authSubtitle.textContent = 'Crie uma conta para salvar seus projetos.';
+                    authSubmitBtn.textContent = 'Cadastrar';
+                    authToggleText.textContent = 'Já tem conta?';
+                    authToggleBtn.textContent = 'Entrar';
+                }
+            });
+
+            authForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
-                const email = loginForm.email.value;
-                const password = loginForm.password.value;
-                loginError.textContent = '';
+                const email = authForm.email.value;
+                const password = authForm.password.value;
+                authError.textContent = '';
+                authSubmitBtn.disabled = true;
+                authSubmitBtn.textContent = 'Aguarde...';
 
-                // Tenta fazer o login
-                auth.signInWithEmailAndPassword(email, password)
+                const authAction = isLoginMode
+                    ? auth.signInWithEmailAndPassword(email, password)
+                    : auth.createUserWithEmailAndPassword(email, password);
+
+                authAction
                     .then(userCredential => {
-                        // Sucesso! O onAuthStateChanged acima vai cuidar do redirecionamento.
-                        console.log('Login bem-sucedido, redirecionando...');
+                        console.log('Autenticação bem-sucedida, redirecionando...');
                     })
                     .catch(error => {
-                        console.error('Erro no login:', error);
-                        loginError.textContent = 'Email ou senha inválidos. Tente novamente.';
+                        console.error('Erro de autenticação:', error);
+                        switch (error.code) {
+                            case 'auth/invalid-email':
+                                authError.textContent = 'O formato do e-mail é inválido.';
+                                break;
+                            case 'auth/user-not-found':
+                            case 'auth/wrong-password':
+                            case 'auth/invalid-credential':
+                                authError.textContent = 'E-mail ou senha incorretos.';
+                                break;
+                            case 'auth/email-already-in-use':
+                                authError.textContent = 'Este e-mail já está em uso.';
+                                break;
+                            case 'auth/weak-password':
+                                authError.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                                break;
+                            default:
+                                authError.textContent = 'Ocorreu um erro. Tente novamente.';
+                        }
+                    })
+                    .finally(() => {
+                        authSubmitBtn.disabled = false;
+                        authSubmitBtn.textContent = isLoginMode ? 'Entrar' : 'Cadastrar';
+                    });
+            });
+
+            // **NOVO: Lógica para o Login com Google**
+            googleSignInBtn.addEventListener('click', () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                authError.textContent = '';
+
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        console.log('Login com Google bem-sucedido, redirecionando...');
+                        // O onAuthStateChanged vai tratar do redirecionamento
+                    }).catch((error) => {
+                        console.error("Erro no login com Google: ", error);
+                        authError.textContent = "Não foi possível fazer login com o Google. Tente novamente.";
                     });
             });
         });

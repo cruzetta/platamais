@@ -12,15 +12,21 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 admin.initializeApp();
 const db = admin.firestore();
 
-// --- SEGREDOS (MÉTODO NOVO - O SEU MÉTODO) ---
-// Suas chaves já cadastradas com 'firebase functions:secrets:set' funcionarão aqui.
+// --- SEGREDOS (MÉTODO NOVO) ---
 const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
-const geminiApiKey = defineSecret("GEMINI_API_KEY"); // Você mencionou que já cadastrou uma chave do Google
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 // ===================================================================
-// FUNÇÃO PARA O CINEPROMPT (Sintaxe v2)
+// FUNÇÃO PARA O CINEPROMPT (Sintaxe v2) - ATUALIZADA COM SEGURANÇA
 // ===================================================================
 exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southamerica-east1" }, async (request) => {
+    // **NOVO: Verificação de Autenticação**
+    // Se não houver `request.auth`, significa que o usuário não está logado.
+    // A função irá parar aqui e retornar um erro para o cliente.
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'Você precisa estar autenticado para usar esta função.');
+    }
+
     // Pega os dados enviados pelo cliente (cineprompt.html)
     const data = request.data;
     
@@ -72,9 +78,9 @@ exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southameric
 
 
 // --- SUAS FUNÇÕES EXISTENTES DO MERCADO PAGO (Sintaxe v2) ---
+// Nenhuma alteração necessária aqui.
 
 exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
-    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const data = request.data;
     if (!data.email || !data.firstName || !data.productId) {
       throw new HttpsError('invalid-argument', 'Email, nome e ID do produto são obrigatórios.');
@@ -143,7 +149,6 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "
 });
 
 exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (req, res) => {
-    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const { id: paymentId, type } = req.query;
 
     if (type === "payment") {
@@ -173,7 +178,6 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], regi
 });
 
 exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
-    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const paymentId = request.data.paymentId;
     if (!paymentId) {
         throw new HttpsError("invalid-argument", "ID do pagamento é obrigatório.");
@@ -186,7 +190,7 @@ exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken], region:
         
         if (paymentInfo.status === 'approved') {
              await db.collection('vendas').doc(paymentId).update({
-                status: 'delivered', // Ou 'approved', dependendo da sua lógica
+                status: 'delivered',
                 deliveredAt: admin.firestore.FieldValue.serverTimestamp()
             });
         }
