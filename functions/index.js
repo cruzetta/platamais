@@ -19,18 +19,15 @@ const geminiApiKey = defineSecret("GEMINI_API_KEY");
 // ===================================================================
 // FUNÇÃO PARA O CINEPROMPT (Sintaxe v2) - ATUALIZADA COM SEGURANÇA
 // ===================================================================
-exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southamerica-east1" }, async (request) => {
-    // **NOVO: Verificação de Autenticação**
-    // Se não houver `request.auth`, significa que o usuário não está logado.
-    // A função irá parar aqui e retornar um erro para o cliente.
+// CORREÇÃO: Renomeado para 'generateWithGemini' e região alterada para 'us-central1'
+exports.generateWithGemini = onCall({ secrets: [geminiApiKey], region: "us-central1" }, async (request) => {
+    // Verificação de Autenticação
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'Você precisa estar autenticado para usar esta função.');
     }
 
-    // Pega os dados enviados pelo cliente (cineprompt.html)
     const data = request.data;
     
-    // Constrói o prompt detalhado no backend para maior segurança e controle
     const selectedCharacterDetails = (data.selectedCharacters || [])
       .map(char => `Personagem: ${char.name}. Descrição: ${char.description}. Visual: ${char.visuals}. Personalidade: ${char.personality}.`)
       .join(' ');
@@ -60,7 +57,6 @@ exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southameric
         throw new HttpsError('invalid-argument', 'O prompt final não pôde ser construído. Verifique os dados enviados.');
     }
 
-    // Inicializa o cliente do Google AI com a chave de API segura
     const genAI = new GoogleGenerativeAI(geminiApiKey.value());
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
@@ -68,7 +64,7 @@ exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southameric
         const result = await model.generateContent(finalPromptForAI);
         const response = result.response;
         const text = response.text();
-        return { prompt: text }; // Retorna o resultado para o cliente
+        return { prompt: text };
 
     } catch (error) {
         console.error("Erro ao chamar a API do Gemini:", error);
@@ -77,10 +73,10 @@ exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southameric
 });
 
 
-// --- SUAS FUNÇÕES EXISTENTES DO MERCADO PAGO (Sintaxe v2) ---
-// Nenhuma alteração necessária aqui.
+// --- FUNÇÕES DO MERCADO PAGO ---
 
-exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
+// CORREÇÃO: Região alterada para 'us-central1'
+exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "us-central1" }, async (request) => {
     const data = request.data;
     if (!data.email || !data.firstName || !data.productId) {
       throw new HttpsError('invalid-argument', 'Email, nome e ID do produto são obrigatórios.');
@@ -113,14 +109,12 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "
           email: data.email,
           first_name: data.firstName,
         },
-        notification_url: `https://southamerica-east1-platamais.cloudfunctions.net/mercadoPagoWebhook`,
+        notification_url: `https://us-central1-platamais.cloudfunctions.net/mercadoPagoWebhook`, // CORREÇÃO: Região no URL
         metadata: {
             productId: data.productId 
         }
       }
     };
-
-    console.log(`Criando pagamento PIX para: ${data.email} | Produto: ${productName} (R$ ${productPrice})`);
 
     try {
       const result = await payment.create(paymentData);
@@ -134,13 +128,11 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "
           createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
-      const pixData = {
+      return {
         paymentId: paymentId,
         qrCode: result.point_of_interaction.transaction_data.qr_code,
         qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
       };
-
-      return pixData;
 
     } catch (error) {
       console.error("Erro ao gerar PIX:", error.cause || error);
@@ -148,7 +140,8 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "
     }
 });
 
-exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (req, res) => {
+// CORREÇÃO: Região alterada para 'us-central1'
+exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], region: "us-central1" }, async (req, res) => {
     const { id: paymentId, type } = req.query;
 
     if (type === "payment") {
@@ -163,13 +156,9 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], regi
                     approvedAt: admin.firestore.FieldValue.serverTimestamp(),
                     mercadoPagoDetails: paymentInfo 
                 });
-                console.log(`Venda ${paymentId} marcada como APROVADA via webhook.`);
-            } else {
-                 console.log(`Webhook recebido para pagamento ${paymentId} com status: ${paymentInfo.status}. Nenhuma ação necessária.`);
             }
-
         } catch (error) {
-            console.error("Erro no webhook ao buscar ou atualizar dados:", error);
+            console.error("Erro no webhook:", error);
             return res.status(500).send("Erro ao processar notificação.");
         }
     }
@@ -177,7 +166,8 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], regi
     res.status(200).send("Notificação recebida.");
 });
 
-exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
+// CORREÇÃO: Região alterada para 'us-central1'
+exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken], region: "us-central1" }, async (request) => {
     const paymentId = request.data.paymentId;
     if (!paymentId) {
         throw new HttpsError("invalid-argument", "ID do pagamento é obrigatório.");

@@ -145,8 +145,7 @@
         }
 
         function getControlsHTML() {
-            // A lógica para criar os controlos permanece a mesma
-            const allCameraOptions = [...defaultCameraTypeOptions]; // Simplificado para este exemplo
+            const allCameraOptions = [...defaultCameraTypeOptions];
             return `
                 <h2 class="text-2xl font-bold text-white mb-6 flex items-center"><i data-lucide="sliders-horizontal" class="mr-2 text-purple-300"></i> Crie Seu Prompt de Vídeo</h2>
                 <form id="prompt-form">
@@ -314,11 +313,14 @@
             setState({ isLoadingPrompt: true });
 
             try {
-                const functions = firebase.app().functions('southamerica-east1');
-                const gerarCinePrompt = functions.httpsCallable('gerarCinePrompt');
+                // CORREÇÃO: Aponta para a região correta e pega a função pelo nome correto
+                const functions = firebase.app().functions('us-central1');
+                const generateWithGemini = functions.httpsCallable('generateWithGemini');
                 
                 const selectedCharacterData = state.userCharacters.filter(char => {
-                    return state.selectedCharacters.includes(char.id);
+                    const selectElement = document.getElementById('selectedCharacters');
+                    const selectedIds = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+                    return selectedIds.includes(char.id);
                 });
 
                 const payload = {
@@ -336,7 +338,7 @@
                     voiceNarration: state.voiceNarration,
                 };
 
-                const result = await gerarCinePrompt(payload);
+                const result = await generateWithGemini(payload);
                 const generatedText = result.data.prompt;
                 setState({ generatedPrompt: generatedText });
 
@@ -392,12 +394,13 @@
             }
 
             try {
+                const collectionPath = `characters/${state.userId}/userCharacters`;
                 if (state.editingCharacter) {
-                    const charDoc = db.collection('characters').doc(state.userId).collection('userCharacters').doc(state.editingCharacter.id);
+                    const charDoc = db.collection(collectionPath).doc(state.editingCharacter.id);
                     await charDoc.set(characterData, { merge: true });
                     showFeedback("Personagem atualizado!");
                 } else {
-                    await db.collection('characters').doc(state.userId).collection('userCharacters').add(characterData);
+                    await db.collection(collectionPath).add(characterData);
                     showFeedback("Personagem adicionado!");
                 }
                 handleCancelEditCharacter();
@@ -507,8 +510,7 @@
             document.body.addEventListener('change', (e) => {
                 if (e.target.id === 'selectedCharacters') {
                     const selectedIds = Array.from(e.target.selectedOptions).map(opt => opt.value);
-                    const selectedObjects = state.userCharacters.filter(c => selectedIds.includes(c.id));
-                    setState({ selectedCharacters: selectedObjects });
+                    setState({ selectedCharacters: selectedIds });
                 }
             });
         }
@@ -542,7 +544,6 @@
                 render();
 
             } else {
-                // Se não houver usuário ou for anônimo, redireciona para o login
                 const currentPath = window.location.pathname.split('/').pop();
                 window.location.href = `login.html?redirect=${currentPath}`;
             }
