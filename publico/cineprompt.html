@@ -313,15 +313,12 @@
             setState({ isLoadingPrompt: true });
 
             try {
-                // CORREÇÃO: Aponta para a região correta e pega a função pelo nome correto
                 const functions = firebase.app().functions('us-central1');
                 const generateWithGemini = functions.httpsCallable('generateWithGemini');
                 
-                const selectedCharacterData = state.userCharacters.filter(char => {
-                    const selectElement = document.getElementById('selectedCharacters');
-                    const selectedIds = Array.from(selectElement.selectedOptions).map(opt => opt.value);
-                    return selectedIds.includes(char.id);
-                });
+                const selectElement = document.getElementById('selectedCharacters');
+                const selectedIds = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+                const selectedCharacterData = state.userCharacters.filter(char => selectedIds.includes(char.id));
 
                 const payload = {
                     videoStyle: state.videoStyle,
