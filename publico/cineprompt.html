@@ -678,7 +678,7 @@
                 if (e.target.id === 'auth-form') handleAuthAction(e);
             });
 
-            document.body.addEventListener('input', handleFormInput);
+            document.body.addEventListener('change', handleFormInput);
 
             document.body.addEventListener('change', (e) => {
                 if (e.target.id === 'selectedCharacters') {
