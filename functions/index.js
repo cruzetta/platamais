@@ -1,3 +1,4 @@
+// Importações para a v2 do Firebase Functions
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
@@ -11,22 +12,46 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 admin.initializeApp();
 const db = admin.firestore();
 
-// --- SEGREDOS ---
-// Defina os segredos para as chaves de API. Você precisará configurá-los no seu projeto Firebase.
-// Rode: firebase functions:secrets:set MERCADO_PAGO_ACCESS_TOKEN e firebase functions:secrets:set GEMINI_API_KEY
+// --- SEGREDOS (MÉTODO NOVO - O SEU MÉTODO) ---
+// Suas chaves já cadastradas com 'firebase functions:secrets:set' funcionarão aqui.
 const mercadoPagoAccessToken = defineSecret("MERCADO_PAGO_ACCESS_TOKEN");
-const geminiApiKey = defineSecret("GEMINI_API_KEY");
-
+const geminiApiKey = defineSecret("GEMINI_API_KEY"); // Você mencionou que já cadastrou uma chave do Google
 
 // ===================================================================
-// NOVA FUNÇÃO PROXY PARA O GEMINI API
+// FUNÇÃO PARA O CINEPROMPT (Sintaxe v2)
 // ===================================================================
-exports.generateWithGemini = onCall({ secrets: [geminiApiKey] }, async (request) => {
-    // Pega o prompt enviado pelo cliente
-    const { prompt, isJson } = request.data;
+exports.gerarCinePrompt = onCall({ secrets: [geminiApiKey], region: "southamerica-east1" }, async (request) => {
+    // Pega os dados enviados pelo cliente (cineprompt.html)
+    const data = request.data;
+    
+    // Constrói o prompt detalhado no backend para maior segurança e controle
+    const selectedCharacterDetails = (data.selectedCharacters || [])
+      .map(char => `Personagem: ${char.name}. Descrição: ${char.description}. Visual: ${char.visuals}. Personalidade: ${char.personality}.`)
+      .join(' ');
 
-    if (!prompt) {
-        throw new HttpsError('invalid-argument', 'O prompt é obrigatório.');
+    const promptParts = [
+        `Crie um prompt de vídeo detalhado para uma IA de geração de vídeo.`,
+        `Estilo: ${data.videoStyle}.`,
+        `Tema/Ambiente: ${data.theme}.`,
+        `Narrativa: ${data.narrative}.`,
+        selectedCharacterDetails,
+        `Movimento de Câmera: ${data.cameraType}.`,
+        `Iluminação: ${data.lighting}.`,
+        `Paleta de Cores: ${data.colorPalette}.`,
+        `Qualidade e Detalhes: ${data.quality}.`,
+        `Formato: ${data.format}.`,
+        `Duração aproximada: ${data.duration} segundos.`
+    ];
+
+    if (data.voiceNarration && data.voiceNarration !== 'Sem Narração') {
+        promptParts.push(`Inclua uma narração com a voz "${data.voiceNarration}". O texto da narração deve ser gerado com base na narrativa.`);
+    }
+
+    const fullPrompt = promptParts.filter(p => p && p.trim() !== '').join(' ');
+    const finalPromptForAI = `Gere um prompt para uma IA de vídeo, em ${data.outputLanguage === 'english' ? 'inglês' : 'português'}, baseado na seguinte ideia: ${fullPrompt}. O prompt final deve ser direto, técnico e otimizado para modelos como Sora, Runway ou Pika Labs, sem incluir minha introdução.`;
+
+    if (!finalPromptForAI) {
+        throw new HttpsError('invalid-argument', 'O prompt final não pôde ser construído. Verifique os dados enviados.');
     }
 
     // Inicializa o cliente do Google AI com a chave de API segura
@@ -34,21 +59,10 @@ exports.generateWithGemini = onCall({ secrets: [geminiApiKey] }, async (request)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     try {
-        let generationConfig = {};
-        if (isJson) {
-            generationConfig = {
-                responseMimeType: "application/json",
-            };
-        }
-
-        const result = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: generationConfig,
-        });
-
+        const result = await model.generateContent(finalPromptForAI);
         const response = result.response;
         const text = response.text();
-        return { text: text };
+        return { prompt: text }; // Retorna o resultado para o cliente
 
     } catch (error) {
         console.error("Erro ao chamar a API do Gemini:", error);
@@ -57,12 +71,10 @@ exports.generateWithGemini = onCall({ secrets: [geminiApiKey] }, async (request)
 });
 
 
-// --- SUAS FUNÇÕES EXISTENTES DO MERCADO PAGO ---
+// --- SUAS FUNÇÕES EXISTENTES DO MERCADO PAGO (Sintaxe v2) ---
 
-/**
- * Cria um pagamento PIX buscando os detalhes do produto no Firestore.
- */
-exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
+exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
+    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const data = request.data;
     if (!data.email || !data.firstName || !data.productId) {
       throw new HttpsError('invalid-argument', 'Email, nome e ID do produto são obrigatórios.');
@@ -95,7 +107,7 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
           email: data.email,
           first_name: data.firstName,
         },
-        notification_url: `https://us-central1-platamais.cloudfunctions.net/mercadoPagoWebhook`,
+        notification_url: `https://southamerica-east1-platamais.cloudfunctions.net/mercadoPagoWebhook`,
         metadata: {
             productId: data.productId 
         }
@@ -130,10 +142,8 @@ exports.createPixPayment = onCall({ secrets: [mercadoPagoAccessToken] }, async (
     }
 });
 
-/**
- * Webhook para processar notificações de pagamento do Mercado Pago.
- */
-exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, async (req, res) => {
+exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (req, res) => {
+    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const { id: paymentId, type } = req.query;
 
     if (type === "payment") {
@@ -162,10 +172,8 @@ exports.mercadoPagoWebhook = onRequest({ secrets: [mercadoPagoAccessToken] }, as
     res.status(200).send("Notificação recebida.");
 });
 
-/**
- * Apenas verifica o status de um pagamento.
- */
-exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async (request) => {
+exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken], region: "southamerica-east1" }, async (request) => {
+    // ... seu código do Mercado Pago continua aqui, sem alterações ...
     const paymentId = request.data.paymentId;
     if (!paymentId) {
         throw new HttpsError("invalid-argument", "ID do pagamento é obrigatório.");
@@ -178,7 +186,7 @@ exports.checkPaymentStatus = onCall({ secrets: [mercadoPagoAccessToken] }, async
         
         if (paymentInfo.status === 'approved') {
              await db.collection('vendas').doc(paymentId).update({
-                status: 'delivered',
+                status: 'delivered', // Ou 'approved', dependendo da sua lógica
                 deliveredAt: admin.firestore.FieldValue.serverTimestamp()
             });
         }

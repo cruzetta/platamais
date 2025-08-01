@@ -114,21 +114,23 @@
             deleteDoc,
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // IMPORTANTE: Adiciona o SDK do Firebase Functions
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
         // --- INICIALIZAÇÃO E CONFIGURAÇÃO ---
-        
-        // Usa as variáveis globais fornecidas pelo ambiente para segurança e flexibilidade.
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config)
             : { apiKey: "YOUR_FALLBACK_API_KEY", authDomain: "...", projectId: "..." };
         
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        let app, db, auth;
+        let app, db, auth, functions;
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            // Inicializa o Firebase Functions, especificando a região para melhor performance
+            functions = getFunctions(app, 'southamerica-east1');
         } catch (error) {
             console.error("Erro ao inicializar o Firebase:", error);
             document.body.innerHTML = "<h1>Erro Crítico: Não foi possível conectar ao Firebase. Verifique a configuração.</h1>";
@@ -404,93 +406,47 @@
             if (state.isLoadingPrompt) return;
             setState({ isLoadingPrompt: true });
 
-            const selectedCharacterDetails = state.userCharacters
-                .filter(char => state.selectedCharacters.includes(char.id))
-                .map(char => `Personagem: ${char.name}. Descrição: ${char.description}. Visual: ${char.visuals}. Personalidade: ${char.personality}.`)
-                .join(' ');
-
-            const promptParts = [
-                `Crie um prompt de vídeo detalhado para uma IA de geração de vídeo.`,
-                `Estilo: ${state.videoStyle}.`,
-                `Tema/Ambiente: ${state.theme}.`,
-                `Narrativa: ${state.narrative}.`,
-                selectedCharacterDetails,
-                `Movimento de Câmera: ${state.cameraType}.`,
-                `Iluminação: ${state.lighting}.`,
-                `Paleta de Cores: ${state.colorPalette}.`,
-                `Qualidade e Detalhes: ${state.quality}.`,
-                `Formato: ${state.format}.`,
-                `Duração aproximada: ${state.duration} segundos.`
-            ];
-            
-            if (state.voiceNarration !== 'Sem Narração') {
-                promptParts.push(`Inclua uma narração com a voz "${state.voiceNarration}". O texto da narração deve ser gerado com base na narrativa.`);
-            }
-
-            const fullPrompt = promptParts.filter(p => p).join(' ');
-            const finalPromptForAI = `Gere um prompt para uma IA de vídeo, em ${state.outputLanguage === 'english' ? 'inglês' : 'português'}, baseado na seguinte ideia: ${fullPrompt}. O prompt final deve ser direto, técnico e otimizado para modelos como Sora, Runway ou Pika Labs, sem incluir minha introdução.`;
-
             try {
-                // Lógica de chamada para a API Gemini com retentativa
-                const apiKey = ""; // Deixado em branco para ser injetado pelo ambiente.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                // Prepara a chamada para a Cloud Function
+                const gerarCinePrompt = httpsCallable(functions, 'gerarCinePrompt');
                 
+                // Coleta todos os dados do formulário do estado atual
                 const payload = {
-                    contents: [{ role: "user", parts: [{ text: finalPromptForAI }] }]
+                    videoStyle: state.videoStyle,
+                    theme: state.theme,
+                    narrative: state.narrative,
+                    selectedCharacters: state.userCharacters.filter(char => state.selectedCharacters.includes(char.id)),
+                    cameraType: state.cameraType,
+                    lighting: state.lighting,
+                    colorPalette: state.colorPalette,
+                    duration: state.duration,
+                    format: state.format,
+                    quality: state.quality,
+                    outputLanguage: state.outputLanguage,
+                    voiceNarration: state.voiceNarration,
                 };
 
-                const response = await fetchWithRetry(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                // Chama a função e aguarda o resultado
+                const result = await gerarCinePrompt(payload);
 
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`Erro da API: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content.parts.length > 0) {
-                    const generatedText = result.candidates[0].content.parts[0].text;
-                    setState({ generatedPrompt: generatedText });
-                } else {
-                    throw new Error("A resposta da API não contém o texto esperado.");
-                }
+                // O resultado da função callable fica em `result.data`
+                const generatedText = result.data.prompt;
+                setState({ generatedPrompt: generatedText });
 
             } catch (error) {
-                console.error("Erro ao gerar prompt:", error);
-                showFeedback("Falha ao gerar o prompt. Tente novamente.", "error");
+                console.error("Erro ao chamar a Cloud Function:", error);
+                showFeedback(`Falha ao gerar o prompt: ${error.message}`, "error");
                 setState({ generatedPrompt: `Ocorreu um erro: ${error.message}` });
             } finally {
                 setState({ isLoadingPrompt: false });
             }
         }
 
-        // Função auxiliar para fetch com retentativa (exponential backoff)
-        async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok && response.status >= 500) { // Tenta novamente em erros de servidor
-                        throw new Error(`Server error: ${response.status}`);
-                    }
-                    return response;
-                } catch (error) {
-                    if (i === retries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
-                }
-            }
-        }
-
-
         function handleCopy() {
             if (!state.generatedPrompt) {
                 showFeedback("Não há nada para copiar!", "error");
                 return;
             }
-            // Usa navigator.clipboard para maior compatibilidade e segurança
             navigator.clipboard.writeText(state.generatedPrompt).then(() => {
                 showFeedback("Prompt copiado para a área de transferência!");
             }).catch(err => {
@@ -737,12 +693,10 @@
         let unsubscribeCharacters;
         
         onAuthStateChanged(auth, async (user) => {
-            // Limpa listeners antigos para evitar duplicação ao trocar de usuário
             if (unsubscribeCharacters) unsubscribeCharacters();
             unsubscribeCharacters = null;
 
             if (user) {
-                // Usuário logado (seja anônimo ou real)
                 const newState = { 
                     userId: user.uid,
                     isUserLoggedIn: !user.isAnonymous,
@@ -750,7 +704,6 @@
                 };
                 setState(newState);
                 
-                // Configura novos listeners para os dados do usuário
                 const charactersRef = collection(db, `artifacts/${appId}/users/${user.uid}/characters`);
                 unsubscribeCharacters = onSnapshot(charactersRef, (snapshot) => {
                     const userCharacters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -761,17 +714,15 @@
                 });
 
             } else {
-                // Nenhum usuário, desloga e limpa o estado
                 setState({
                     userId: null, isUserLoggedIn: false, userEmail: '',
                     userCharacters: [], userPrompts: [], userCustomCameraTypes: []
                 });
             }
-            // Marca que a autenticação está pronta e renderiza a UI
             if (!state.isAuthReady) {
                 setState({ isAuthReady: true });
             } else {
-                render(); // Re-renderiza se o estado de auth mudou depois da carga inicial
+                render();
             }
         });
 
