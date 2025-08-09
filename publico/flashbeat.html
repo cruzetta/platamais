@@ -146,24 +146,6 @@
                         <p class="text-gray-400">Compatível com as principais DAWs (FL Studio, Ableton, Logic, etc). Uma ferramenta poderosa e intuitiva para criar melodias e ritmos complexos com poucos cliques.</p>
                     </div>
                 </div>
-                <div class="bg-[#1a1a1a] p-6 rounded-xl flex items-center gap-6 border border-gray-800">
-                    <div class="bg-blue-500 text-white p-4 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z" /></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-xl text-white">O Método FLASH BEAT (Vídeo-aulas)</h4>
-                        <p class="text-gray-400">Um guia passo a passo em vídeo que ensina você a extrair o máximo do plugin e a pensar como um produtor profissional, criando beats que vendem.</p>
-                    </div>
-                </div>
-                <div class="bg-[#1a1a1a] p-6 rounded-xl flex items-center gap-6 border border-yellow-500 border-dashed">
-                    <div class="bg-yellow-500 text-white p-4 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-xl text-white">BÔNUS: Pack de Samples Exclusivos</h4>
-                        <p class="text-gray-400">Um kit com mais de 100 samples (kicks, snares, hi-hats, 808s) prontos para usar e dar um toque profissional imediato às suas produções.</p>
-                    </div>
-                </div>
             </div>
         </section>
         
@@ -276,12 +258,22 @@
 
     <!-- SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Tenta autenticar o usuário anonimamente assim que a página carrega.
+            // Isso é crucial para permitir operações no Firestore, como o log de acesso.
+            try {
+                await firebase.auth().signInAnonymously();
+                console.log("Usuário anônimo autenticado com sucesso.");
+            } catch (error) {
+                console.error("Erro na autenticação anônima: ", error);
+            }
+
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
             const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
