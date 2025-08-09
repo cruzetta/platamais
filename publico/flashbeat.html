@@ -96,7 +96,7 @@
                 <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
             </div>
             
-            <div class="mt-8 text-center">
+            <div id="cta-top-container" class="mt-8 text-center">
                 <a href="#comprar" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-10 py-5 rounded-xl shadow-lg uppercase">
                     QUERO CRIAR BEATS INCRÍVEIS AGORA!
                 </a>
@@ -160,10 +160,12 @@
                 <p class="mt-1 text-sm text-gray-400">Pagamento único via Pix.</p>
             </div>
 
-            <!-- BOTÃO DE COMPRA INTEGRADO -->
-            <button id="buy-button" data-product-id="CCiLBQSDSuwnqF8EPpKi" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
-                <i class="fa-brands fa-pix mr-3"></i> SIM, EU QUERO O FLASH BEAT!
-            </button>
+            <!-- BOTÃO DE COMPRA INTEGRADO (Será alterado pelo script se o cliente já comprou) -->
+            <div id="cta-bottom-container">
+                <button id="buy-button" data-product-id="CCiLBQSDSuwnqF8EPpKi" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
+                    <i class="fa-brands fa-pix mr-3"></i> SIM, EU QUERO O FLASH BEAT!
+                </button>
+            </div>
             
             <img src="https://placehold.co/400x40/1a1a1a/ffffff?text=Compra+100%25+Segura" alt="Compra Segura" class="mx-auto mt-6">
         </section>
@@ -265,8 +267,38 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Tenta autenticar o usuário anonimamente assim que a página carrega.
-            // Isso é crucial para permitir operações no Firestore, como o log de acesso.
+            // ===================================================================
+            // NOVA LÓGICA DE VERIFICAÇÃO DE ACESSO
+            // ===================================================================
+            const accessKey = 'hasFlashbeatAccess';
+            if (localStorage.getItem(accessKey) === 'true') {
+                // Se o usuário já comprou, altera os botões de compra para botões de acesso.
+                
+                // Altera o botão do topo
+                const topCtaContainer = document.getElementById('cta-top-container');
+                if (topCtaContainer) {
+                    topCtaContainer.innerHTML = `
+                        <a href="acesso-flashbeat.html" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-10 py-5 rounded-xl shadow-lg uppercase">
+                            <i class="fas fa-rocket mr-2"></i> ACESSAR FERRAMENTA
+                        </a>
+                        <p class="mt-2 text-sm text-gray-500">Bem-vindo de volta!</p>
+                    `;
+                }
+
+                // Altera o botão principal de compra
+                const bottomCtaContainer = document.getElementById('cta-bottom-container');
+                if (bottomCtaContainer) {
+                    bottomCtaContainer.innerHTML = `
+                        <a href="acesso-flashbeat.html" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
+                            <i class="fas fa-rocket mr-3"></i> ACESSAR MINHA FERRAMENTA
+                        </a>
+                    `;
+                }
+            }
+            // ===================================================================
+            // FIM DA NOVA LÓGICA
+            // ===================================================================
+
             try {
                 await firebase.auth().signInAnonymously();
                 console.log("Usuário anônimo autenticado com sucesso.");
@@ -346,8 +378,8 @@
                     } finally {
                         generatePixButton.disabled = false;
                          if (formMessage.textContent === 'Gerando seu PIX...') {
-                            formMessage.textContent = '';
-                        }
+                             formMessage.textContent = '';
+                         }
                     }
                 });
             }
@@ -362,7 +394,7 @@
                     try {
                         const result = await checkPaymentStatus({ paymentId: currentPaymentId });
                         if (result.data.status === 'approved') {
-                            redirectToSuccess(currentUserName, currentPaymentId);
+                            redirectToSuccess(); // Não precisa mais passar os parâmetros
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
@@ -396,23 +428,31 @@
                 }, 1000);
             }
             
-            function redirectToSuccess(userName, paymentId) {
+            // ===================================================================
+            // NOVA FUNÇÃO DE REDIRECIONAMENTO APÓS SUCESSO
+            // ===================================================================
+            function redirectToSuccess() {
                 clearInterval(countdownInterval);
-                const seuNumero = "5567999093031"; 
-                const mensagem = encodeURIComponent(`Olá! Meu nome é ${userName} e acabei de adquirir o FLASH BEAT. (ID do Pagamento: ${paymentId})`);
-                const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
                 
+                // 1. Salva a chave de acesso no navegador do cliente
+                localStorage.setItem('hasFlashbeatAccess', 'true');
+
+                // 2. Atualiza a interface do modal para confirmar o sucesso
                 pixTitle.textContent = "Pagamento Aprovado!";
-                pixSubtitle.textContent = "Você receberá o acesso no seu e-mail e será redirecionado para o suporte.";
+                pixSubtitle.textContent = "Você está sendo redirecionado para a sua área de acesso...";
                 checkPaymentButton.style.display = 'none';
                 document.getElementById('pix-container').style.display = 'none';
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
 
+                // 3. Redireciona para a página de acesso após um breve momento
                 setTimeout(() => {
-                    window.location.href = whatsappUrl;
+                    window.location.href = 'acesso-flashbeat.html';
                 }, 2500);
             }
+            // ===================================================================
+            // FIM DA NOVA FUNÇÃO
+            // ===================================================================
 
             window.copyPixCode = function() {
                 pixCodeInput.select();
@@ -451,7 +491,10 @@
             }
 
             async function logProductAccess() {
-                const productId = buyButton.dataset.productId;
+                const buyButtonForId = document.getElementById('buy-button');
+                if (!buyButtonForId) return; // Se o botão não existe (cliente já comprou), não faz o log
+
+                const productId = buyButtonForId.dataset.productId;
                 if (!db || !productId || productId === "ID_DO_SEU_PRODUTO_AQUI") {
                     console.error("Firestore não inicializado ou ID do produto não configurado. Rastreamento de acesso desativado.");
                     return;
