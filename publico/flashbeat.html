@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLASH BEAT - Crie Beats Profissionais em Minutos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon (ícone da aba do navegador) -->
+    <link rel="icon" href="https://placehold.co/32x32/1a1a1a/ffffff?text=FB" type="image/png">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            scroll-behavior: smooth;
+        }
+        .cta-button {
+            background: linear-gradient(90deg, #3DDE70, #22A74B);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .cta-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(61, 222, 112, 0.5);
+        }
+        .cta-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .gradient-text {
+            background: -webkit-linear-gradient(45deg, #3DDE70, #58C4F5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .modal {
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+        .modal.flex {
+            display: flex;
+        }
+        .modal.opacity-100 .modal-content {
+            transform: scale(1);
+        }
+        .form-input {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+        }
+        #pix-qrcode {
+            border: 6px solid white;
+            border-radius: 8px;
+        }
+        #pix-code-input {
+            background-color: #374151;
+            user-select: all;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Seção Herói -->
+    <header class="bg-[#1a1a1a] py-8 px-4 text-center">
+        <div class="container mx-auto max-w-4xl">
+            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-tight">
+                Crie <span class="gradient-text">Beats Profissionais</span> em Minutos, Não em Meses.
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                O método e plugin <span class="font-bold text-white">FLASH BEAT</span> é a sua arma secreta para produzir batidas incríveis de forma rápida e intuitiva, mesmo que você esteja começando agora.
+            </p>
+        </div>
+    </header>
+
+    <!-- Seção do Vídeo de Vendas -->
+    <main class="container mx-auto px-4 py-12 md:py-16">
+        <section id="video" class="max-w-4xl mx-auto">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-6">Assista e veja a mágica acontecer:</h2>
+            <div class="aspect-w-16 aspect-h-9 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-700">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="#comprar" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-10 py-5 rounded-xl shadow-lg uppercase">
+                    QUERO CRIAR BEATS INCRÍVEIS AGORA!
+                </a>
+                <p class="mt-2 text-sm text-gray-500">Acesso imediato e vitalício. Compra 100% segura.</p>
+            </div>
+        </section>
+
+        <!-- Seção de Problemas -->
+        <section id="problema" class="mt-20 md:mt-24 max-w-4xl mx-auto text-center">
+            <h3 class="text-3xl md:text-4xl font-bold">Você se identifica com isso?</h3>
+            <p class="mt-4 text-gray-400">Se você é produtor musical, provavelmente já passou por alguma dessas situações:</p>
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                    <h4 class="font-bold text-lg text-green-400">Bloqueio Criativo</h4>
+                    <p class="mt-2 text-gray-400">Horas na frente do computador sem conseguir criar uma melodia ou ritmo que soe bem.</p>
+                </div>
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                    <h4 class="font-bold text-lg text-green-400">Beats Amadores</h4>
+                    <p class="mt-2 text-gray-400">Suas batidas não soam profissionais e parecem sempre "faltar alguma coisa".</p>
+                </div>
+                <div class="bg-[#1a1a1a] p-6 rounded-xl border border-gray-800">
+                    <h4 class="font-bold text-lg text-green-400">Perda de Tempo</h4>
+                    <p class="mt-2 text-gray-400">Gastar dias em um único beat, se perdendo em detalhes técnicos e tutoriais complexos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção da Solução -->
+        <section id="solucao" class="mt-20 md:mt-24 max-w-4xl mx-auto text-center">
+            <h3 class="text-3xl md:text-4xl font-bold">A Solução Definitiva Chegou: <span class="gradient-text">FLASH BEAT</span></h3>
+            <p class="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">
+                O FLASH BEAT não é apenas um plugin, é um método completo que simplifica o processo de criação, permitindo que você foque no que realmente importa: a sua criatividade.
+            </p>
+            <img src="https://placehold.co/800x400/1a1a1a/3DDE70?text=Imagem+do+Plugin+FLASH+BEAT" alt="Interface do Plugin FLASH BEAT" class="mt-8 rounded-2xl mx-auto shadow-lg">
+        </section>
+
+        <!-- Seção "O que você vai receber" -->
+        <section id="conteudo" class="mt-20 md:mt-24 max-w-4xl mx-auto">
+            <h3 class="text-3xl md:text-4xl font-bold text-center mb-10">O Que Você Leva Para Casa Hoje:</h3>
+            <div class="space-y-6">
+                <div class="bg-[#1a1a1a] p-6 rounded-xl flex items-center gap-6 border border-gray-800">
+                    <div class="bg-green-500 text-white p-4 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3M10 12a2 2 0 11-4 0 2 2 0 014 0zM18 12a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xl text-white">Plugin FLASH BEAT (VST/AU)</h4>
+                        <p class="text-gray-400">Compatível com as principais DAWs (FL Studio, Ableton, Logic, etc). Uma ferramenta poderosa e intuitiva para criar melodias e ritmos complexos com poucos cliques.</p>
+                    </div>
+                </div>
+                <div class="bg-[#1a1a1a] p-6 rounded-xl flex items-center gap-6 border border-gray-800">
+                    <div class="bg-blue-500 text-white p-4 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z" /></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xl text-white">O Método FLASH BEAT (Vídeo-aulas)</h4>
+                        <p class="text-gray-400">Um guia passo a passo em vídeo que ensina você a extrair o máximo do plugin e a pensar como um produtor profissional, criando beats que vendem.</p>
+                    </div>
+                </div>
+                <div class="bg-[#1a1a1a] p-6 rounded-xl flex items-center gap-6 border border-yellow-500 border-dashed">
+                    <div class="bg-yellow-500 text-white p-4 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xl text-white">BÔNUS: Pack de Samples Exclusivos</h4>
+                        <p class="text-gray-400">Um kit com mais de 100 samples (kicks, snares, hi-hats, 808s) prontos para usar e dar um toque profissional imediato às suas produções.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Seção de CTA Final e Preço -->
+        <section id="comprar" class="mt-20 md:mt-24 bg-[#1a1a1a] rounded-2xl p-8 md:p-12 max-w-3xl mx-auto text-center border-2 border-green-500">
+            <h3 class="text-3xl md:text-4xl font-black">Adquira seu Acesso Vitalício Agora!</h3>
+            <p class="mt-4 text-gray-400">Todo o poder do plugin e do método para transformar suas produções por um preço especial de lançamento.</p>
+            
+            <div class="my-8">
+                <p class="text-gray-500 line-through text-2xl">De R$ 1599,00</p>
+                <p class="text-6xl font-bold text-white">por apenas <span class="gradient-text">R$ 300,00</span></p>
+                <p class="mt-1 text-sm text-gray-400">Pagamento único via Pix.</p>
+            </div>
+
+            <!-- BOTÃO DE COMPRA INTEGRADO -->
+            <button id="buy-button" data-product-id="ID_DO_SEU_PRODUTO_AQUI" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
+                <i class="fa-brands fa-pix mr-3"></i> SIM, EU QUERO O FLASH BEAT!
+            </button>
+            
+            <img src="https://placehold.co/400x40/1a1a1a/ffffff?text=Compra+100%25+Segura" alt="Compra Segura" class="mx-auto mt-6">
+        </section>
+
+        <!-- Seção de Garantia -->
+        <section id="garantia" class="mt-16 max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+            <img src="https://placehold.co/150x150/1a1a1a/3DDE70?text=7+DIAS" alt="Selo de Garantia de 7 Dias" class="w-32 h-32">
+            <div>
+                <h4 class="text-2xl font-bold">Sua Satisfação ou Seu Dinheiro de Volta!</h4>
+                <p class="mt-2 text-gray-400">Você tem 7 dias para testar o FLASH BEAT sem nenhum risco. Se por qualquer motivo você não ficar 100% satisfeito, basta enviar um e-mail e nós devolveremos todo o seu investimento. Simples assim.</p>
+            </div>
+        </section>
+
+        <!-- Seção de FAQ -->
+        <section id="faq" class="mt-20 md:mt-24 max-w-3xl mx-auto">
+            <h3 class="text-3xl font-bold text-center mb-10">Perguntas Frequentes</h3>
+            <div class="space-y-4">
+                <details class="bg-[#1a1a1a] p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg">O acesso é vitalício?</summary>
+                    <p class="mt-2 text-gray-400">Sim! Você paga uma única vez e tem acesso para sempre ao plugin, ao método e a todas as futuras atualizações.</p>
+                </details>
+                <details class="bg-[#1a1a1a] p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg">Funciona na minha DAW?</summary>
+                    <p class="mt-2 text-gray-400">O plugin FLASH BEAT vem nos formatos VST3 e AU, sendo compatível com a grande maioria das DAWs do mercado, como FL Studio, Ableton Live, Logic Pro X, Reaper, Cubase, etc.</p>
+                </details>
+                <details class="bg-[#1a1a1a] p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg">Preciso de conhecimento em teoria musical?</summary>
+                    <p class="mt-2 text-gray-400">Não! O método foi desenhado para ajudar tanto iniciantes quanto produtores avançados. O plugin possui ferramentas que te ajudam a criar melodias complexas mesmo sem saber teoria musical.</p>
+                </details>
+                <details class="bg-[#1a1a1a] p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold text-lg">Como receberei o produto?</summary>
+                    <p class="mt-2 text-gray-400">Imediatamente após a confirmação do pagamento, você receberá um e-mail com os links para download do plugin e acesso à área de membros com as vídeo-aulas.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-[#1a1a1a] mt-20 py-8 px-4 text-center text-gray-500">
+        <p>&copy; 2024 PlataMais. Todos os direitos reservados.</p>
+        <p class="text-sm mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook. Depois que você sair do Facebook, a responsabilidade não é deles e sim do nosso site.</p>
+    </footer>
+
+    <!-- MODAIS DE PAGAMENTO -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-green-500 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Falta Pouco!</h3>
+            <p class="text-gray-400 mb-6">Preencha seus dados para gerar o pagamento e receber o acesso à ferramenta.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-green-500 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p id="pix-subtitle" class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-green-400">10:00</span></div>
+            <div id="pix-container" class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <div id="pix-copy-paste" class="mt-4">
+                <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
+                <div class="relative">
+                    <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                    <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p id="copy-message" class="text-sm text-emerald-400 mt-2 h-4"></p>
+            </div>
+            <button id="check-payment-button" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar e Receber
+            </button>
+            <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const functions = firebase.app().functions('us-central1');
+            const createPixPayment = functions.httpsCallable('createPixPayment');
+            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+
+            const buyButton = document.getElementById('buy-button');
+            const userInfoForm = document.getElementById('user-info-form');
+            const generatePixButton = document.getElementById('generate-pix-button');
+            const formMessage = document.getElementById('form-message');
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            const pixQrCodeImg = document.getElementById('pix-qrcode');
+            const pixTitle = document.getElementById('pix-title');
+            const pixSubtitle = document.getElementById('pix-subtitle');
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            const checkPaymentMessage = document.getElementById('check-payment-message');
+            const pixTimerEl = document.getElementById('pix-timer');
+            const pixTimerContainer = document.getElementById('pix-timer-container');
+            
+            let currentPaymentId = null;
+            let currentProductId = null;
+            let currentUserName = null;
+            let countdownInterval;
+
+            if(buyButton) {
+                buyButton.addEventListener('click', () => {
+                    currentProductId = buyButton.dataset.productId;
+                    if (!currentProductId || currentProductId === "ID_DO_SEU_PRODUTO_AQUI") {
+                        alert("Erro de configuração: O ID do produto precisa ser cadastrado no painel de administração e inserido nesta página.");
+                        return;
+                    }
+                    openModal('user-info-modal');
+                });
+            }
+
+            if(userInfoForm) {
+                userInfoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    currentUserName = document.getElementById('firstName').value;
+                    const userEmail = document.getElementById('email').value;
+
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
+                        formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
+                        return;
+                    }
+
+                    generatePixButton.disabled = true;
+                    formMessage.textContent = 'Gerando seu PIX...';
+
+                    try {
+                        const payload = {
+                            firstName: currentUserName,
+                            email: userEmail,
+                            productId: currentProductId
+                        };
+                        
+                        const result = await createPixPayment(payload);
+                        currentPaymentId = result.data.paymentId;
+                        
+                        pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                        pixCodeInput.value = result.data.qrCode;
+
+                        closeModal('user-info-modal');
+                        openModal('pix-modal');
+                        startTimer(600); 
+
+                    } catch (error) {
+                        console.error("Erro ao chamar a função createPixPayment:", error);
+                        formMessage.textContent = `Erro: ${error.message}`;
+                    } finally {
+                        generatePixButton.disabled = false;
+                         if (formMessage.textContent === 'Gerando seu PIX...') {
+                            formMessage.textContent = '';
+                        }
+                    }
+                });
+            }
+
+            if(checkPaymentButton) {
+                checkPaymentButton.addEventListener('click', async () => {
+                    if (!currentPaymentId) return;
+
+                    checkPaymentButton.disabled = true;
+                    checkPaymentMessage.textContent = "Verificando...";
+
+                    try {
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToSuccess(currentUserName, currentPaymentId);
+                        } else {
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar pagamento:", error);
+                        checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                    } finally {
+                        setTimeout(() => {
+                           checkPaymentButton.disabled = false;
+                           checkPaymentMessage.textContent = "";
+                        }, 3000);
+                    }
+                });
+            }
+            
+            function startTimer(duration) {
+                let timer = duration;
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                    const seconds = (timer % 60).toString().padStart(2, '0');
+                    pixTimerEl.textContent = `${minutes}:${seconds}`;
+                    if (--timer < 0) {
+                        clearInterval(countdownInterval);
+                        pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                        document.getElementById('pix-container').style.display = 'none';
+                        document.getElementById('pix-copy-paste').style.display = 'none';
+                        checkPaymentButton.textContent = "Gerar Novo PIX";
+                        checkPaymentButton.onclick = () => window.location.reload();
+                    }
+                }, 1000);
+            }
+            
+            function redirectToSuccess(userName, paymentId) {
+                clearInterval(countdownInterval);
+                const seuNumero = "5567999093031"; 
+                const mensagem = encodeURIComponent(`Olá! Meu nome é ${userName} e acabei de adquirir o FLASH BEAT. (ID do Pagamento: ${paymentId})`);
+                const whatsappUrl = `https://wa.me/${seuNumero}?text=${mensagem}`;
+                
+                pixTitle.textContent = "Pagamento Aprovado!";
+                pixSubtitle.textContent = "Você receberá o acesso no seu e-mail e será redirecionado para o suporte.";
+                checkPaymentButton.style.display = 'none';
+                document.getElementById('pix-container').style.display = 'none';
+                document.getElementById('pix-copy-paste').style.display = 'none';
+                pixTimerContainer.style.display = 'none';
+
+                setTimeout(() => {
+                    window.location.href = whatsappUrl;
+                }, 2500);
+            }
+
+            window.copyPixCode = function() {
+                pixCodeInput.select();
+                try {
+                    document.execCommand('copy');
+                    copyMessage.textContent = 'Código copiado!';
+                    setTimeout(() => { copyMessage.textContent = '' }, 2000);
+                } catch (err) {
+                    console.error('Não foi possível copiar o código:', err);
+                    copyMessage.textContent = 'Erro ao copiar!';
+                }
+            }
+            
+            window.openModal = function(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.add('flex');
+                    setTimeout(() => modal.classList.add('opacity-100'), 10);
+                }
+            }
+            window.closeModal = function(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.remove('opacity-100');
+                    setTimeout(() => modal.classList.remove('flex'), 300);
+                }
+            }
+
+            function getOrCreateVisitorId() {
+                let visitorId = localStorage.getItem('plataMaisVisitorId');
+                if (!visitorId) {
+                    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                    localStorage.setItem('plataMaisVisitorId', visitorId);
+                }
+                return visitorId;
+            }
+
+            async function logProductAccess() {
+                const productId = buyButton.dataset.productId;
+                if (!db || !productId || productId === "ID_DO_SEU_PRODUTO_AQUI") {
+                    console.error("Firestore não inicializado ou ID do produto não configurado. Rastreamento de acesso desativado.");
+                    return;
+                }
+                const visitorId = getOrCreateVisitorId();
+                try {
+                    await db.collection('productAccessLogs').add({
+                        productId: productId,
+                        visitorId: visitorId,
+                        pageUrl: window.location.href,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    console.log('Acesso registrado para o produto:', productId);
+                } catch (error) {
+                    console.error("Erro ao registrar acesso:", error);
+                }
+            }
+            logProductAccess();
+        });
+    </script>
+</body>
+</html>
