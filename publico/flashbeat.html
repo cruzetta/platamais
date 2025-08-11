@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- Ícones -->
+    <!-- Ícones (Font Awesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Favicon (ícone da aba do navegador) -->
@@ -71,6 +71,28 @@
         #pix-code-input {
             background-color: #374151;
             user-select: all;
+        }
+        /* Estilo para o botão flutuante do WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 40px;
+            right: 40px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease-in-out;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -163,14 +185,39 @@
                 <p class="mt-1 text-sm text-gray-400">Pagamento único via Pix.</p>
             </div>
 
-            <!-- BOTÃO DE COMPRA INTEGRADO (Será alterado pelo script se o cliente já comprou) -->
+            <!-- NOVOS Elementos de Confiança -->
+            <div class="mb-6">
+                <div class="flex items-center justify-center space-x-1 text-yellow-400 text-2xl">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+
+            <!-- BOTÃO DE COMPRA INTEGRADO -->
             <div id="cta-bottom-container">
                 <button id="buy-button" data-product-id="CCiLBQSDSuwnqF8EPpKi" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
                     <i class="fa-brands fa-pix mr-3"></i> SIM, EU QUERO O FLASH BEAT!
                 </button>
             </div>
             
-            <img src="https://placehold.co/400x40/1a1a1a/ffffff?text=Compra+100%25+Segura" alt="Compra Segura" class="mx-auto mt-6">
+            <!-- NOVOS Selos de Segurança -->
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-400 text-sm">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-shield-alt text-green-400"></i>
+                    <span>Compra 100% Segura</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-lock text-green-400"></i>
+                    <span>Ambiente Criptografado</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-check-circle text-green-400"></i>
+                    <span>Satisfação Garantida</span>
+                </div>
+            </div>
         </section>
 
         <!-- Seção de Garantia -->
@@ -211,6 +258,11 @@
         <p>&copy; 2024 PlataMais. Todos os direitos reservados.</p>
         <p class="text-sm mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook. Depois que você sair do Facebook, a responsabilidade não é deles e sim do nosso site.</p>
     </footer>
+
+    <!-- NOVO Botão Flutuante do WhatsApp -->
+    <a href="https://wa.me/5567993033341" target="_blank" class="whatsapp-float" aria-label="Fale conosco no WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
 
     <!-- MODAIS DE PAGAMENTO -->
     <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
