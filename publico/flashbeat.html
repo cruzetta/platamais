@@ -322,68 +322,73 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Inicialização do Firebase
-            try {
-                await firebase.auth().signInAnonymously();
-            } catch (error) {
-                console.error("Erro na autenticação anônima: ", error);
-            }
-
-            const db = firebase.firestore();
-            const functions = firebase.app().functions('us-central1');
-
             // ===================================================================
-            // LÓGICA DE VERIFICAÇÃO DE ACESSO DO CLIENTE
+            // NOVA LÓGICA DE VERIFICAÇÃO DE ACESSO
             // ===================================================================
             const accessKey = 'hasFlashbeatAccess';
             if (localStorage.getItem(accessKey) === 'true') {
-                const accessUrl = "https://platamais.web.app/flashbeat";
+                // Se o usuário já comprou, altera os botões de compra para botões de acesso.
                 
+                // Altera o botão do topo
                 const topCtaContainer = document.getElementById('cta-top-container');
                 if (topCtaContainer) {
                     topCtaContainer.innerHTML = `
-                        <a href="${accessUrl}" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-10 py-5 rounded-xl shadow-lg uppercase">
+                        <a href="acesso-flashbeat.html" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-10 py-5 rounded-xl shadow-lg uppercase">
                             <i class="fas fa-rocket mr-2"></i> ACESSAR FERRAMENTA
                         </a>
                         <p class="mt-2 text-sm text-gray-500">Bem-vindo de volta!</p>
                     `;
                 }
 
+                // Altera o botão principal de compra
                 const bottomCtaContainer = document.getElementById('cta-bottom-container');
                 if (bottomCtaContainer) {
                     bottomCtaContainer.innerHTML = `
-                        <a href="${accessUrl}" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
+                        <a href="acesso-flashbeat.html" class="cta-button inline-block text-white font-bold text-xl md:text-2xl px-12 py-5 rounded-xl shadow-lg uppercase w-full md:w-auto">
                             <i class="fas fa-rocket mr-3"></i> ACESSAR MINHA FERRAMENTA
                         </a>
                     `;
                 }
             }
-            
             // ===================================================================
-            // LÓGICA DE PAGAMENTO
+            // FIM DA NOVA LÓGICA
             // ===================================================================
+
+            try {
+                await firebase.auth().signInAnonymously();
+                console.log("Usuário anônimo autenticado com sucesso.");
+            } catch (error) {
+                console.error("Erro na autenticação anônima: ", error);
+            }
+
+            const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
             const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
 
             const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
+            const generatePixButton = document.getElementById('generate-pix-button');
+            const formMessage = document.getElementById('form-message');
             const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
             const pixQrCodeImg = document.getElementById('pix-qrcode');
-            const checkPaymentButton = document.getElementById('check-payment-button');
-            const pixTimerEl = document.getElementById('pix-timer');
-            const pixTimerContainer = document.getElementById('pix-timer-container');
             const pixTitle = document.getElementById('pix-title');
             const pixSubtitle = document.getElementById('pix-subtitle');
-
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            const checkPaymentMessage = document.getElementById('check-payment-message');
+            const pixTimerEl = document.getElementById('pix-timer');
+            const pixTimerContainer = document.getElementById('pix-timer-container');
+            
             let currentPaymentId = null;
             let currentProductId = null;
+            let currentUserName = null;
             let countdownInterval;
 
             if(buyButton) {
                 buyButton.addEventListener('click', () => {
                     currentProductId = buyButton.dataset.productId;
                     if (!currentProductId || currentProductId === "ID_DO_SEU_PRODUTO_AQUI") {
-                        alert("Erro de configuração: O ID do produto não está definido.");
+                        alert("Erro de configuração: O ID do produto precisa ser cadastrado no painel de administração e inserido nesta página.");
                         return;
                     }
                     openModal('user-info-modal');
@@ -393,12 +398,11 @@
             if(userInfoForm) {
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const generatePixButton = document.getElementById('generate-pix-button');
-                    const formMessage = document.getElementById('form-message');
-                    const userName = document.getElementById('firstName').value;
+                    
+                    currentUserName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
 
-                    if (!userName.trim() || !userEmail.trim() || !currentProductId) {
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
                         formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
                         return;
                     }
@@ -407,23 +411,30 @@
                     formMessage.textContent = 'Gerando seu PIX...';
 
                     try {
-                        const result = await createPixPayment({
-                            firstName: userName,
+                        const payload = {
+                            firstName: currentUserName,
                             email: userEmail,
                             productId: currentProductId
-                        });
+                        };
+                        
+                        const result = await createPixPayment(payload);
                         currentPaymentId = result.data.paymentId;
+                        
                         pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                         pixCodeInput.value = result.data.qrCode;
+
                         closeModal('user-info-modal');
                         openModal('pix-modal');
-                        startTimer(600);
+                        startTimer(600); 
+
                     } catch (error) {
-                        console.error("Erro ao criar pagamento PIX:", error);
+                        console.error("Erro ao chamar a função createPixPayment:", error);
                         formMessage.textContent = `Erro: ${error.message}`;
                     } finally {
                         generatePixButton.disabled = false;
-                        if (formMessage.textContent === 'Gerando seu PIX...') formMessage.textContent = '';
+                         if (formMessage.textContent === 'Gerando seu PIX...') {
+                             formMessage.textContent = '';
+                         }
                     }
                 });
             }
@@ -431,24 +442,24 @@
             if(checkPaymentButton) {
                 checkPaymentButton.addEventListener('click', async () => {
                     if (!currentPaymentId) return;
-                    const checkPaymentMessage = document.getElementById('check-payment-message');
+
                     checkPaymentButton.disabled = true;
                     checkPaymentMessage.textContent = "Verificando...";
 
                     try {
                         const result = await checkPaymentStatus({ paymentId: currentPaymentId });
                         if (result.data.status === 'approved') {
-                            redirectToSuccess();
+                            redirectToSuccess(); // Não precisa mais passar os parâmetros
                         } else {
-                            checkPaymentMessage.textContent = "Pagamento ainda pendente.";
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
                     } catch (error) {
                         console.error("Erro ao verificar pagamento:", error);
                         checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
                     } finally {
                         setTimeout(() => {
-                            checkPaymentButton.disabled = false;
-                            checkPaymentMessage.textContent = "";
+                           checkPaymentButton.disabled = false;
+                           checkPaymentMessage.textContent = "";
                         }, 3000);
                     }
                 });
@@ -472,40 +483,52 @@
                 }, 1000);
             }
             
+            // ===================================================================
+            // NOVA FUNÇÃO DE REDIRECIONAMENTO APÓS SUCESSO
+            // ===================================================================
             function redirectToSuccess() {
                 clearInterval(countdownInterval);
+                
+                // 1. Salva a chave de acesso no navegador do cliente
                 localStorage.setItem('hasFlashbeatAccess', 'true');
+
+                // 2. Atualiza a interface do modal para confirmar o sucesso
                 pixTitle.textContent = "Pagamento Aprovado!";
-                pixSubtitle.textContent = "Você está sendo redirecionado...";
+                pixSubtitle.textContent = "Você está sendo redirecionado para a sua área de acesso...";
                 checkPaymentButton.style.display = 'none';
                 document.getElementById('pix-container').style.display = 'none';
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
+
+                // 3. Redireciona para a página de acesso após um breve momento
                 setTimeout(() => {
-                    window.location.href = 'https://platamais.web.app/flashbeat';
+                    window.location.href = 'acesso-flashbeat.html';
                 }, 2500);
             }
+            // ===================================================================
+            // FIM DA NOVA FUNÇÃO
+            // ===================================================================
 
             window.copyPixCode = function() {
-                const copyMessage = document.getElementById('copy-message');
                 pixCodeInput.select();
                 try {
                     document.execCommand('copy');
                     copyMessage.textContent = 'Código copiado!';
                     setTimeout(() => { copyMessage.textContent = '' }, 2000);
                 } catch (err) {
+                    console.error('Não foi possível copiar o código:', err);
                     copyMessage.textContent = 'Erro ao copiar!';
                 }
             }
             
-            window.openModal = (modalId) => {
+            window.openModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
                     modal.classList.add('flex');
                     setTimeout(() => modal.classList.add('opacity-100'), 10);
                 }
             }
-            window.closeModal = (modalId) => {
+            window.closeModal = function(modalId) {
                 const modal = document.getElementById(modalId);
                 if(modal) {
                     modal.classList.remove('opacity-100');
@@ -513,9 +536,6 @@
                 }
             }
 
-            // ===================================================================
-            // LÓGICA DE RASTREAMENTO DE VISITANTE ÚNICO (CORRIGIDA)
-            // ===================================================================
             function getOrCreateVisitorId() {
                 let visitorId = localStorage.getItem('plataMaisVisitorId');
                 if (!visitorId) {
@@ -525,56 +545,30 @@
                 return visitorId;
             }
 
-            async function logUniqueProductAccess() {
+            async function logProductAccess() {
                 const buyButtonForId = document.getElementById('buy-button');
-                if (!buyButtonForId) {
-                    console.log("Visitante já tem acesso. Rastreamento não executado.");
-                    return; 
-                }
+                if (!buyButtonForId) return; // Se o botão não existe (cliente já comprou), não faz o log
 
                 const productId = buyButtonForId.dataset.productId;
                 if (!db || !productId || productId === "ID_DO_SEU_PRODUTO_AQUI") {
-                    console.error("Rastreamento desativado: Firestore ou ID do produto não configurado.");
+                    console.error("Firestore não inicializado ou ID do produto não configurado. Rastreamento de acesso desativado.");
                     return;
                 }
-                
                 const visitorId = getOrCreateVisitorId();
-                
                 try {
-                    const logsRef = db.collection('productAccessLogs');
-                    // Passo 1: Consultar todos os logs para este visitante
-                    const q = logsRef.where('visitorId', '==', visitorId);
-                    const querySnapshot = await q.get();
-                    
-                    let hasVisitedProduct = false;
-                    if (!querySnapshot.empty) {
-                        // Passo 2: Verificar no lado do cliente se algum dos logs corresponde ao produto atual
-                        querySnapshot.forEach((doc) => {
-                            if (doc.data().productId === productId) {
-                                hasVisitedProduct = true;
-                            }
-                        });
-                    }
-                    
-                    // Passo 3: Se o visitante nunca acessou ESTE produto, registrar.
-                    if (!hasVisitedProduct) {
-                        await logsRef.add({
-                            productId: productId,
-                            visitorId: visitorId,
-                            pageUrl: window.location.href,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                            userAgent: navigator.userAgent
-                        });
-                        console.log('Novo visitante único registrado para o produto:', productId);
-                    } else {
-                        console.log('Visitante recorrente para este produto. Nenhum novo log criado.');
-                    }
+                    await db.collection('productAccessLogs').add({
+                        productId: productId,
+                        visitorId: visitorId,
+                        pageUrl: window.location.href,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        userAgent: navigator.userAgent
+                    });
+                    console.log('Acesso registrado para o produto:', productId);
                 } catch (error) {
-                    console.error("Erro ao registrar ou verificar acesso de visitante:", error);
+                    console.error("Erro ao registrar acesso:", error);
                 }
             }
-            
-            logUniqueProductAccess();
+            logProductAccess();
         });
     </script>
 </body>
