@@ -514,7 +514,7 @@
             }
 
             // ===================================================================
-            // LÓGICA DE RASTREAMENTO DE VISITANTE ÚNICO (ATUALIZADA)
+            // LÓGICA DE RASTREAMENTO DE VISITANTE ÚNICO (CORRIGIDA)
             // ===================================================================
             function getOrCreateVisitorId() {
                 let visitorId = localStorage.getItem('plataMaisVisitorId');
@@ -527,7 +527,10 @@
 
             async function logUniqueProductAccess() {
                 const buyButtonForId = document.getElementById('buy-button');
-                if (!buyButtonForId) return; // Se o botão não existe, o cliente já comprou, não registra.
+                if (!buyButtonForId) {
+                    console.log("Visitante já tem acesso. Rastreamento não executado.");
+                    return; 
+                }
 
                 const productId = buyButtonForId.dataset.productId;
                 if (!db || !productId || productId === "ID_DO_SEU_PRODUTO_AQUI") {
@@ -539,12 +542,22 @@
                 
                 try {
                     const logsRef = db.collection('productAccessLogs');
-                    // Verifica se já existe um log para este visitante e este produto
-                    const q = logsRef.where('visitorId', '==', visitorId).where('productId', '==', productId);
+                    // Passo 1: Consultar todos os logs para este visitante
+                    const q = logsRef.where('visitorId', '==', visitorId);
                     const querySnapshot = await q.get();
                     
-                    if (querySnapshot.empty) {
-                        // Se não houver registro, é um novo visitante único para este produto.
+                    let hasVisitedProduct = false;
+                    if (!querySnapshot.empty) {
+                        // Passo 2: Verificar no lado do cliente se algum dos logs corresponde ao produto atual
+                        querySnapshot.forEach((doc) => {
+                            if (doc.data().productId === productId) {
+                                hasVisitedProduct = true;
+                            }
+                        });
+                    }
+                    
+                    // Passo 3: Se o visitante nunca acessou ESTE produto, registrar.
+                    if (!hasVisitedProduct) {
                         await logsRef.add({
                             productId: productId,
                             visitorId: visitorId,
@@ -554,8 +567,7 @@
                         });
                         console.log('Novo visitante único registrado para o produto:', productId);
                     } else {
-                        // O visitante já foi registrado para este produto. Não faz nada.
-                        console.log('Visitante recorrente. Nenhum novo log criado.');
+                        console.log('Visitante recorrente para este produto. Nenhum novo log criado.');
                     }
                 } catch (error) {
                     console.error("Erro ao registrar ou verificar acesso de visitante:", error);
