@@ -323,7 +323,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // ===================================================================
-            // NOVA LÓGICA DE VERIFICAÇÃO DE ACESSO
+            // LÓGICA DE VERIFICAÇÃO DE ACESSO
             // ===================================================================
             const accessKey = 'hasFlashbeatAccess';
             if (localStorage.getItem(accessKey) === 'true') {
@@ -351,7 +351,7 @@
                 }
             }
             // ===================================================================
-            // FIM DA NOVA LÓGICA
+            // FIM DA LÓGICA DE ACESSO
             // ===================================================================
 
             try {
@@ -449,7 +449,7 @@
                     try {
                         const result = await checkPaymentStatus({ paymentId: currentPaymentId });
                         if (result.data.status === 'approved') {
-                            redirectToSuccess(); // Não precisa mais passar os parâmetros
+                            redirectToSuccess();
                         } else {
                             checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
                         }
@@ -483,16 +483,11 @@
                 }, 1000);
             }
             
-            // ===================================================================
-            // NOVA FUNÇÃO DE REDIRECIONAMENTO APÓS SUCESSO
-            // ===================================================================
             function redirectToSuccess() {
                 clearInterval(countdownInterval);
                 
-                // 1. Salva a chave de acesso no navegador do cliente
                 localStorage.setItem('hasFlashbeatAccess', 'true');
 
-                // 2. Atualiza a interface do modal para confirmar o sucesso
                 pixTitle.textContent = "Pagamento Aprovado!";
                 pixSubtitle.textContent = "Você está sendo redirecionado para a sua área de acesso...";
                 checkPaymentButton.style.display = 'none';
@@ -500,14 +495,10 @@
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
 
-                // 3. Redireciona para a página de acesso após um breve momento
                 setTimeout(() => {
                     window.location.href = 'acesso-flashbeat.html';
                 }, 2500);
             }
-            // ===================================================================
-            // FIM DA NOVA FUNÇÃO
-            // ===================================================================
 
             window.copyPixCode = function() {
                 pixCodeInput.select();
@@ -536,39 +527,59 @@
                 }
             }
 
-            function getOrCreateVisitorId() {
-                let visitorId = localStorage.getItem('plataMaisVisitorId');
-                if (!visitorId) {
-                    visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-                    localStorage.setItem('plataMaisVisitorId', visitorId);
-                }
-                return visitorId;
-            }
+            // ===================================================================
+            // INÍCIO DA NOVA LÓGICA DE RASTREAMENTO DE VISITANTE ÚNICO
+            // ===================================================================
+            async function logUniqueVisitor() {
+                // Usamos uma chave específica no localStorage para este produto, para evitar conflitos.
+                const visitorKey = 'plataMaisUniqueVisitorId_flashbeat'; 
+                const existingVisitorId = localStorage.getItem(visitorKey);
 
-            async function logProductAccess() {
+                // Se um ID de visitante já existe no localStorage, significa que ele já foi registrado.
+                // A função para aqui e não faz mais nada.
+                if (existingVisitorId) {
+                    console.log(`Visitante de retorno. ID: ${existingVisitorId}. Não será registrado novamente.`);
+                    return;
+                }
+
+                // Se não há ID, este é um novo visitante. Prosseguimos para o registro.
                 const buyButtonForId = document.getElementById('buy-button');
-                if (!buyButtonForId) return; // Se o botão não existe (cliente já comprou), não faz o log
+                // Só registra se o botão de compra estiver na página (ou seja, se o usuário ainda não comprou).
+                if (!buyButtonForId) return;
 
                 const productId = buyButtonForId.dataset.productId;
                 if (!db || !productId || productId === "ID_DO_SEU_PRODUTO_AQUI") {
-                    console.error("Firestore não inicializado ou ID do produto não configurado. Rastreamento de acesso desativado.");
+                    console.error("Firestore não inicializado ou ID do produto não configurado. Rastreamento de visitante desativado.");
                     return;
                 }
-                const visitorId = getOrCreateVisitorId();
+
+                // Gera um ID único e permanente para este navegador/visitante.
+                const newVisitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+
                 try {
+                    // Adiciona um novo documento na coleção de logs.
+                    // O número de documentos nesta coleção agora representará o número de visitantes únicos.
                     await db.collection('productAccessLogs').add({
                         productId: productId,
-                        visitorId: visitorId,
+                        visitorId: newVisitorId,
                         pageUrl: window.location.href,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         userAgent: navigator.userAgent
                     });
-                    console.log('Acesso registrado para o produto:', productId);
+
+                    // Armazena o novo ID no localStorage para que ele não seja registrado novamente nas próximas visitas.
+                    localStorage.setItem(visitorKey, newVisitorId);
+                    console.log('Novo visitante único registrado com o ID:', newVisitorId);
+
                 } catch (error) {
-                    console.error("Erro ao registrar acesso:", error);
+                    console.error("Erro ao registrar novo visitante:", error);
                 }
             }
-            logProductAccess();
+            // Chama a função para registrar o visitante único assim que a página carregar.
+            logUniqueVisitor();
+            // ===================================================================
+            // FIM DA NOVA LÓGICA
+            // ===================================================================
         });
     </script>
 </body>
