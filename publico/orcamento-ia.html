@@ -18,7 +18,7 @@
         .progress-bar { height: 100%; background-color: #2563eb; width: 0%; border-radius: 5px; transition: width 0.1s linear; }
         .fade-in { animation: fadeInAnimation 1s ease-in forwards; }
         @keyframes fadeInAnimation { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items-center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: white; padding: 2rem; border-radius: 0.75rem; max-width: 400px; width: 90%; text-align: center; }
     </style>
 </head>
@@ -102,7 +102,7 @@
                     <p class="text-lg font-semibold">Exclusivamente via PIX</p>
                 </div>
                 <!-- NOVO: Campo de Diagnóstico de Erro -->
-                <div id="error-log" class="mt-6 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg text-left"></div>
+                <div id="error-log" class="mt-6 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg text-left hidden"></div>
                 
                 <button id="buy-button" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
                 <div class="mt-6 flex items-center justify-center gap-4">
@@ -133,8 +133,7 @@
     <script src="firebase-config.js"></script>
     
     <script>
-    // Envolve todo o script em uma função assíncrona para usar await
-    const main = async () => {
+    document.addEventListener('DOMContentLoaded', () => {
         // --- Seletores de Elementos DOM ---
         const videoSection = document.getElementById('video-section');
         const video = document.getElementById('vsl');
@@ -159,38 +158,7 @@
         let paymentCheckInterval = null;
         let functions;
 
-        // --- LÓGICA DE INICIALIZAÇÃO E DIAGNÓSTICO ---
-        try {
-            if (typeof firebaseConfig === 'undefined') {
-                throw new Error("O arquivo 'firebase-config.js' não foi encontrado. Verifique se ele está na mesma pasta que este HTML.");
-            }
-            firebase.initializeApp(firebaseConfig);
-            const auth = firebase.auth();
-            functions = firebase.app().functions('us-central1');
-
-            // Tenta o login anônimo e aguarda a conclusão
-            await auth.signInAnonymously();
-            
-            // Se tudo deu certo, esconde a caixa de erro
-            errorLog.style.display = 'none';
-
-        } catch (error) {
-            console.error("FALHA CRÍTICA NO FIREBASE:", error);
-            // Exibe o erro exato na tela para diagnóstico
-            errorLog.innerHTML = `<strong>Erro de Conexão:</strong><br><small>${error.message}</small>`;
-            errorLog.style.display = 'block'; // Garante que a caixa de erro está visível
-            
-            if (buyButton) {
-                buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
-                buyButton.disabled = true;
-                buyButton.style.background = '#9ca3af';
-                buyButton.style.cursor = 'not-allowed';
-            }
-            // Interrompe a execução do resto do script se a inicialização falhar
-            return; 
-        }
-
-        // --- LÓGICA DO VÍDEO ---
+        // --- LÓGICA DO VÍDEO (Executa independentemente do Firebase) ---
         const showOffer = () => {
             videoSection.style.display = 'none';
             hiddenContent.classList.remove('hidden');
@@ -236,88 +204,117 @@
             });
         }
 
-        // --- LÓGICA DO MODAL PIX ---
-        if (functions && buyButton && paymentForm) {
-            buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
-
-            paymentForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                userForm.classList.add('hidden');
-                loadingSpinner.classList.remove('hidden');
-                loadingSpinner.style.display = 'flex';
-
-                const createPixPayment = functions.httpsCallable('createPixPayment');
-                try {
-                    const result = await createPixPayment({
-                        firstName: document.getElementById('firstName').value,
-                        email: document.getElementById('email').value,
-                        productId: '04dfrhvjotiX1esrjg4w'
-                    });
-
-                    const data = result.data;
-                    if (!data.qrCodeBase64 || !data.qrCode || !data.paymentId) {
-                        throw new Error("A resposta da API de pagamento está incompleta.");
-                    }
-                    
-                    pixQrcode.src = `data:image/png;base64,${data.qrCodeBase64}`;
-                    pixCopiaCola.textContent = data.qrCode;
-
-                    loadingSpinner.style.display = 'none';
-                    loadingSpinner.classList.add('hidden');
-                    pixDetails.classList.remove('hidden');
-                    
-                    startPaymentStatusCheck(data.paymentId);
-
-                } catch (error) {
-                    console.error("Erro ao chamar a função createPixPayment:", error);
-                    modalContent.innerHTML = `<div class="text-center"><h3 class="text-xl font-bold text-red-600 mb-2">Ocorreu um Erro</h3><p class="text-gray-700">Não foi possível gerar o PIX. Por favor, tente novamente mais tarde.</p><p class="text-xs text-gray-500 mt-4">Detalhe: ${error.message}</p><button onclick="window.location.reload()" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Fechar</button></div>`;
+        // --- LÓGICA DE PAGAMENTO (Tenta inicializar o Firebase) ---
+        const initializeFirebase = async () => {
+            try {
+                if (typeof firebaseConfig === 'undefined') {
+                    throw new Error("O arquivo 'firebase-config.js' não foi encontrado. Verifique se ele está na mesma pasta que este HTML.");
                 }
-            });
+                firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+                functions = firebase.app().functions('us-central1');
+                await auth.signInAnonymously();
+                
+                // Se chegou aqui, a conexão foi bem-sucedida. Habilita o botão de compra.
+                setupPaymentListeners();
 
-            function startPaymentStatusCheck(paymentId) {
-                if (paymentCheckInterval) clearInterval(paymentCheckInterval);
-                const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
-                paymentCheckInterval = setInterval(async () => {
-                    try {
-                        const result = await checkPaymentStatus({ paymentId: paymentId });
-                        if (result.data.status === 'approved') {
-                            clearInterval(paymentCheckInterval);
-                            pixDetails.classList.add('hidden');
-                            paymentSuccess.classList.remove('hidden');
-                        }
-                    } catch (error) {
-                        console.error("Erro ao verificar status do pagamento:", error);
-                    }
-                }, 5000);
+            } catch (error) {
+                console.error("FALHA CRÍTICA NO FIREBASE:", error);
+                errorLog.innerHTML = `<strong>Erro de Conexão:</strong><br><small>${error.message}</small>`;
+                errorLog.classList.remove('hidden');
+                
+                if (buyButton) {
+                    buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
+                    buyButton.disabled = true;
+                    buyButton.style.background = '#9ca3af';
+                    buyButton.style.cursor = 'not-allowed';
+                }
             }
+        };
 
-            pixModal.addEventListener('click', (e) => {
-                if (e.target === pixModal) {
-                    pixModal.classList.add('hidden');
-                    clearInterval(paymentCheckInterval);
-                    userForm.classList.remove('hidden');
-                    pixDetails.classList.add('hidden');
-                    paymentSuccess.classList.add('hidden');
-                    loadingSpinner.classList.add('hidden');
-                    loadingSpinner.style.display = 'none';
-                    paymentForm.reset();
-                }
-            });
+        const setupPaymentListeners = () => {
+            if (functions && buyButton && paymentForm) {
+                buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
 
-            copyButton.addEventListener('click', () => {
-                const textToCopy = pixCopiaCola.textContent;
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    copyFeedback.textContent = 'Copiado!';
-                }).catch(() => {
-                    copyFeedback.textContent = 'Erro ao copiar.';
+                paymentForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    userForm.classList.add('hidden');
+                    loadingSpinner.classList.remove('hidden');
+                    loadingSpinner.style.display = 'flex';
+
+                    const createPixPayment = functions.httpsCallable('createPixPayment');
+                    try {
+                        const result = await createPixPayment({
+                            firstName: document.getElementById('firstName').value,
+                            email: document.getElementById('email').value,
+                            productId: '04dfrhvjotiX1esrjg4w'
+                        });
+
+                        const data = result.data;
+                        if (!data.qrCodeBase64 || !data.qrCode || !data.paymentId) {
+                            throw new Error("A resposta da API de pagamento está incompleta.");
+                        }
+                        
+                        pixQrcode.src = `data:image/png;base64,${data.qrCodeBase64}`;
+                        pixCopiaCola.textContent = data.qrCode;
+
+                        loadingSpinner.style.display = 'none';
+                        loadingSpinner.classList.add('hidden');
+                        pixDetails.classList.remove('hidden');
+                        
+                        startPaymentStatusCheck(data.paymentId);
+
+                    } catch (error) {
+                        console.error("Erro ao chamar a função createPixPayment:", error);
+                        modalContent.innerHTML = `<div class="text-center"><h3 class="text-xl font-bold text-red-600 mb-2">Ocorreu um Erro</h3><p class="text-gray-700">Não foi possível gerar o PIX. Por favor, tente novamente mais tarde.</p><p class="text-xs text-gray-500 mt-4">Detalhe: ${error.message}</p><button onclick="window.location.reload()" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Fechar</button></div>`;
+                    }
                 });
-                setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
-            });
-        }
-    };
 
-    // Adiciona o listener para executar a função principal quando o DOM estiver pronto
-    document.addEventListener('DOMContentLoaded', main);
+                function startPaymentStatusCheck(paymentId) {
+                    if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+                    const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+                    paymentCheckInterval = setInterval(async () => {
+                        try {
+                            const result = await checkPaymentStatus({ paymentId: paymentId });
+                            if (result.data.status === 'approved') {
+                                clearInterval(paymentCheckInterval);
+                                pixDetails.classList.add('hidden');
+                                paymentSuccess.classList.remove('hidden');
+                            }
+                        } catch (error) {
+                            console.error("Erro ao verificar status do pagamento:", error);
+                        }
+                    }, 5000);
+                }
+
+                pixModal.addEventListener('click', (e) => {
+                    if (e.target === pixModal) {
+                        pixModal.classList.add('hidden');
+                        clearInterval(paymentCheckInterval);
+                        userForm.classList.remove('hidden');
+                        pixDetails.classList.add('hidden');
+                        paymentSuccess.classList.add('hidden');
+                        loadingSpinner.classList.add('hidden');
+                        loadingSpinner.style.display = 'none';
+                        paymentForm.reset();
+                    }
+                });
+
+                copyButton.addEventListener('click', () => {
+                    const textToCopy = pixCopiaCola.textContent;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        copyFeedback.textContent = 'Copiado!';
+                    }).catch(() => {
+                        copyFeedback.textContent = 'Erro ao copiar.';
+                    });
+                    setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
+                });
+            }
+        };
+
+        // Inicia a tentativa de conexão com o Firebase
+        initializeFirebase();
+    });
     </script>
 </body>
 </html>
