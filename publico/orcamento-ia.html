@@ -42,7 +42,7 @@
                 </video>
             </div>
             <div class="progress-bar-container"><div id="custom-progress-bar" class="progress-bar"></div></div>
-            <p class="text-center text-sm text-gray-500 mt-2">O som será ativado ao clicar no play.</p>
+            <p id="video-feedback" class="text-center text-sm text-gray-500 mt-2">O som será ativado ao clicar no play.</p>
             <div class="text-center mt-4"><button id="play-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-blue-700 transition-colors">ASSISTIR AGORA</button></div>
         </div>
     </section>
@@ -202,6 +202,7 @@
             const buyButton = document.getElementById('buy-button');
             const pixModal = document.getElementById('pix-modal');
             const modalContent = document.getElementById('modal-content-area');
+            const videoFeedback = document.getElementById('video-feedback');
 
             // Elementos do Modal
             const userForm = document.getElementById('user-form');
@@ -227,10 +228,42 @@
             if (localStorage.getItem('videoWatched') === 'true') {
                 showOffer();
             } else {
-                playButton.addEventListener('click', () => { video.play(); video.muted = false; playButton.style.display = 'none'; });
+                playButton.addEventListener('click', () => {
+                    // Tenta reproduzir o vídeo
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            // Sucesso! Tira o mudo e esconde o botão.
+                            video.muted = false;
+                            playButton.style.display = 'none';
+                        }).catch(error => {
+                            // Falha - o navegador bloqueou. Informa o usuário.
+                            console.error("Erro ao tentar reproduzir o vídeo:", error);
+                            if (videoFeedback) {
+                                videoFeedback.textContent = "Não foi possível iniciar o vídeo. Por favor, verifique as permissões do seu navegador.";
+                                videoFeedback.classList.add('text-red-500', 'font-bold');
+                            }
+                        });
+                    }
+                });
+
                 let lastTime = 0;
-                video.addEventListener('timeupdate', () => { if (!video.seeking) { if (video.currentTime > lastTime + 1) { video.currentTime = lastTime; } lastTime = video.currentTime; } const p = (video.currentTime / video.duration); progressBar.style.width = `${Math.pow(p, 0.4) * 100}%`; });
-                video.addEventListener('ended', () => { localStorage.setItem('videoWatched', 'true'); showOffer(); document.getElementById('preco').scrollIntoView({ behavior: 'smooth' }); });
+                video.addEventListener('timeupdate', () => { 
+                    if (!video.seeking) { 
+                        if (video.currentTime > lastTime + 1) { 
+                            video.currentTime = lastTime; 
+                        } 
+                        lastTime = video.currentTime; 
+                    } 
+                    const p = (video.currentTime / video.duration); 
+                    progressBar.style.width = `${Math.pow(p, 0.4) * 100}%`; 
+                });
+                
+                video.addEventListener('ended', () => { 
+                    localStorage.setItem('videoWatched', 'true'); 
+                    showOffer(); 
+                    document.getElementById('preco').scrollIntoView({ behavior: 'smooth' }); 
+                });
             }
 
             // Lógica do Modal PIX
