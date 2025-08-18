@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF--8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Método Orçamento IA - Propostas que Convertem</title>
     <!-- Tailwind CSS CDN -->
@@ -83,7 +83,7 @@
             <section class="text-center mb-20">
                 <h2 class="text-3xl md:text-4xl font-bold mb-10">O Que Você Terá Acesso Imediato</h2>
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
-                     <!-- Itens dos módulos e bônus -->
+                    <!-- Itens dos módulos e bônus -->
                     <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
                         <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3>
                         <p>Entenda a psicologia por trás de uma proposta de alto impacto e estruture seu documento para guiar o cliente até o "sim".</p>
@@ -179,113 +179,136 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <!-- ATENÇÃO: Certifique-se que este arquivo exista e esteja correto -->
     <script src="/firebase-config.js"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Inicializa o Firebase
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Seletores de Elementos DOM ---
+        const videoSection = document.getElementById('video-section');
+        const video = document.getElementById('vsl');
+        const playButton = document.getElementById('play-button');
+        const progressBar = document.getElementById('custom-progress-bar');
+        const hiddenContent = document.getElementById('hidden-content');
+        const buyButton = document.getElementById('buy-button');
+        const pixModal = document.getElementById('pix-modal');
+        const modalContent = document.getElementById('modal-content-area');
+        const videoFeedback = document.getElementById('video-feedback');
+        const userForm = document.getElementById('user-form');
+        const paymentForm = document.getElementById('payment-form');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const pixDetails = document.getElementById('pix-details');
+        const paymentSuccess = document.getElementById('payment-success');
+        const pixQrcode = document.getElementById('pix-qrcode');
+        const pixCopiaCola = document.getElementById('pix-copia-cola');
+        const copyButton = document.getElementById('copy-button');
+        const copyFeedback = document.getElementById('copy-feedback');
+        
+        let paymentCheckInterval = null;
+        let functions; // Variável para as functions do Firebase
+
+        // --- Inicialização do Firebase ---
+        try {
+            if (typeof firebaseConfig === 'undefined') {
+                throw new Error("firebase-config.js não encontrado ou mal formatado.");
+            }
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
-            const functions = firebase.app().functions('us-central1');
+            functions = firebase.app().functions('us-central1');
 
-            // Autentica o usuário anonimamente
             auth.signInAnonymously().catch((error) => {
                 console.error("Erro na autenticação anônima:", error);
             });
-
-            // --- LÓGICA DA PÁGINA ---
-            const videoSection = document.getElementById('video-section');
-            const video = document.getElementById('vsl');
-            const playButton = document.getElementById('play-button');
-            const progressBar = document.getElementById('custom-progress-bar');
-            const hiddenContent = document.getElementById('hidden-content');
-            const buyButton = document.getElementById('buy-button');
-            const pixModal = document.getElementById('pix-modal');
-            const modalContent = document.getElementById('modal-content-area');
-            const videoFeedback = document.getElementById('video-feedback');
-
-            // Elementos do Modal
-            const userForm = document.getElementById('user-form');
-            const paymentForm = document.getElementById('payment-form');
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const pixDetails = document.getElementById('pix-details');
-            const paymentSuccess = document.getElementById('payment-success');
-            const pixQrcode = document.getElementById('pix-qrcode');
-            const pixCopiaCola = document.getElementById('pix-copia-cola');
-            const copyButton = document.getElementById('copy-button');
-            const copyFeedback = document.getElementById('copy-feedback');
-            
-            let paymentCheckInterval = null;
-
-            // Função para mostrar a oferta
-            const showOffer = () => {
-                videoSection.style.display = 'none';
-                hiddenContent.classList.remove('hidden');
-                hiddenContent.classList.add('fade-in');
-            };
-
-            // Lógica do vídeo (localStorage)
-            if (localStorage.getItem('videoWatched') === 'true') {
-                showOffer();
-            } else {
-                playButton.addEventListener('click', () => {
-                    // Tenta reproduzir o vídeo
-                    const playPromise = video.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            // Sucesso! Tira o mudo e esconde o botão.
-                            video.muted = false;
-                            playButton.style.display = 'none';
-                        }).catch(error => {
-                            // Falha - o navegador bloqueou. Informa o usuário.
-                            console.error("Erro ao tentar reproduzir o vídeo:", error);
-                            if (videoFeedback) {
-                                videoFeedback.textContent = "Não foi possível iniciar o vídeo. Por favor, verifique as permissões do seu navegador.";
-                                videoFeedback.classList.add('text-red-500', 'font-bold');
-                            }
-                        });
-                    }
-                });
-
-                let lastTime = 0;
-                video.addEventListener('timeupdate', () => { 
-                    if (!video.seeking) { 
-                        if (video.currentTime > lastTime + 1) { 
-                            video.currentTime = lastTime; 
-                        } 
-                        lastTime = video.currentTime; 
-                    } 
-                    const p = (video.currentTime / video.duration); 
-                    progressBar.style.width = `${Math.pow(p, 0.4) * 100}%`; 
-                });
-                
-                video.addEventListener('ended', () => { 
-                    localStorage.setItem('videoWatched', 'true'); 
-                    showOffer(); 
-                    document.getElementById('preco').scrollIntoView({ behavior: 'smooth' }); 
-                });
+        } catch (error) {
+            console.error("FALHA NA INICIALIZAÇÃO DO FIREBASE:", error);
+            if (buyButton) {
+                buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
+                buyButton.disabled = true;
+                buyButton.style.background = '#9ca3af'; // Tailwind gray-400
+                buyButton.style.cursor = 'not-allowed';
             }
+        }
 
-            // Lógica do Modal PIX
+        // --- LÓGICA DO VÍDEO ---
+        const showOffer = () => {
+            videoSection.style.display = 'none';
+            hiddenContent.classList.remove('hidden');
+            hiddenContent.classList.add('fade-in');
+        };
+
+        if (localStorage.getItem('videoWatched') === 'true') {
+            showOffer();
+        } else if (video && playButton) {
+            playButton.addEventListener('click', () => {
+                // Inicia o vídeo mudo para garantir compatibilidade com navegadores.
+                video.muted = true; 
+                const playPromise = video.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Após o início, remove o mudo.
+                        video.muted = false;
+                        playButton.style.display = 'none';
+                        if(videoFeedback) videoFeedback.style.display = 'none';
+                    }).catch(error => {
+                        console.error("Erro ao tentar reproduzir o vídeo:", error);
+                        if (videoFeedback) {
+                            videoFeedback.textContent = "Não foi possível iniciar o vídeo. Verifique as permissões do seu navegador.";
+                            videoFeedback.classList.add('text-red-500', 'font-bold');
+                        }
+                    });
+                }
+            });
+
+            let lastTime = 0;
+            video.addEventListener('timeupdate', () => { 
+                if (!video.seeking) {
+                    // Previne que o usuário pule o vídeo
+                    if (video.currentTime > lastTime + 1.5) { 
+                        video.currentTime = lastTime; 
+                    } 
+                    lastTime = video.currentTime; 
+                } 
+                if (video.duration) {
+                    const progressPercentage = (video.currentTime / video.duration) * 100;
+                    progressBar.style.width = `${progressPercentage}%`;
+                }
+            });
+            
+            video.addEventListener('ended', () => { 
+                localStorage.setItem('videoWatched', 'true'); 
+                showOffer(); 
+                document.getElementById('preco').scrollIntoView({ behavior: 'smooth' }); 
+            });
+        }
+
+        // --- LÓGICA DO MODAL PIX (só ativa se o Firebase funcionou) ---
+        if (functions && buyButton && paymentForm) {
             buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
 
             paymentForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 userForm.classList.add('hidden');
                 loadingSpinner.classList.remove('hidden');
+                loadingSpinner.style.display = 'flex';
 
                 const createPixPayment = functions.httpsCallable('createPixPayment');
                 try {
                     const result = await createPixPayment({
                         firstName: document.getElementById('firstName').value,
                         email: document.getElementById('email').value,
-                        productId: '04dfrhvjotiX1esrjg4w' // ID do produto no Firestore
+                        productId: '04dfrhvjotiX1esrjg4w'
                     });
 
                     const data = result.data;
+                    if (!data.qrCodeBase64 || !data.qrCode || !data.paymentId) {
+                        throw new Error("A resposta da API de pagamento está incompleta.");
+                    }
+                    
                     pixQrcode.src = `data:image/png;base64,${data.qrCodeBase64}`;
                     pixCopiaCola.textContent = data.qrCode;
 
+                    loadingSpinner.style.display = 'none';
                     loadingSpinner.classList.add('hidden');
                     pixDetails.classList.remove('hidden');
                     
@@ -293,7 +316,7 @@
 
                 } catch (error) {
                     console.error("Erro ao chamar a função createPixPayment:", error);
-                    modalContent.innerHTML = `<p class="text-red-500">Erro: ${error.message}. Verifique o console para mais detalhes.</p>`;
+                    modalContent.innerHTML = `<div class="text-center"><h3 class="text-xl font-bold text-red-600 mb-2">Ocorreu um Erro</h3><p class="text-gray-700">Não foi possível gerar o PIX. Por favor, tente novamente mais tarde.</p><p class="text-xs text-gray-500 mt-4">Detalhe: ${error.message}</p><button onclick="window.location.reload()" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Fechar</button></div>`;
                 }
             });
 
@@ -310,42 +333,51 @@
                             paymentSuccess.classList.remove('hidden');
                         }
                     } catch (error) {
-                        console.error("Erro ao verificar status:", error);
+                        console.error("Erro ao verificar status do pagamento:", error);
                     }
                 }, 5000);
             }
 
-            // Fechar o modal
             pixModal.addEventListener('click', (e) => {
                 if (e.target === pixModal) {
                     pixModal.classList.add('hidden');
                     clearInterval(paymentCheckInterval);
-                    // Reseta o modal para o estado inicial
                     userForm.classList.remove('hidden');
                     pixDetails.classList.add('hidden');
                     paymentSuccess.classList.add('hidden');
                     loadingSpinner.classList.add('hidden');
+                    loadingSpinner.style.display = 'none';
                     paymentForm.reset();
                 }
             });
 
-            // Lógica para copiar o código PIX
             copyButton.addEventListener('click', () => {
                 const textToCopy = pixCopiaCola.textContent;
-                const textArea = document.createElement('textarea');
-                textArea.value = textToCopy;
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    copyFeedback.textContent = 'Copiado!';
-                } catch (err) {
-                    copyFeedback.textContent = 'Erro ao copiar.';
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        copyFeedback.textContent = 'Copiado!';
+                    }).catch(() => {
+                        copyFeedback.textContent = 'Erro ao copiar.';
+                    });
+                } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'absolute';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copyFeedback.textContent = 'Copiado!';
+                    } catch (err) {
+                        copyFeedback.textContent = 'Erro ao copiar.';
+                    }
+                    document.body.removeChild(textArea);
                 }
-                document.body.removeChild(textArea);
                 setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
             });
-        });
+        }
+    });
     </script>
 </body>
 </html>
