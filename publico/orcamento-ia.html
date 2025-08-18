@@ -18,7 +18,7 @@
         .progress-bar { height: 100%; background-color: #2563eb; width: 0%; border-radius: 5px; transition: width 0.1s linear; }
         .fade-in { animation: fadeInAnimation 1s ease-in forwards; }
         @keyframes fadeInAnimation { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items-center; justify-content: center; z-index: 1000; }
         .modal-content { background: white; padding: 2rem; border-radius: 0.75rem; max-width: 400px; width: 90%; text-align: center; }
     </style>
 </head>
@@ -83,31 +83,12 @@
             <section class="text-center mb-20">
                 <h2 class="text-3xl md:text-4xl font-bold mb-10">O Que Você Terá Acesso Imediato</h2>
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
-                    <!-- Itens dos módulos e bônus -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3>
-                        <p>Entenda a psicologia por trás de uma proposta de alto impacto e estruture seu documento para guiar o cliente até o "sim".</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 2: Engenharia de Prompts com IA</h3>
-                        <p>Copie e cole meus prompts secretos para extrair textos persuasivos, descrições de serviços e cronogramas detalhados da IA.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 3: Design Profissional e Rápido</h3>
-                        <p>Use ferramentas (muitas gratuitas) para criar um visual limpo e profissional para suas propostas, sem precisar ser um designer.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 4: Automatizando o Processo</h3>
-                        <p>Crie templates inteligentes que permitem gerar uma nova proposta personalizada em menos de 10 minutos.</p>
-                    </div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md md:col-span-2 lg:col-span-1">
-                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #1: Planilha de Precificação</h3>
-                        <p class="text-blue-700">Uma planilha completa para te ajudar a calcular seu preço de forma justa e lucrativa.</p>
-                    </div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #2: Grupo VIP de Alunos</h3>
-                        <p class="text-blue-700">Acesso a uma comunidade exclusiva para networking, tirar dúvidas e compartilhar resultados.</p>
-                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3><p>Entenda a psicologia por trás de uma proposta de alto impacto e estruture seu documento para guiar o cliente até o "sim".</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 2: Engenharia de Prompts com IA</h3><p>Copie e cole meus prompts secretos para extrair textos persuasivos, descrições de serviços e cronogramas detalhados da IA.</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 3: Design Profissional e Rápido</h3><p>Use ferramentas (muitas gratuitas) para criar um visual limpo e profissional para suas propostas, sem precisar ser um designer.</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 4: Automatizando o Processo</h3><p>Crie templates inteligentes que permitem gerar uma nova proposta personalizada em menos de 10 minutos.</p></div>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md md:col-span-2 lg:col-span-1"><h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #1: Planilha de Precificação</h3><p class="text-blue-700">Uma planilha completa para te ajudar a calcular seu preço de forma justa e lucrativa.</p></div>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md"><h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #2: Grupo VIP de Alunos</h3><p class="text-blue-700">Acesso a uma comunidade exclusiva para networking, tirar dúvidas e compartilhar resultados.</p></div>
                 </div>
             </section>
 
@@ -120,6 +101,9 @@
                     <p class="text-5xl md:text-6xl font-bold my-2 text-gray-900"><span class="text-blue-600">R$39,90</span></p>
                     <p class="text-lg font-semibold">Exclusivamente via PIX</p>
                 </div>
+                <!-- NOVO: Campo de Diagnóstico de Erro -->
+                <div id="error-log" class="mt-6 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg text-left"></div>
+                
                 <button id="buy-button" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
                 <div class="mt-6 flex items-center justify-center gap-4">
                     <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
@@ -132,58 +116,25 @@
     <!-- Modal de Pagamento PIX -->
     <div id="pix-modal" class="modal-overlay hidden">
         <div class="modal-content" id="modal-content-area">
-            <!-- Passo 1: Formulário de dados -->
-            <div id="user-form">
-                <h2 class="text-2xl font-bold mb-4">Quase lá!</h2>
-                <p class="mb-4 text-gray-600">Preencha seus dados para gerar o PIX.</p>
-                <form id="payment-form">
-                    <input type="text" id="firstName" placeholder="Seu primeiro nome" class="w-full p-2 border border-gray-300 rounded-md mb-3" required>
-                    <input type="email" id="email" placeholder="Seu melhor e-mail" class="w-full p-2 border border-gray-300 rounded-md mb-4" required>
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Gerar PIX</button>
-                </form>
-            </div>
-            <!-- Passo 2: Carregando -->
-            <div id="loading-spinner" class="hidden justify-center items-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
-            </div>
-            <!-- Passo 3: Detalhes do PIX -->
-            <div id="pix-details" class="hidden">
-                <h2 class="text-2xl font-bold mb-4">Pague com PIX para continuar</h2>
-                <p class="mb-4">Escaneie o QR Code abaixo com o app do seu banco:</p>
-                <img id="pix-qrcode" src="" alt="PIX QR Code" class="mx-auto border rounded-md">
-                <p class="my-4 font-semibold">Ou use o PIX Copia e Cola:</p>
-                <div class="bg-gray-100 p-2 rounded-md break-words text-sm"><code id="pix-copia-cola"></code></div>
-                <button id="copy-button" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Copiar Código</button>
-                <p id="copy-feedback" class="text-green-600 text-sm mt-2 h-4"></p>
-                <p id="payment-status-feedback" class="text-blue-600 font-semibold mt-4">Aguardando pagamento...</p>
-            </div>
-             <!-- Passo 4: Pagamento Aprovado -->
-            <div id="payment-success" class="hidden">
-                 <svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                 <h2 class="text-2xl font-bold mb-2">Pagamento Aprovado!</h2>
-                 <p class="text-gray-600">Parabéns! As instruções de acesso foram enviadas para o seu e-mail.</p>
-            </div>
+            <div id="user-form"><h2 class="text-2xl font-bold mb-4">Quase lá!</h2><p class="mb-4 text-gray-600">Preencha seus dados para gerar o PIX.</p><form id="payment-form"><input type="text" id="firstName" placeholder="Seu primeiro nome" class="w-full p-2 border border-gray-300 rounded-md mb-3" required><input type="email" id="email" placeholder="Seu melhor e-mail" class="w-full p-2 border border-gray-300 rounded-md mb-4" required><button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Gerar PIX</button></form></div>
+            <div id="loading-spinner" class="hidden justify-center items-center"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div></div>
+            <div id="pix-details" class="hidden"><h2 class="text-2xl font-bold mb-4">Pague com PIX para continuar</h2><p class="mb-4">Escaneie o QR Code abaixo com o app do seu banco:</p><img id="pix-qrcode" src="" alt="PIX QR Code" class="mx-auto border rounded-md"><p class="my-4 font-semibold">Ou use o PIX Copia e Cola:</p><div class="bg-gray-100 p-2 rounded-md break-words text-sm"><code id="pix-copia-cola"></code></div><button id="copy-button" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Copiar Código</button><p id="copy-feedback" class="text-green-600 text-sm mt-2 h-4"></p><p id="payment-status-feedback" class="text-blue-600 font-semibold mt-4">Aguardando pagamento...</p></div>
+            <div id="payment-success" class="hidden"><svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h2 class="text-2xl font-bold mb-2">Pagamento Aprovado!</h2><p class="text-gray-600">Parabéns! As instruções de acesso foram enviadas para o seu e-mail.</p></div>
         </div>
     </div>
 
     <!-- Rodapé -->
-    <footer class="bg-gray-800 text-white py-8">
-        <div class="container mx-auto px-6 text-center">
-            <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
-            <p class="text-sm text-gray-400 mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">conectawebdigital.com.br</a></p>
-            <p class="text-sm text-gray-400 mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook.</p>
-        </div>
-    </footer>
+    <footer class="bg-gray-800 text-white py-8"><div class="container mx-auto px-6 text-center"><p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p><p class="text-sm text-gray-400 mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">conectawebdigital.com.br</a></p><p class="text-sm text-gray-400 mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook.</p></div></footer>
 
-    <!-- Scripts do Firebase (VERSÃO 8 - COMPATÍVEL) -->
+    <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
-    <!-- CORREÇÃO APLICADA: Removida a barra inicial do caminho do script -->
     <script src="firebase-config.js"></script>
     
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Envolve todo o script em uma função assíncrona para usar await
+    const main = async () => {
         // --- Seletores de Elementos DOM ---
         const videoSection = document.getElementById('video-section');
         const video = document.getElementById('vsl');
@@ -203,30 +154,40 @@
         const pixCopiaCola = document.getElementById('pix-copia-cola');
         const copyButton = document.getElementById('copy-button');
         const copyFeedback = document.getElementById('copy-feedback');
+        const errorLog = document.getElementById('error-log');
         
         let paymentCheckInterval = null;
-        let functions; // Variável para as functions do Firebase
+        let functions;
 
-        // --- Inicialização do Firebase ---
+        // --- LÓGICA DE INICIALIZAÇÃO E DIAGNÓSTICO ---
         try {
             if (typeof firebaseConfig === 'undefined') {
-                throw new Error("firebase-config.js não encontrado ou mal formatado.");
+                throw new Error("O arquivo 'firebase-config.js' não foi encontrado. Verifique se ele está na mesma pasta que este HTML.");
             }
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
             functions = firebase.app().functions('us-central1');
 
-            auth.signInAnonymously().catch((error) => {
-                console.error("Erro na autenticação anônima:", error);
-            });
+            // Tenta o login anônimo e aguarda a conclusão
+            await auth.signInAnonymously();
+            
+            // Se tudo deu certo, esconde a caixa de erro
+            errorLog.style.display = 'none';
+
         } catch (error) {
-            console.error("FALHA NA INICIALIZAÇÃO DO FIREBASE:", error);
+            console.error("FALHA CRÍTICA NO FIREBASE:", error);
+            // Exibe o erro exato na tela para diagnóstico
+            errorLog.innerHTML = `<strong>Erro de Conexão:</strong><br><small>${error.message}</small>`;
+            errorLog.style.display = 'block'; // Garante que a caixa de erro está visível
+            
             if (buyButton) {
                 buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
                 buyButton.disabled = true;
-                buyButton.style.background = '#9ca3af'; // Tailwind gray-400
+                buyButton.style.background = '#9ca3af';
                 buyButton.style.cursor = 'not-allowed';
             }
+            // Interrompe a execução do resto do script se a inicialização falhar
+            return; 
         }
 
         // --- LÓGICA DO VÍDEO ---
@@ -240,20 +201,17 @@
             showOffer();
         } else if (video && playButton) {
             playButton.addEventListener('click', () => {
-                // Inicia o vídeo mudo para garantir compatibilidade com navegadores.
                 video.muted = true; 
                 const playPromise = video.play();
-
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        // Após o início, remove o mudo.
                         video.muted = false;
                         playButton.style.display = 'none';
                         if(videoFeedback) videoFeedback.style.display = 'none';
                     }).catch(error => {
                         console.error("Erro ao tentar reproduzir o vídeo:", error);
                         if (videoFeedback) {
-                            videoFeedback.textContent = "Não foi possível iniciar o vídeo. Verifique as permissões do seu navegador.";
+                            videoFeedback.textContent = "Não foi possível iniciar o vídeo.";
                             videoFeedback.classList.add('text-red-500', 'font-bold');
                         }
                     });
@@ -262,16 +220,12 @@
 
             let lastTime = 0;
             video.addEventListener('timeupdate', () => { 
-                if (!video.seeking) {
-                    // Previne que o usuário pule o vídeo
-                    if (video.currentTime > lastTime + 1.5) { 
-                        video.currentTime = lastTime; 
-                    } 
-                    lastTime = video.currentTime; 
+                if (!video.seeking && video.currentTime > lastTime + 1.5) { 
+                    video.currentTime = lastTime; 
                 } 
+                lastTime = video.currentTime; 
                 if (video.duration) {
-                    const progressPercentage = (video.currentTime / video.duration) * 100;
-                    progressBar.style.width = `${progressPercentage}%`;
+                    progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
                 }
             });
             
@@ -282,7 +236,7 @@
             });
         }
 
-        // --- LÓGICA DO MODAL PIX (só ativa se o Firebase funcionou) ---
+        // --- LÓGICA DO MODAL PIX ---
         if (functions && buyButton && paymentForm) {
             buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
 
@@ -322,7 +276,6 @@
 
             function startPaymentStatusCheck(paymentId) {
                 if (paymentCheckInterval) clearInterval(paymentCheckInterval);
-
                 const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
                 paymentCheckInterval = setInterval(async () => {
                     try {
@@ -353,31 +306,18 @@
 
             copyButton.addEventListener('click', () => {
                 const textToCopy = pixCopiaCola.textContent;
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        copyFeedback.textContent = 'Copiado!';
-                    }).catch(() => {
-                        copyFeedback.textContent = 'Erro ao copiar.';
-                    });
-                } else {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = textToCopy;
-                    textArea.style.position = 'absolute';
-                    textArea.style.left = '-9999px';
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        copyFeedback.textContent = 'Copiado!';
-                    } catch (err) {
-                        copyFeedback.textContent = 'Erro ao copiar.';
-                    }
-                    document.body.removeChild(textArea);
-                }
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    copyFeedback.textContent = 'Copiado!';
+                }).catch(() => {
+                    copyFeedback.textContent = 'Erro ao copiar.';
+                });
                 setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
             });
         }
-    });
+    };
+
+    // Adiciona o listener para executar a função principal quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', main);
     </script>
 </body>
 </html>
