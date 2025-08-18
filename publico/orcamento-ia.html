@@ -11,44 +11,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Estilo para a fonte Inter */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Efeito de gradiente animado para o botão principal */
-        .animated-gradient {
-            background-size: 200% 200%;
-            animation: gradient-animation 5s ease infinite;
-        }
-        @keyframes gradient-animation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        /* Estilos para a barra de progresso customizada */
-        .progress-bar-container {
-            width: 100%;
-            height: 10px;
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: #2563eb; /* Azul */
-            width: 0%;
-            border-radius: 5px;
-            transition: width 0.1s linear;
-        }
-        /* Animação de fade-in */
-        .fade-in {
-            animation: fadeInAnimation 1s ease-in forwards;
-        }
-        @keyframes fadeInAnimation {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .animated-gradient { background-size: 200% 200%; animation: gradient-animation 5s ease infinite; }
+        @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .progress-bar-container { width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-bar { height: 100%; background-color: #2563eb; width: 0%; border-radius: 5px; transition: width 0.1s linear; }
+        .fade-in { animation: fadeInAnimation 1s ease-in forwards; }
+        @keyframes fadeInAnimation { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 0.75rem; max-width: 400px; width: 90%; text-align: center; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -56,12 +27,8 @@
     <!-- Seção Principal (Hero) -->
     <header class="bg-gray-900 text-white shadow-lg">
         <div class="container mx-auto px-6 py-12 text-center">
-            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4">
-                Finalmente: O Método Simples Para Criar Orçamentos Profissionais com IA em Minutos
-            </h1>
-            <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                Assista à apresentação abaixo para descobrir como impressionar seus clientes e fechar mais negócios.
-            </p>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4">Finalmente: O Método Simples Para Criar Orçamentos Profissionais com IA em Minutos</h1>
+            <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">Assista à apresentação abaixo para descobrir como impressionar seus clientes e fechar mais negócios.</p>
         </div>
     </header>
 
@@ -69,102 +36,27 @@
     <section id="video-section" class="py-12 bg-gray-100">
         <div class="container mx-auto px-6 max-w-4xl">
             <div class="bg-black rounded-lg shadow-2xl overflow-hidden">
-                <!-- ATENÇÃO: Substitua o 'src' pelo link do seu vídeo -->
                 <video id="vsl" class="w-full" playsinline>
                     <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4">
                     Seu navegador não suporta a tag de vídeo.
                 </video>
             </div>
-            <div class="progress-bar-container">
-                <div id="custom-progress-bar" class="progress-bar"></div>
-            </div>
+            <div class="progress-bar-container"><div id="custom-progress-bar" class="progress-bar"></div></div>
             <p class="text-center text-sm text-gray-500 mt-2">O som será ativado ao clicar no play.</p>
-             <div class="text-center mt-4">
-                <button id="play-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-blue-700 transition-colors">
-                    ASSISTIR AGORA
-                </button>
-            </div>
+            <div class="text-center mt-4"><button id="play-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-blue-700 transition-colors">ASSISTIR AGORA</button></div>
         </div>
     </section>
 
     <!-- Conteúdo Oculto - Revelado após o vídeo -->
     <div id="hidden-content" class="hidden">
-        <!-- Corpo da Página -->
         <main class="container mx-auto px-6 py-12 md:py-20">
-
-            <!-- Seção: Seus Problemas Acabaram -->
+            <!-- Seções de problemas, solução, módulos, etc. -->
             <section class="text-center mb-20">
                 <h2 class="text-3xl md:text-4xl font-bold mb-6">Você se identifica com algum destes problemas?</h2>
                 <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                    <!-- Problema 1 -->
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <h3 class="text-xl font-semibold mb-2">Perda de Tempo</h3>
-                        <p class="text-gray-600">Você gasta horas, ou até dias, para montar uma única proposta comercial, deixando outras tarefas importantes de lado.</p>
-                    </div>
-                    <!-- Problema 2 -->
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <h3 class="text-xl font-semibold mb-2">Falta de Profissionalismo</h3>
-                        <p class="text-gray-600">Suas propostas parecem amadoras, não transmitem confiança e você sente que seu preço não é valorizado.</p>
-                    </div>
-                    <!-- Problema 3 -->
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
-                        <h3 class="text-xl font-semibold mb-2">Baixa Conversão</h3>
-                        <p class="text-gray-600">Você envia dezenas de orçamentos, mas recebe poucas respostas positivas. Seus potenciais clientes simplesmente desaparecem.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Seção: Apresentando a Solução -->
-            <section class="mb-20 bg-white p-8 md:p-12 rounded-xl shadow-lg border border-gray-200">
-                <div class="flex flex-col md:flex-row items-center gap-12">
-                    <div class="md:w-1/2">
-                        <span class="text-blue-500 font-semibold">A SOLUÇÃO DEFINITIVA</span>
-                        <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">O Método Orçamento IA</h2>
-                        <p class="text-gray-600 mb-4 leading-relaxed">
-                            Chega de bloqueio criativo e propostas que não vendem. Com o meu método, você vai usar o poder da Inteligência Artificial para criar orçamentos e propostas comerciais que não apenas informam o preço, mas que <strong class="text-gray-900">encantam, convencem e fecham negócios</strong>.
-                        </p>
-                        <p class="text-gray-600 leading-relaxed">
-                            Vou te guiar passo a passo, mostrando os comandos exatos e as ferramentas certas para automatizar seu processo, economizar seu tempo e multiplicar seus resultados.
-                        </p>
-                    </div>
-                    <div class="md:w-1/2">
-                        <img src="https://placehold.co/600x400/1E293B/FFFFFF?text=Or%C3%A7amento+com+IA" alt="Demonstração do método de criação de orçamento com Inteligência Artificial" class="rounded-lg shadow-2xl w-full">
-                    </div>
-                </div>
-            </section>
-
-            <!-- Seção: O que você vai aprender -->
-            <section class="text-center mb-20">
-                <h2 class="text-3xl md:text-4xl font-bold mb-10">O Que Você Terá Acesso Imediato</h2>
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
-                     <!-- Itens dos módulos e bônus -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3>
-                        <p>Entenda a psicologia por trás de uma proposta de alto impacto e estruture seu documento para guiar o cliente até o "sim".</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 2: Engenharia de Prompts com IA</h3>
-                        <p>Copie e cole meus prompts secretos para extrair textos persuasivos, descrições de serviços e cronogramas detalhados da IA.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 3: Design Profissional e Rápido</h3>
-                        <p>Use ferramentas (muitas gratuitas) para criar um visual limpo e profissional para suas propostas, sem precisar ser um designer.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 4: Automatizando o Processo</h3>
-                        <p>Crie templates inteligentes que permitem gerar uma nova proposta personalizada em menos de 10 minutos.</p>
-                    </div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md md:col-span-2 lg:col-span-1">
-                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #1: Planilha de Precificação</h3>
-                        <p class="text-blue-700">Uma planilha completa para te ajudar a calcular seu preço de forma justa e lucrativa.</p>
-                    </div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md">
-                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #2: Grupo VIP de Alunos</h3>
-                        <p class="text-blue-700">Acesso a uma comunidade exclusiva para networking, tirar dúvidas e compartilhar resultados.</p>
-                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-semibold mb-2">Perda de Tempo</h3><p class="text-gray-600">Você gasta horas, ou até dias, para montar uma única proposta comercial.</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-semibold mb-2">Falta de Profissionalismo</h3><p class="text-gray-600">Suas propostas parecem amadoras e não transmitem confiança.</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg><h3 class="text-xl font-semibold mb-2">Baixa Conversão</h3><p class="text-gray-600">Você envia dezenas de orçamentos e recebe poucas respostas.</p></div>
                 </div>
             </section>
             
@@ -172,26 +64,55 @@
             <section id="preco" class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 md:p-12 max-w-4xl mx-auto text-center">
                 <h2 class="text-3xl md:text-4xl font-extrabold mb-4">Acesso Imediato por um Preço Especial</h2>
                 <p class="text-gray-600 text-lg mb-6">Acesso vitalício a todo o método e futuras atualizações. O risco é todo meu.</p>
-                
                 <div class="bg-gray-50 p-8 rounded-xl border border-dashed">
                     <p class="text-lg">Pagamento único de:</p>
-                    <p class="text-5xl md:text-6xl font-bold my-2 text-gray-900">
-                        <span class="text-blue-600">R$39,90</span>
-                    </p>
+                    <p class="text-5xl md:text-6xl font-bold my-2 text-gray-900"><span class="text-blue-600">R$39,90</span></p>
                     <p class="text-lg font-semibold">Exclusivamente via PIX</p>
                 </div>
-
-                <a href="#" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">
-                    QUERO ACESSO IMEDIATO POR PIX
-                </a>
-                
+                <button id="buy-button" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
                 <div class="mt-6 flex items-center justify-center gap-4">
-                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     <p class="text-gray-600">Compra segura e garantia de 7 dias.</p>
                 </div>
             </section>
-
         </main>
+    </div>
+
+    <!-- Modal de Pagamento PIX -->
+    <div id="pix-modal" class="modal-overlay hidden">
+        <div class="modal-content" id="modal-content-area">
+            <!-- Passo 1: Formulário de dados -->
+            <div id="user-form">
+                <h2 class="text-2xl font-bold mb-4">Quase lá!</h2>
+                <p class="mb-4 text-gray-600">Preencha seus dados para gerar o PIX.</p>
+                <form id="payment-form">
+                    <input type="text" id="firstName" placeholder="Seu primeiro nome" class="w-full p-2 border border-gray-300 rounded-md mb-3" required>
+                    <input type="email" id="email" placeholder="Seu melhor e-mail" class="w-full p-2 border border-gray-300 rounded-md mb-4" required>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Gerar PIX</button>
+                </form>
+            </div>
+            <!-- Passo 2: Carregando -->
+            <div id="loading-spinner" class="hidden justify-center items-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+            </div>
+            <!-- Passo 3: Detalhes do PIX -->
+            <div id="pix-details" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">Pague com PIX para continuar</h2>
+                <p class="mb-4">Escaneie o QR Code abaixo com o app do seu banco:</p>
+                <img id="pix-qrcode" src="" alt="PIX QR Code" class="mx-auto border rounded-md">
+                <p class="my-4 font-semibold">Ou use o PIX Copia e Cola:</p>
+                <div class="bg-gray-100 p-2 rounded-md break-words text-sm"><code id="pix-copia-cola"></code></div>
+                <button id="copy-button" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Copiar Código</button>
+                <p id="copy-feedback" class="text-green-600 text-sm mt-2 h-4"></p>
+                <p id="payment-status-feedback" class="text-blue-600 font-semibold mt-4">Aguardando pagamento...</p>
+            </div>
+             <!-- Passo 4: Pagamento Aprovado -->
+            <div id="payment-success" class="hidden">
+                 <svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                 <h2 class="text-2xl font-bold mb-2">Pagamento Aprovado!</h2>
+                 <p class="text-gray-600">Parabéns! As instruções de acesso foram enviadas para o seu e-mail.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Rodapé -->
@@ -199,64 +120,148 @@
         <div class="container mx-auto px-6 text-center">
             <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
             <p class="text-sm text-gray-400 mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">conectawebdigital.com.br</a></p>
-            <p class="text-sm text-gray-400 mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook. Depois que você sair do Facebook, a responsabilidade não é deles e sim do nosso site.</p>
+            <p class="text-sm text-gray-400 mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook.</p>
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const video = document.getElementById('vsl');
-            const playButton = document.getElementById('play-button');
-            const progressBar = document.getElementById('custom-progress-bar');
-            const hiddenContent = document.getElementById('hidden-content');
+    <!-- Scripts do Firebase -->
+    <script src="/firebase-config.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
-            let hasPlayed = false;
-            
-            // Inicia o vídeo
-            playButton.addEventListener('click', () => {
-                video.play();
-                video.muted = false; // Ativa o som
-                playButton.style.display = 'none'; // Esconde o botão de play
-            });
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app, 'us-central1'); // Garante a região correta
 
-            // Lógica para impedir que o usuário avance o vídeo
+        // Autentica o usuário anonimamente para poder chamar as functions
+        signInAnonymously(auth).catch((error) => {
+            console.error("Erro na autenticação anônima:", error);
+        });
+
+        // --- LÓGICA DA PÁGINA ---
+        const videoSection = document.getElementById('video-section');
+        const video = document.getElementById('vsl');
+        const playButton = document.getElementById('play-button');
+        const progressBar = document.getElementById('custom-progress-bar');
+        const hiddenContent = document.getElementById('hidden-content');
+        const buyButton = document.getElementById('buy-button');
+        const pixModal = document.getElementById('pix-modal');
+        const modalContent = document.getElementById('modal-content-area');
+
+        // Elementos do Modal
+        const userForm = document.getElementById('user-form');
+        const paymentForm = document.getElementById('payment-form');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const pixDetails = document.getElementById('pix-details');
+        const paymentSuccess = document.getElementById('payment-success');
+        const pixQrcode = document.getElementById('pix-qrcode');
+        const pixCopiaCola = document.getElementById('pix-copia-cola');
+        const copyButton = document.getElementById('copy-button');
+        const copyFeedback = document.getElementById('copy-feedback');
+        const statusFeedback = document.getElementById('payment-status-feedback');
+        
+        let paymentCheckInterval = null;
+
+        // Função para mostrar a oferta
+        const showOffer = () => {
+            videoSection.style.display = 'none';
+            hiddenContent.classList.remove('hidden');
+            hiddenContent.classList.add('fade-in');
+        };
+
+        // Lógica do vídeo (localStorage)
+        if (localStorage.getItem('videoWatched') === 'true') {
+            showOffer();
+        } else {
+            playButton.addEventListener('click', () => { video.play(); video.muted = false; playButton.style.display = 'none'; });
             let lastTime = 0;
-            video.addEventListener('timeupdate', () => {
-                // Impede de pular o vídeo. Se o tempo atual for muito maior que o último registrado, volta para o último tempo.
-                if (!video.seeking) {
-                    if (video.currentTime > lastTime + 1) {
-                        video.currentTime = lastTime;
+            video.addEventListener('timeupdate', () => { if (!video.seeking) { if (video.currentTime > lastTime + 1) { video.currentTime = lastTime; } lastTime = video.currentTime; } const p = (video.currentTime / video.duration); progressBar.style.width = `${Math.pow(p, 0.4) * 100}%`; });
+            video.addEventListener('ended', () => { localStorage.setItem('videoWatched', 'true'); showOffer(); document.getElementById('preco').scrollIntoView({ behavior: 'smooth' }); });
+        }
+
+        // Lógica do Modal PIX
+        buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
+
+        paymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            userForm.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            const createPixPayment = httpsCallable(functions, 'createPixPayment');
+            try {
+                const result = await createPixPayment({
+                    firstName: document.getElementById('firstName').value,
+                    email: document.getElementById('email').value,
+                    productId: 'metodo-orcamento-ia-01' // ID do produto no Firestore
+                });
+
+                const data = result.data;
+                pixQrcode.src = `data:image/png;base64,${data.qrCodeBase64}`;
+                pixCopiaCola.textContent = data.qrCode;
+
+                loadingSpinner.classList.add('hidden');
+                pixDetails.classList.remove('hidden');
+                
+                // Inicia a verificação do status do pagamento
+                startPaymentStatusCheck(data.paymentId);
+
+            } catch (error) {
+                console.error("Erro ao chamar a função createPixPayment:", error);
+                modalContent.innerHTML = `<p class="text-red-500">Erro: ${error.message}. Tente novamente.</p>`;
+            }
+        });
+
+        function startPaymentStatusCheck(paymentId) {
+            if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+
+            const checkPaymentStatus = httpsCallable(functions, 'checkPaymentStatus');
+            paymentCheckInterval = setInterval(async () => {
+                try {
+                    const result = await checkPaymentStatus({ paymentId: paymentId });
+                    if (result.data.status === 'approved') {
+                        clearInterval(paymentCheckInterval);
+                        pixDetails.classList.add('hidden');
+                        paymentSuccess.classList.remove('hidden');
                     }
-                    lastTime = video.currentTime;
+                } catch (error) {
+                    console.error("Erro ao verificar status:", error);
                 }
+            }, 5000); // Verifica a cada 5 segundos
+        }
 
-                // Atualiza a barra de progresso customizada
-                const actualProgress = (video.currentTime / video.duration);
-                // Usamos uma função de potência (ex: raiz quadrada) para a barra começar rápida e terminar devagar
-                const visualProgress = Math.pow(actualProgress, 0.4) * 100;
-                progressBar.style.width = `${visualProgress}%`;
-            });
-            
-            // Bloqueia a busca (seeking) no vídeo
-            video.addEventListener('seeking', () => {
-                 const diff = Math.abs(video.currentTime - lastTime);
-                 if (diff > 1) {
-                    video.currentTime = lastTime;
-                 }
-            });
+        // Fechar o modal
+        pixModal.addEventListener('click', (e) => {
+            if (e.target === pixModal) {
+                pixModal.classList.add('hidden');
+                clearInterval(paymentCheckInterval); // Para de verificar ao fechar
+                // Reseta o modal para o estado inicial
+                userForm.classList.remove('hidden');
+                pixDetails.classList.add('hidden');
+                paymentSuccess.classList.add('hidden');
+                loadingSpinner.classList.add('hidden');
+                paymentForm.reset();
+            }
+        });
 
-            // Mostra o conteúdo quando o vídeo termina
-            video.addEventListener('ended', () => {
-                if (!hasPlayed) {
-                    hiddenContent.classList.remove('hidden');
-                    hiddenContent.classList.add('fade-in');
-                    hasPlayed = true;
-                    // Rola a página suavemente para a seção de preço
-                    document.getElementById('preco').scrollIntoView({ behavior: 'smooth' });
-                }
-            });
+        // Lógica para copiar o código PIX
+        copyButton.addEventListener('click', () => {
+            const textToCopy = pixCopiaCola.textContent;
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyFeedback.textContent = 'Copiado!';
+            } catch (err) {
+                copyFeedback.textContent = 'Erro ao copiar.';
+            }
+            document.body.removeChild(textArea);
+            setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
         });
     </script>
-
 </body>
 </html>
