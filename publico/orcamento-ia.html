@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF--8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método Orçamento IA - Propostas que Convertem</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo para a fonte Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Efeito de gradiente animado para o botão principal */
+        .animated-gradient {
+            background-size: 200% 200%;
+            animation: gradient-animation 5s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* Estilos para a barra de progresso customizada */
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2563eb; /* Azul */
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+        /* Animação de fade-in */
+        .fade-in {
+            animation: fadeInAnimation 1s ease-in forwards;
+        }
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Seção Principal (Hero) -->
+    <header class="bg-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-12 text-center">
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4">
+                Finalmente: O Método Simples Para Criar Orçamentos Profissionais com IA em Minutos
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+                Assista à apresentação abaixo para descobrir como impressionar seus clientes e fechar mais negócios.
+            </p>
+        </div>
+    </header>
+
+    <!-- Seção do Vídeo de Vendas (VSL) -->
+    <section id="video-section" class="py-12 bg-gray-100">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="bg-black rounded-lg shadow-2xl overflow-hidden">
+                <!-- ATENÇÃO: Substitua o 'src' pelo link do seu vídeo -->
+                <video id="vsl" class="w-full" playsinline>
+                    <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4">
+                    Seu navegador não suporta a tag de vídeo.
+                </video>
+            </div>
+            <div class="progress-bar-container">
+                <div id="custom-progress-bar" class="progress-bar"></div>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-2">O som será ativado ao clicar no play.</p>
+             <div class="text-center mt-4">
+                <button id="play-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-blue-700 transition-colors">
+                    ASSISTIR AGORA
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conteúdo Oculto - Revelado após o vídeo -->
+    <div id="hidden-content" class="hidden">
+        <!-- Corpo da Página -->
+        <main class="container mx-auto px-6 py-12 md:py-20">
+
+            <!-- Seção: Seus Problemas Acabaram -->
+            <section class="text-center mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Você se identifica com algum destes problemas?</h2>
+                <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <!-- Problema 1 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-xl font-semibold mb-2">Perda de Tempo</h3>
+                        <p class="text-gray-600">Você gasta horas, ou até dias, para montar uma única proposta comercial, deixando outras tarefas importantes de lado.</p>
+                    </div>
+                    <!-- Problema 2 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-xl font-semibold mb-2">Falta de Profissionalismo</h3>
+                        <p class="text-gray-600">Suas propostas parecem amadoras, não transmitem confiança e você sente que seu preço não é valorizado.</p>
+                    </div>
+                    <!-- Problema 3 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                        <h3 class="text-xl font-semibold mb-2">Baixa Conversão</h3>
+                        <p class="text-gray-600">Você envia dezenas de orçamentos, mas recebe poucas respostas positivas. Seus potenciais clientes simplesmente desaparecem.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção: Apresentando a Solução -->
+            <section class="mb-20 bg-white p-8 md:p-12 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex flex-col md:flex-row items-center gap-12">
+                    <div class="md:w-1/2">
+                        <span class="text-blue-500 font-semibold">A SOLUÇÃO DEFINITIVA</span>
+                        <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">O Método Orçamento IA</h2>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            Chega de bloqueio criativo e propostas que não vendem. Com o meu método, você vai usar o poder da Inteligência Artificial para criar orçamentos e propostas comerciais que não apenas informam o preço, mas que <strong class="text-gray-900">encantam, convencem e fecham negócios</strong>.
+                        </p>
+                        <p class="text-gray-600 leading-relaxed">
+                            Vou te guiar passo a passo, mostrando os comandos exatos e as ferramentas certas para automatizar seu processo, economizar seu tempo e multiplicar seus resultados.
+                        </p>
+                    </div>
+                    <div class="md:w-1/2">
+                        <img src="https://placehold.co/600x400/1E293B/FFFFFF?text=Or%C3%A7amento+com+IA" alt="Demonstração do método de criação de orçamento com Inteligência Artificial" class="rounded-lg shadow-2xl w-full">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção: O que você vai aprender -->
+            <section class="text-center mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold mb-10">O Que Você Terá Acesso Imediato</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
+                     <!-- Itens dos módulos e bônus -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3>
+                        <p>Entenda a psicologia por trás de uma proposta de alto impacto e estruture seu documento para guiar o cliente até o "sim".</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 2: Engenharia de Prompts com IA</h3>
+                        <p>Copie e cole meus prompts secretos para extrair textos persuasivos, descrições de serviços e cronogramas detalhados da IA.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 3: Design Profissional e Rápido</h3>
+                        <p>Use ferramentas (muitas gratuitas) para criar um visual limpo e profissional para suas propostas, sem precisar ser um designer.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 4: Automatizando o Processo</h3>
+                        <p>Crie templates inteligentes que permitem gerar uma nova proposta personalizada em menos de 10 minutos.</p>
+                    </div>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md md:col-span-2 lg:col-span-1">
+                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #1: Planilha de Precificação</h3>
+                        <p class="text-blue-700">Uma planilha completa para te ajudar a calcular seu preço de forma justa e lucrativa.</p>
+                    </div>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #2: Grupo VIP de Alunos</h3>
+                        <p class="text-blue-700">Acesso a uma comunidade exclusiva para networking, tirar dúvidas e compartilhar resultados.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Seção de Preço e CTA -->
+            <section id="preco" class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 md:p-12 max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-4">Acesso Imediato por um Preço Especial</h2>
+                <p class="text-gray-600 text-lg mb-6">Acesso vitalício a todo o método e futuras atualizações. O risco é todo meu.</p>
+                
+                <div class="bg-gray-50 p-8 rounded-xl border border-dashed">
+                    <p class="text-lg">Pagamento único de:</p>
+                    <p class="text-5xl md:text-6xl font-bold my-2 text-gray-900">
+                        <span class="text-blue-600">R$39,90</span>
+                    </p>
+                    <p class="text-lg font-semibold">Exclusivamente via PIX</p>
+                </div>
+
+                <a href="#" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">
+                    QUERO ACESSO IMEDIATO POR PIX
+                </a>
+                
+                <div class="mt-6 flex items-center justify-center gap-4">
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <p class="text-gray-600">Compra segura e garantia de 7 dias.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
+            <p class="text-sm text-gray-400 mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">conectawebdigital.com.br</a></p>
+            <p class="text-sm text-gray-400 mt-2">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook. Depois que você sair do Facebook, a responsabilidade não é deles e sim do nosso site.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('vsl');
+            const playButton = document.getElementById('play-button');
+            const progressBar = document.getElementById('custom-progress-bar');
+            const hiddenContent = document.getElementById('hidden-content');
+
+            let hasPlayed = false;
+            
+            // Inicia o vídeo
+            playButton.addEventListener('click', () => {
+                video.play();
+                video.muted = false; // Ativa o som
+                playButton.style.display = 'none'; // Esconde o botão de play
+            });
+
+            // Lógica para impedir que o usuário avance o vídeo
+            let lastTime = 0;
+            video.addEventListener('timeupdate', () => {
+                // Impede de pular o vídeo. Se o tempo atual for muito maior que o último registrado, volta para o último tempo.
+                if (!video.seeking) {
+                    if (video.currentTime > lastTime + 1) {
+                        video.currentTime = lastTime;
+                    }
+                    lastTime = video.currentTime;
+                }
+
+                // Atualiza a barra de progresso customizada
+                const actualProgress = (video.currentTime / video.duration);
+                // Usamos uma função de potência (ex: raiz quadrada) para a barra começar rápida e terminar devagar
+                const visualProgress = Math.pow(actualProgress, 0.4) * 100;
+                progressBar.style.width = `${visualProgress}%`;
+            });
+            
+            // Bloqueia a busca (seeking) no vídeo
+            video.addEventListener('seeking', () => {
+                 const diff = Math.abs(video.currentTime - lastTime);
+                 if (diff > 1) {
+                    video.currentTime = lastTime;
+                 }
+            });
+
+            // Mostra o conteúdo quando o vídeo termina
+            video.addEventListener('ended', () => {
+                if (!hasPlayed) {
+                    hiddenContent.classList.remove('hidden');
+                    hiddenContent.classList.add('fade-in');
+                    hasPlayed = true;
+                    // Rola a página suavemente para a seção de preço
+                    document.getElementById('preco').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
