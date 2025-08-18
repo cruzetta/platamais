@@ -261,7 +261,24 @@
 
             } catch (error) {
                 console.error("Erro ao chamar a função createPixPayment:", error);
-                modalContent.innerHTML = `<p class="text-red-500">Erro: ${error.message}. Tente novamente.</p>`;
+                // AQUI ESTÁ A MELHORIA NA MENSAGEM DE ERRO
+                let friendlyErrorMessage;
+                if (error.message.includes('not-found') || error.message.includes('Produto não encontrado')) {
+                    friendlyErrorMessage = `
+                        <div class="text-left p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <h3 class="font-bold text-red-800">Erro: Produto não encontrado!</h3>
+                            <p class="text-sm text-red-700 mt-2">Isso geralmente acontece por um erro de digitação no banco de dados. Por favor, verifique no seu painel do Firebase:</p>
+                            <ul class="list-disc list-inside text-sm text-red-700 mt-2 space-y-1">
+                                <li>A coleção deve se chamar exatamente <strong>products</strong>.</li>
+                                <li>Dentro dela, o ID do documento deve ser <strong>04dfrhvjotiX1esrjg4w</strong>.</li>
+                                <li>O documento deve ter um campo <strong>preco</strong> do tipo <strong>number</strong>.</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                     friendlyErrorMessage = `<p class="text-red-500">Ocorreu um erro: ${error.message}. Tente novamente.</p>`;
+                }
+                modalContent.innerHTML = friendlyErrorMessage;
             }
         });
 
@@ -288,12 +305,42 @@
             if (e.target === pixModal) {
                 pixModal.classList.add('hidden');
                 clearInterval(paymentCheckInterval); // Para de verificar ao fechar
-                // Reseta o modal para o estado inicial
-                userForm.classList.remove('hidden');
-                pixDetails.classList.add('hidden');
-                paymentSuccess.classList.add('hidden');
-                loadingSpinner.classList.add('hidden');
-                paymentForm.reset();
+                // Reseta o modal para o estado inicial para a próxima vez que for aberto
+                modalContent.innerHTML = `
+                    <!-- Passo 1: Formulário de dados -->
+                    <div id="user-form">
+                        <h2 class="text-2xl font-bold mb-4">Quase lá!</h2>
+                        <p class="mb-4 text-gray-600">Preencha seus dados para gerar o PIX.</p>
+                        <form id="payment-form">
+                            <input type="text" id="firstName" placeholder="Seu primeiro nome" class="w-full p-2 border border-gray-300 rounded-md mb-3" required>
+                            <input type="email" id="email" placeholder="Seu melhor e-mail" class="w-full p-2 border border-gray-300 rounded-md mb-4" required>
+                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Gerar PIX</button>
+                        </form>
+                    </div>
+                    <!-- Passo 2: Carregando -->
+                    <div id="loading-spinner" class="hidden justify-center items-center">
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+                    </div>
+                    <!-- Passo 3: Detalhes do PIX -->
+                    <div id="pix-details" class="hidden">
+                        <h2 class="text-2xl font-bold mb-4">Pague com PIX para continuar</h2>
+                        <p class="mb-4">Escaneie o QR Code abaixo com o app do seu banco:</p>
+                        <img id="pix-qrcode" src="" alt="PIX QR Code" class="mx-auto border rounded-md">
+                        <p class="my-4 font-semibold">Ou use o PIX Copia e Cola:</p>
+                        <div class="bg-gray-100 p-2 rounded-md break-words text-sm"><code id="pix-copia-cola"></code></div>
+                        <button id="copy-button" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Copiar Código</button>
+                        <p id="copy-feedback" class="text-green-600 text-sm mt-2 h-4"></p>
+                        <p id="payment-status-feedback" class="text-blue-600 font-semibold mt-4">Aguardando pagamento...</p>
+                    </div>
+                     <!-- Passo 4: Pagamento Aprovado -->
+                    <div id="payment-success" class="hidden">
+                         <svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                         <h2 class="text-2xl font-bold mb-2">Pagamento Aprovado!</h2>
+                         <p class="text-gray-600">Parabéns! As instruções de acesso foram enviadas para o seu e-mail.</p>
+                    </div>
+                `;
+                 // Re-adiciona o listener do formulário, pois ele foi removido com o innerHTML
+                document.getElementById('payment-form').addEventListener('submit', window.handlePaymentFormSubmit);
             }
         });
 
@@ -313,6 +360,10 @@
             document.body.removeChild(textArea);
             setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
         });
+
+        // Coloca a função de submit em uma variável global para poder ser re-atribuída
+        window.handlePaymentFormSubmit = paymentForm.listeners.submit[0].listener;
+
     </script>
 </body>
 </html>
