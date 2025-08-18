@@ -101,8 +101,6 @@
                     <p class="text-5xl md:text-6xl font-bold my-2 text-gray-900"><span class="text-blue-600">R$39,90</span></p>
                     <p class="text-lg font-semibold">Exclusivamente via PIX</p>
                 </div>
-                <!-- NOVO: Campo de Diagnóstico de Erro -->
-                <div id="error-log" class="mt-6 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg text-left hidden"></div>
                 
                 <button id="buy-button" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
                 <div class="mt-6 flex items-center justify-center gap-4">
@@ -153,7 +151,6 @@
         const pixCopiaCola = document.getElementById('pix-copia-cola');
         const copyButton = document.getElementById('copy-button');
         const copyFeedback = document.getElementById('copy-feedback');
-        const errorLog = document.getElementById('error-log');
         
         let paymentCheckInterval = null;
         let functions;
@@ -208,20 +205,22 @@
         const initializeFirebase = async () => {
             try {
                 if (typeof firebaseConfig === 'undefined') {
-                    throw new Error("O arquivo 'firebase-config.js' não foi encontrado. Verifique se ele está na mesma pasta que este HTML.");
+                    throw new Error("O arquivo 'firebase-config.js' não foi encontrado.");
                 }
-                firebase.initializeApp(firebaseConfig);
+                
+                // A CORREÇÃO: Verifica se o Firebase já foi inicializado
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+
                 const auth = firebase.auth();
                 functions = firebase.app().functions('us-central1');
                 await auth.signInAnonymously();
                 
-                // Se chegou aqui, a conexão foi bem-sucedida. Habilita o botão de compra.
                 setupPaymentListeners();
 
             } catch (error) {
                 console.error("FALHA CRÍTICA NO FIREBASE:", error);
-                errorLog.innerHTML = `<strong>Erro de Conexão:</strong><br><small>${error.message}</small>`;
-                errorLog.classList.remove('hidden');
                 
                 if (buyButton) {
                     buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
