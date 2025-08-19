@@ -1,4 +1,4 @@
-// Importações para a v2 do Firebase Functions
+// Forçando a atualização em [DATA ATUAL]
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
