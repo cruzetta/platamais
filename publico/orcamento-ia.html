@@ -1,946 +1,522 @@
- <!DOCTYPE html> 
- <html lang="pt-BR" class="scroll-smooth"> 
- <head> 
- 	<meta charset="UTF-8"> 
- 	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
- 	<title>Método Orçamento IA - Propostas que Convertem em Minutos</title> 
- 	 
- 	<!-- Tailwind CSS CDN --> 
- 	<script src="https://cdn.tailwindcss.com"></script> 
- 	 
- 	<!-- Google Fonts: Inter --> 
- 	<link rel="preconnect" href="https://fonts.googleapis.com"> 
- 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
- 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"> 
- 	 
- 	<!-- Font Awesome para ícones --> 
- 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
- 	 
- 	<style> 
- 		/* Estilos Globais e Animações */ 
- 		body { 
- 			font-family: 'Inter', sans-serif; 
- 			background-color: #020617; /* slate-950 */ 
- 			color: #e2e8f0; /* slate-200 */ 
- 		} 
-
- 		/* Efeito Aurora Aprimorado */ 
- 		.aurora-background { 
- 			position: relative; 
- 			overflow: hidden; 
- 			background-color: #0f172a; /* slate-900 */ 
- 		} 
- 		.aurora-background::before { 
- 			content: ''; 
- 			position: absolute; 
- 			top: 0%; 
- 			left: 50%; 
- 			transform: translate(-50%, -50%); 
- 			width: 1200px; 
- 			height: 800px; 
- 			/* Combinação de Azul e Teal para um look tecnológico */ 
- 			background-image: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.25) 0%, rgba(20, 184, 166, 0.1) 40%, rgba(15, 23, 42, 0) 70%); 
- 			filter: blur(150px); 
- 			z-index: 0; 
- 			animation: rotate-aurora 20s infinite linear; 
- 		} 
- 		@keyframes rotate-aurora { 
- 			0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 
- 			50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.3); } 
- 			100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } 
- 		} 
- 		.content-z { position: relative; z-index: 1; } 
-
- 		/* Animação do Botão CTA Principal */ 
- 		.cta-pulse { 
- 			animation: pulse-animation 2s infinite; 
- 			/* Usando Teal para o pulso */ 
- 			box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); 
- 		} 
- 		@keyframes pulse-animation { 
- 			0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); } 
- 			70% { box-shadow: 0 0 0 20px rgba(20, 184, 166, 0); } 
- 			100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); } 
- 		} 
- 		 
- 		/* Barra de Progresso do Vídeo */ 
- 		.progress-bar-container { 
- 			width: 100%; height: 8px; background-color: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 16px; 
- 		} 
- 		.progress-bar { 
- 			height: 100%; background: linear-gradient(90deg, #3b82f6, #14b8a6); width: 0%; border-radius: 4px; transition: width 0.1s linear; 
- 		} 
-
- 		/* Animações de Entrada */ 
- 		.fade-in-up { 
- 			opacity: 0; 
- 			transform: translateY(30px); 
- 			transition: opacity 0.8s ease-out, transform 0.8s ease-out; 
- 		} 
- 		.fade-in-up.visible { 
- 			opacity: 1; 
- 			transform: translateY(0); 
- 		} 
-
- 		/* Estilos do Modal */ 
- 		.modal { display: none; transition: opacity 0.3s ease; } 
- 		.modal-content { transform: scale(0.95); transition: transform 0.3s ease; background-color: #1e293b; color: #d1d5db; border: 1px solid #334155; } 
- 		.modal.flex { display: flex; } 
- 		.modal.opacity-100 .modal-content { transform: scale(1); } 
- 		.form-input { background-color: #334155; border: 1px solid #475569; color: #d1d5db; transition: border-color 0.2s, box-shadow 0.2s; } 
- 		.form-input:focus { border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3); outline: none; } 
- 		 
- 		/* Estilos do Checkout PIX */ 
- 		#pix-qrcode { border: 6px solid white; border-radius: 8px; } 
- 		#pix-code-input { background-color: #334155; user-select: all; } 
- 		.cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease; } 
- 		.cta-button:hover:not(:disabled) { transform: translateY(-3px); } 
-
- 		/* NOVO: Estilos para o Visualizador Antes/Depois */ 
- 		.proposal-viewer { 
- 			perspective: 1000px; 
- 			transition: transform 0.5s ease; 
- 		} 
- 		.proposal-card { 
- 			transition: all 0.5s ease; 
- 		} 
- 		/* Efeito interativo no hover */ 
- 		.proposal-viewer:hover .proposal-before { 
- 			transform: rotateY(-5deg) translateX(-10px) scale(1.02); 
- 		} 
- 		.proposal-viewer:hover .proposal-after { 
- 			transform: rotateY(5deg) translateX(10px) scale(1.02); 
- 		} 
- 		.proposal-before { 
- 			background-color: #1e293b; /* slate-800 */ 
- 			color: #94a3b8; /* slate-400 */ 
- 			border: 1px dashed #475569; 
- 		} 
- 		.proposal-after { 
- 			background: linear-gradient(135deg, #ffffff, #f8fafc); 
- 			color: #0f172a; /* slate-900 */ 
- 			border: 2px solid #14b8a6; /* teal-500 */ 
- 			position: relative; 
- 			overflow: hidden; 
- 			box-shadow: 0 20px 50px rgba(20, 184, 166, 0.2); 
- 		} 
- 		/* Selo "Aprovado" */ 
- 		.proposal-after::after { 
- 			content: '🔥 APROVADO'; 
- 			position: absolute; 
- 			top: 15px; 
- 			right: -40px; 
- 			background-color: #14b8a6; 
- 			color: white; 
- 			padding: 5px 40px; 
- 			transform: rotate(30deg); 
- 			font-weight: bold; 
- 			font-size: 0.8rem; 
- 		} 
-
- 		  /* NOVO: Estilos para o Acordeão (FAQ) */ 
- 		  .accordion-item { 
- 			  border-bottom: 1px solid #334155; 
- 		  } 
- 		  .accordion-title { 
- 			  transition: background-color 0.3s; 
- 		  } 
- 		  .accordion-content { 
- 			  max-height: 0; 
- 			  overflow: hidden; 
- 			  transition: max-height 0.5s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out; 
- 		  } 
- 		  .accordion-icon { 
- 			  transition: transform 0.3s; 
- 		  } 
- 		  .accordion-item.active .accordion-content { 
- 			  max-height: 500px; /* Ajuste conforme necessário */ 
- 		  } 
- 		  .accordion-item.active .accordion-title { 
- 			  background-color: #1e293b; 
- 		  } 
- 		  .accordion-item.active .accordion-icon { 
- 			  transform: rotate(180deg); 
- 		  } 
-
- 	</style> 
- </head> 
- <body class="antialiased"> 
-
- 	<!-- Seção Principal (Hero) --> 
- 	<header class="aurora-background"> 
- 		<div class="content-z container mx-auto px-6 py-20 md:py-32 text-center"> 
- 			<!-- NOVO: Prova Social Imediata --> 
- 			<div class="mb-6 inline-flex items-center bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium px-4 py-1 rounded-full"> 
- 				<i class="fas fa-users mr-2"></i> Validado por +500 Profissionais 
- 			</div> 
-
- 			<h1 class="text-4xl md:text-6xl font-black leading-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300"> 
- 				O Fim dos Orçamentos Ignorados 
- 			</h1> 
- 			<!-- Copy ajustada para focar em velocidade e conversão --> 
- 			<p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-10"> 
- 				Descubra como usar a Inteligência Artificial para criar propostas comerciais irresistíveis em <strong class="text-white">menos de 5 minutos</strong> e dobre sua taxa de conversão sem precisar ser um mestre da escrita. 
- 			</p> 
- 			<a href="#video-section" class="inline-block bg-gradient-to-r from-blue-600 to-teal-500 text-white font-bold py-4 px-10 rounded-full text-lg hover:from-blue-700 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-xl shadow-teal-600/30 cta-pulse"> 
- 				ASSISTIR APRESENTAÇÃO GRATUITA 
- 			</a> 
- 		</div> 
- 	</header> 
-
- 	<!-- Seção do Vídeo de Vendas (VSL) --> 
- 	<section id="video-section" class="py-16 md:py-24 bg-slate-900"> 
- 		<div class="container mx-auto px-6 max-w-4xl"> 
- 			<div class="bg-black rounded-xl shadow-2xl shadow-blue-500/10 overflow-hidden border border-slate-700"> 
- 				<div class="aspect-w-16 aspect-h-9"> 
- 					<video id="vsl" class="w-full h-full" playsinline> 
- 						<!-- ATENÇÃO: Substitua pelo seu vídeo real --> 
- 						<source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4"> 
- 						Seu navegador não suporta a tag de vídeo. 
- 					</video> 
- 				</div> 
- 			</div> 
- 			<div class="progress-bar-container"><div id="custom-progress-bar" class="progress-bar"></div></div> 
- 			<p id="video-feedback" class="text-center text-sm text-slate-500 mt-3">🔊 O som será ativado ao clicar no play.</p> 
- 			<div id="play-button-container" class="text-center mt-6"> 
- 				<button id="play-button" class="bg-slate-800 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-slate-700 transition-colors"> 
- 					<i class="fas fa-play mr-2"></i>ASSISTIR AGORA 
- 				</button> 
- 			</div> 
- 		</div> 
- 	</section> 
-
- 	<!-- Conteúdo Oculto - Revelado após o vídeo --> 
- 	<div id="hidden-content" class="hidden"> 
- 		<main class="container mx-auto px-6 py-16 md:py-24"> 
- 			 
- 			<!-- Seção de Problemas (Agitação) --> 
- 			<section class="text-center mb-20 md:mb-32 fade-in-up"> 
- 				<h2 class="text-3xl md:text-4xl font-bold mb-4">Você está cansado de jogar tempo e dinheiro no lixo?</h2> 
- 				<p class="text-slate-400 max-w-2xl mx-auto mb-12">Se você enfrenta algum desses problemas, a culpa não é sua. É do método antigo de fazer orçamentos.</p> 
- 				<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"> 
- 					<!-- Card Problema 1 --> 
- 					<div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 text-left shadow-lg"> 
- 						<div class="w-12 h-12 mb-5 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg text-2xl"> 
- 							<i class="far fa-clock"></i> 
- 						</div> 
- 						<h3 class="text-xl font-semibold mb-2 text-white">Horas Desperdiçadas</h3> 
- 						<p class="text-slate-400">Você gasta horas preciosas escrevendo, formatando e revisando propostas, em vez de focar no que realmente gera receita.</p> 
- 					</div> 
- 					<!-- Card Problema 2 --> 
- 					<div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 text-left shadow-lg"> 
- 						<div class="w-12 h-12 mb-5 flex items-center justify-center bg-yellow-500/10 text-yellow-500 rounded-lg text-2xl"> 
- 							<i class="fas fa-dollar-sign"></i> 
- 						</div> 
- 						<h3 class="text-xl font-semibold mb-2 text-white">Guerra de Preços</h3> 
- 						<p class="text-slate-400">Suas propostas parecem iguais às dos concorrentes, forçando você a competir por preço, não por valor.</p> 
- 					</div> 
- 					<!-- Card Problema 3 --> 
- 					<div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 text-left shadow-lg"> 
- 						<div class="w-12 h-12 mb-5 flex items-center justify-center bg-blue-500/10 text-blue-500 rounded-lg text-2xl"> 
- 							<i class="fas fa-ghost"></i> 
- 						</div> 
- 						<h3 class="text-xl font-semibold mb-2 text-white">O Silêncio do Cliente</h3> 
- 						<p class="text-slate-400">Você envia a proposta com esperança, mas recebe de volta apenas o silêncio frustrante ou o temido "vou pensar".</p> 
- 					</div> 
- 				</div> 
- 			</section> 
-
-
- 			<!-- NOVO: Seção Visualizador Antes/Depois (A Mágica) --> 
- 			<section class="mb-20 md:mb-32 fade-in-up"> 
- 				<h2 class="text-3xl md:text-4xl font-bold mb-4 text-center">A Mágica Acontecendo Diante dos Seus Olhos</h2> 
- 				<p class="text-slate-400 max-w-2xl mx-auto mb-12 text-center">Não é sobre escrever mais. É sobre escrever certo. Veja como a IA transforma uma proposta comum em uma máquina de vendas.</p> 
-
- 				<div class="proposal-viewer grid md:grid-cols-2 gap-12 max-w-6xl mx-auto"> 
- 					<!-- ANTES --> 
- 					<div class="proposal-card proposal-before p-6 rounded-lg"> 
- 						<h3 class="text-xl font-semibold mb-4 text-red-400">ANTES: A Proposta Comum 😴</h3> 
- 						<ul class="list-disc list-inside space-y-3 text-sm"> 
- 							<li>Título genérico: "Orçamento de Serviço"</li> 
- 							<li>Linguagem técnica e confusa.</li> 
- 							<li>Foco total nas características do serviço.</li> 
- 							<li>Lista de preços sem contexto.</li> 
- 							<li>Nenhum gatilho mental ou persuasão.</li> 
- 							<li>Design inexistente ou amador.</li> 
- 						</ul> 
- 						<p class="mt-4 italic text-xs">Resultado: Ignorado ou cliente pede desconto.</p> 
- 					</div> 
-
- 					<!-- DEPOIS --> 
- 					<div class="proposal-card proposal-after p-6 rounded-lg"> 
- 						<h3 class="text-xl font-bold mb-4 text-teal-600">DEPOIS: O Orçamento IA Magnético ⚡</h3> 
- 						<ul class="list-disc list-inside space-y-3 text-sm font-medium"> 
- 							<li>Título impactante focado no resultado.</li> 
- 							<li>Copywriting persuasivo gerado por IA.</li> 
- 							<li>Foco total nos <strong class="text-teal-600">benefícios e transformação</strong>.</li> 
- 							<li>Ancoragem de valor que justifica o preço.</li> 
- 							<li>Uso estratégico de Escassez, Urgência e Prova Social.</li> 
- 							<li>Design profissional e confiável.</li> 
- 						</ul> 
- 						<p class="mt-4 italic text-xs font-semibold">Resultado: Cliente impressionado e pronto para pagar.</p> 
- 					</div> 
- 				</div> 
- 			</section> 
-
-
- 			 
- 			<!-- Seção da Solução (Apresentação do Produto) --> 
- 			<section class="mb-20 md:mb-32 bg-slate-900 p-8 md:p-12 rounded-2xl border border-slate-700 fade-in-up shadow-xl"> 
- 				<div class="flex flex-col md:flex-row items-center gap-12"> 
- 					<div class="md:w-1/2"> 
- 						<span class="text-teal-400 font-semibold tracking-widest uppercase">A REVOLUÇÃO</span> 
- 						<h2 class="text-3xl md:text-4xl font-extrabold mt-2 mb-4 text-white">Apresentando: Método Orçamento IA</h2> 
- 						<p class="text-slate-300 mb-6 leading-relaxed"> 
- 							Este não é mais um curso de vendas. É o seu atalho para criar propostas de alto nível em tempo recorde. Combinamos o poder da Inteligência Artificial com as técnicas de copywriting mais avançadas do mercado. 
- 						</p> 
- 						 <ul class="space-y-4 text-slate-300 mt-6"> 
- 							<li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Crie propostas <strong>10x mais rápido</strong>, sem sacrificar a qualidade.</span></li> 
- 							<li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Use gatilhos mentais e copywriting persuasivo <strong>gerados por IA</strong>.</span></li> 
- 							<li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Transforme seu orçamento de uma simples cotação para uma <strong>oferta irrecusável</strong>.</span></li> 
- 						</ul> 
- 					</div> 
- 					<div class="md:w-1/2"> 
- 						<!-- Imagem representativa do produto (Mockup) --> 
- 						<img src="https://placehold.co/600x450/0f172a/14b8a6?text=M%C3%A9todo+Or%C3%A7amento+IA+Mockup" alt="Mockup do Método Orçamento IA" class="rounded-lg shadow-2xl w-full shadow-teal-500/20 transform hover:scale-105 transition-transform duration-300"> 
- 					</div> 
- 				</div> 
- 			</section> 
-
- 			<!-- NOVO: Seção O que você vai desbloquear (Conteúdo) --> 
- 			<section class="mb-20 md:mb-32 fade-in-up"> 
- 				<h2 class="text-3xl md:text-4xl font-bold mb-4 text-center">O que você vai Desbloquear no Método:</h2> 
- 				<p class="text-slate-400 max-w-2xl mx-auto mb-12 text-center">Acesso imediato a todo o arsenal necessário para criar propostas que convertem.</p> 
-
- 				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto"> 
- 					 
- 					<!-- Módulo 1 --> 
- 					<div class="bg-slate-800 p-6 rounded-xl border-l-4 border-blue-500 shadow-lg"> 
- 						<i class="fas fa-brain text-3xl text-blue-500 mb-4"></i> 
- 						<h3 class="text-xl font-semibold mb-3 text-white">Domínio da IA</h3> 
- 						<p class="text-slate-400 text-sm">Aprenda a "conversar" com a IA (como ChatGPT ou Gemini) para extrair textos persuasivos, mesmo que você seja iniciante.</p> 
- 					</div> 
-
- 					<!-- Módulo 2 --> 
- 					<div class="bg-slate-800 p-6 rounded-xl border-l-4 border-teal-500 shadow-lg"> 
- 						<i class="fas fa-file-invoice-dollar text-3xl text-teal-500 mb-4"></i> 
- 						<h3 class="text-xl font-semibold mb-3 text-white">A Proposta Irrecusável</h3> 
- 						<p class="text-slate-400 text-sm">O passo a passo da estrutura de uma proposta de alta conversão: do título magnético ao fechamento sem objeções.</p> 
- 					</div> 
-
- 					<!-- Módulo 3 --> 
- 					<div class="bg-slate-800 p-6 rounded-xl border-l-4 border-blue-500 shadow-lg"> 
- 						<i class="fas fa-bolt text-3xl text-blue-500 mb-4"></i> 
- 						<h3 class="text-xl font-semibold mb-3 text-white">Prompts Secretos</h3> 
- 						<p class="text-slate-400 text-sm">Nossa coleção validada de prompts "copia e cola" para gerar cada seção da sua proposta em segundos.</p> 
- 					</div> 
-
- 					<!-- Módulo 4 (Bônus) --> 
- 					<div class="bg-slate-800 p-6 rounded-xl border-l-4 border-yellow-500 shadow-lg"> 
- 						<i class="fas fa-gift text-3xl text-yellow-500 mb-4"></i> 
- 						<h3 class="text-xl font-semibold mb-3 text-white">BÔNUS: Templates Visuais</h3> 
- 						<p class="text-slate-400 text-sm">Templates prontos (Canva/Word) para você inserir o texto gerado pela IA e impressionar visualmente seus clientes.</p> 
- 					</div> 
- 				</div> 
- 			</section> 
-
- 			<!-- NOVO: Seção de Prova Social (Depoimentos) --> 
- 			<section class="mb-20 md:mb-32 bg-slate-900 py-16 px-6 rounded-2xl fade-in-up"> 
- 				<h2 class="text-3xl md:text-4xl font-bold mb-4 text-center">Eles pararam de ser ignorados. Veja os resultados:</h2> 
- 				<p class="text-slate-400 max-w-2xl mx-auto mb-12 text-center">O Método Orçamento IA já está transformando a forma como freelancers e empresas fecham negócios.</p> 
-
- 				<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"> 
- 					 
- 					<!-- Depoimento 1 --> 
- 					<div class="bg-slate-800 p-6 rounded-lg shadow-lg flex flex-col"> 
- 						<div class="text-yellow-400 mb-4"> 
- 							<i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> 
- 						</div> 
- 						<p class="text-white italic mb-6 flex-grow">"Eu levava 2 horas para fazer uma proposta e a maioria era ignorada. Com o método IA, faço em 10 minutos e fechei 4 dos últimos 5 orçamentos enviados. Surreal!"</p> 
- 						<div class="flex items-center"> 
- 							<img src="https://i.pravatar.cc/150?img=68" alt="Foto de João S." class="w-10 h-10 rounded-full mr-4 border-2 border-teal-500"> 
- 							<div> 
- 								<p class="font-semibold text-white">João S.</p> 
- 								<p class="text-sm text-slate-400">Desenvolvedor Web</p> 
- 							</div> 
- 						</div> 
- 					</div> 
-
- 					<!-- Depoimento 2 --> 
- 					<div class="bg-slate-800 p-6 rounded-lg shadow-lg flex flex-col"> 
- 						<div class="text-yellow-400 mb-4"> 
- 							<i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> 
- 						</div> 
- 						<p class="text-white italic mb-6 flex-grow">"O que mais me impressionou foi a qualidade do texto. A IA consegue criar argumentos de venda melhores que os meus! Parei de competir por preço."</p> 
- 						<div class="flex items-center"> 
- 							<img src="https://i.pravatar.cc/150?img=45" alt="Foto de Maria F." class="w-10 h-10 rounded-full mr-4 border-2 border-teal-500"> 
- 							<div> 
- 								<p class="font-semibold text-white">Maria F.</p> 
- 								<p class="text-sm text-slate-400">Designer Gráfica</p> 
- 							</div> 
- 						</div> 
- 					</div> 
-
- 					<!-- Depoimento 3 --> 
- 					<div class="bg-slate-800 p-6 rounded-lg shadow-lg flex flex-col"> 
- 						<div class="text-yellow-400 mb-4"> 
- 							<i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> 
- 						</div> 
- 						<p class="text-white italic mb-6 flex-grow">"Os prompts secretos são ouro puro. Eu só preencho as informações básicas e a proposta sai pronta, com gatilhos mentais que eu nem conhecia. Recomendo demais."</p> 
- 						<div class="flex items-center"> 
- 							<img src="https://i.pravatar.cc/150?img=56" alt="Foto de Carlos A." class="w-10 h-10 rounded-full mr-4 border-2 border-teal-500"> 
- 							<div> 
- 								<p class="font-semibold text-white">Carlos A.</p> 
- 								<p class="text-sm text-slate-400">Gestor de Tráfego</p> 
- 							</div> 
- 						</div> 
- 					</div> 
-
- 				</div> 
- 			</section> 
-
-
- 			<!-- Seção de Preço e CTA (Otimizada para Urgência e Ancoragem) --> 
- 			<section id="preco" class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-blue-500/30 p-8 md:p-12 max-w-4xl mx-auto text-center fade-in-up"> 
- 				<h2 class="text-3xl md:text-4xl font-extrabold mb-4 text-white">Garanta Seu Acesso Imediato com Condição Especial</h2> 
- 				<p class="text-slate-400 text-lg mb-8">Acesso vitalício a todo o método, prompts secretos, bônus e futuras atualizações. Sem mensalidades.</p> 
- 				 
- 				<div class="bg-slate-950 p-8 rounded-xl border border-dashed border-slate-700 inline-block relative shadow-xl"> 
- 					<!-- NOVO: Selo de Oferta Limitada --> 
- 					<div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white text-sm font-bold px-4 py-1 rounded-full shadow-lg"> 
- 						OFERTA POR TEMPO LIMITADO 
- 					</div> 
-
- 					<!-- NOVO: Ancoragem de Preço --> 
- 					<p class="text-lg text-slate-500 line-through">De R$197,00</p> 
- 					<p class="text-lg text-slate-300 mt-2">Por apenas:</p> 
- 					<p class="text-6xl md:text-8xl font-black my-4 text-white"> 
- 						<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">R$39,90</span> 
- 					</p> 
- 					<p class="font-semibold text-slate-300">Pagamento único via PIX</p> 
- 				</div> 
- 				 
- 				<button id="buy-button" data-product-id="AiFVVdXh6pYjz7I6flwi" class="mt-10 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-xl py-5 px-10 rounded-full shadow-lg shadow-blue-500/30 transform hover:scale-105 transition-all duration-300 cta-pulse"> 
- 					<i class="fas fa-bolt mr-2"></i>SIM! QUERO ACESSO IMEDIATO 
- 				</button> 
- 				<div class="mt-8 flex items-center justify-center gap-4 text-slate-400"> 
- 					<i class="fas fa-shield-alt text-green-500 text-xl"></i> 
- 					<span>Compra 100% segura</span> 
- 					<span class="text-slate-600">|</span> 
- 					<i class="fas fa-clock text-blue-500 text-xl"></i> 
- 					<span>Acesso Imediato</span> 
- 				</div> 
- 			</section> 
-
- 			  <!-- NOVO: Seção de Garantia Blindada (Risco Zero) --> 
- 			  <section class="my-20 md:my-32 max-w-4xl mx-auto fade-in-up"> 
- 				  <div class="flex flex-col md:flex-row items-center bg-slate-800/50 border border-green-500/30 p-8 rounded-xl shadow-xl shadow-green-500/10"> 
- 					  <div class="md:w-1/4 text-center mb-6 md:mb-0"> 
- 						  <i class="fas fa-shield-alt text-7xl text-green-500"></i> 
- 						  <p class="text-xl font-bold text-white mt-2">RISCO ZERO</p> 
- 					  </div> 
- 					  <div class="md:w-3/4 md:pl-8"> 
- 						  <h2 class="text-2xl font-bold mb-3 text-white">Garantia Incondicional de 7 Dias</h2> 
- 						  <p class="text-slate-300 leading-relaxed"> 
- 							  Nós confiamos tanto no poder do Método Orçamento IA que assumimos todo o risco. Se por qualquer motivo você não ficar impressionado com a velocidade e qualidade das propostas que você vai criar nos próximos 7 dias, basta nos enviar um único e-mail e devolveremos 100% do seu investimento. Sem perguntas, sem burocracia. Você testa sem medo. 
- 						  </p> 
- 					  </div> 
- 				  </div> 
- 			</section> 
-
- 			  <!-- NOVO: Seção de FAQ (Perguntas Frequentes) --> 
- 			  <section id="faq" class="mb-20 md:mb-32 max-w-4xl mx-auto fade-in-up"> 
- 				  <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center">Perguntas Frequentes (FAQ)</h2> 
-
- 				  <div id="accordion" class="bg-slate-900 rounded-lg shadow-xl overflow-hidden"> 
- 					  
- 					  <!-- Pergunta 1 --> 
- 					  <div class="accordion-item"> 
- 						  <button class="accordion-title flex justify-between items-center w-full p-6 text-left font-semibold text-lg text-white hover:bg-slate-800/50"> 
- 							  <span>Preciso ter conhecimento técnico em IA para usar o método?</span> 
- 							  <i class="fas fa-chevron-down accordion-icon text-slate-400"></i> 
- 						  </button> 
- 						  <div class="accordion-content px-6 text-slate-300"> 
- 							  <p class="pb-4">Absolutamente não. O método foi desenhado para ser extremamente simples. Você aprenderá a usar ferramentas gratuitas como ChatGPT ou Gemini de forma intuitiva. Se você sabe digitar um e-mail, você consegue usar o Método Orçamento IA.</p> 
- 						  </div> 
- 					  </div> 
-
- 					  <!-- Pergunta 2 --> 
- 					  <div class="accordion-item"> 
- 						  <button class="accordion-title flex justify-between items-center w-full p-6 text-left font-semibold text-lg text-white hover:bg-slate-800/50"> 
- 							  <span>Esse método funciona para o meu nicho de mercado?</span> 
- 							  <i class="fas fa-chevron-down accordion-icon text-slate-400"></i> 
- 						  </button> 
- 						  <div class="accordion-content px-6 text-slate-300"> 
- 							  <p class="pb-4">Sim. O método é baseado em princípios de persuasão e copywriting que são universais. Temos alunos que são designers, programadores, arquitetos, consultores, gestores de tráfego e muitos outros. A IA é treinada para adaptar a linguagem ao seu público específico.</p> 
- 						  </div> 
- 					  </div> 
-
- 					  <!-- Pergunta 3 --> 
- 					  <div class="accordion-item"> 
- 						  <button class="accordion-title flex justify-between items-center w-full p-6 text-left font-semibold text-lg text-white hover:bg-slate-800/50"> 
- 							  <span>Como vou receber o acesso ao material?</span> 
- 							  <i class="fas fa-chevron-down accordion-icon text-slate-400"></i> 
- 						  </button> 
- 						  <div class="accordion-content px-6 text-slate-300"> 
- 							  <p class="pb-4">O acesso é imediato após a confirmação do pagamento PIX. Você receberá um e-mail com todas as instruções para acessar a plataforma onde o método, os prompts e os templates estão hospedados.</p> 
- 						  </div> 
- 					  </div> 
-
- 					  <!-- Pergunta 4 --> 
- 					  <div class="accordion-item"> 
- 						  <button class="accordion-title flex justify-between items-center w-full p-6 text-left font-semibold text-lg text-white hover:bg-slate-800/50"> 
- 							  <span>O pagamento é seguro? É mensalidade?</span> 
- 							  <i class="fas fa-chevron-down accordion-icon text-slate-400"></i> 
- 						  </button> 
- 						  <div class="accordion-content px-6 text-slate-300"> 
- 							  <p class="pb-4">O pagamento é 100% seguro, processado por uma plataforma confiável. É um pagamento único (apenas R$39,90), sem mensalidades ou taxas escondidas. Acesso vitalício.</p> 
- 						  </div> 
- 					  </div> 
-
- 				  </div> 
- 			</section> 
-
- 		</main> 
- 	</div> 
-
- 	<!-- Modal para Dados do Utilizador --> 
- 	<div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50 backdrop-blur-sm"> 
- 		<div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-teal-500 relative"> 
- 			<button onclick="closeModal('user-info-modal')" class="absolute top-4 right-4 text-2xl text-slate-500 hover:text-white transition-colors">&times;</button> 
- 			<h3 class="text-2xl font-bold mb-2 text-white">Estamos quase lá!</h3> 
- 			<p class="text-slate-400 mb-6">Preencha para gerar o PIX e garantir seu acesso imediato.</p> 
- 			<form id="user-info-form"> 
- 				<div class="mb-4 text-left"> 
- 					<label for="firstName" class="block text-sm font-medium text-slate-300 mb-2">Primeiro Nome</label> 
- 					<input type="text" id="firstName" name="firstName" placeholder="Seu nome" class="form-input w-full p-3 rounded-lg" required> 
- 				</div> 
- 				<div class="mb-6 text-left"> 
- 					<label for="email" class="block text-sm font-medium text-slate-300 mb-2">Seu melhor e-mail (para receber o acesso)</label> 
- 					<input type="email" id="email" name="email" placeholder="email@exemplo.com" class="form-input w-full p-3 rounded-lg" required> 
- 				</div> 
- 				<button type="submit" id="generate-pix-button" class="cta-button w-full bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-lg uppercase py-3 rounded-lg"> 
- 					<i class="fas fa-qrcode mr-2"></i> Gerar PIX Agora 
- 				</button> 
- 				<p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p> 
- 			</form> 
- 		</div> 
- 	</div> 
- 	 
- 	<!-- Modal para o Pagamento PIX --> 
- 	<div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50 backdrop-blur-sm"> 
- 		<div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-teal-500 relative"> 
- 			<button onclick="closeModal('pix-modal')" class="absolute top-4 right-4 text-2xl text-slate-500 hover:text-white transition-colors">&times;</button> 
- 			<h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para Liberar o Acesso</h3> 
- 			<p id="pix-subtitle" class="text-slate-400 mb-4">O pagamento é processado instantaneamente.</p> 
- 			<div id="pix-timer-container" class="text-lg mb-4 bg-slate-700 py-2 rounded-lg">Este código expira em: <span id="pix-timer" class="font-bold text-blue-400">10:00</span></div> 
- 			<div id="pix-container" class="flex justify-center"> 
- 				 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1"> 
- 			</div> 
- 			<div id="pix-copy-paste" class="mt-4"> 
- 				<p class="text-slate-400 mb-2">Ou use o PIX Copia e Cola:</p> 
- 				<div class="relative"> 
- 					<input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg form-input" readonly> 
- 					<button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"> 
- 						<i class="fas fa-copy"></i> 
- 					</button> 
- 				</div> 
- 				<p id="copy-message" class="text-sm text-green-400 mt-2 h-4"></p> 
- 			</div> 
- 			<button id="check-payment-button" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg cta-button"> 
- 				<i class="fas fa-check-circle mr-2"></i>Já Paguei, Verificar Manualmente 
- 			</button> 
- 			<p id="check-payment-message" class="text-sm text-slate-400 mt-2 h-5">Aguardando pagamento...</p> 
- 		</div> 
- 	</div> 
-
- 	<!-- Rodapé --> 
- 	<footer class="bg-slate-950 border-t border-slate-800 text-white py-10"> 
- 		<div class="container mx-auto px-6 text-center text-slate-400"> 
- 			<p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p> 
- 			<p class="text-sm mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-teal-400 transition-colors">conectawebdigital.com.br</a></p> 
- 			<div class="mt-4 text-sm space-x-4"> 
- 				<a href="#" class="hover:text-white">Termos de Uso</a> 
- 				<a href="#" class="hover:text-white">Política de Privacidade</a> 
- 			</div> 
- 			<p class="text-xs text-slate-500 mt-6">Este site não é afiliado ao Facebook, Google ou a qualquer entidade relacionada. Os resultados podem variar de acordo com a aplicação do método.</p> 
- 		</div> 
- 	</footer> 
-
- 	<!-- Scripts do Firebase --> 
- 	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script> 
- 	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
- 	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script> 
- 	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> 
- 	 
- 	<script> 
- 		// ===================================================== 
- 		// INICIALIZAÇÃO DO FIREBASE (COLE SUA CONFIG AQUI)
- 		// =====================================================
- 		// ATENÇÃO: Substitua os valores abaixo com as suas credenciais do Firebase.
- 		// Você encontra essas informações no console do seu projeto no Firebase.
- 		const firebaseConfig = {
- 			apiKey: "SUA_API_KEY_AQUI",
- 			authDomain: "SEU_PROJETO.firebaseapp.com",
- 			projectId: "SEU_PROJECT_ID",
- 			storageBucket: "SEU_PROJETO.appspot.com",
- 			messagingSenderId: "SEU_SENDER_ID",
- 			appId: "SEU_APP_ID"
- 		};
-
- 		// Esta linha inicializa o Firebase. Se ela não for executada, o pagamento não funcionará.
- 		firebase.initializeApp(firebaseConfig);
- 		// ===================================================== 
- 	</script> 
- 	 	 
- 	<script> 
- 	document.addEventListener('DOMContentLoaded', () => { 
- 		 
- 		// --- LÓGICA DE ANIMAÇÃO DE SCROLL --- 
- 		const observer = new IntersectionObserver((entries) => { 
- 			entries.forEach(entry => { 
- 				if (entry.isIntersecting) { 
- 					entry.target.classList.add('visible'); 
- 					// Otimização: Parar de observar após a animação 
- 					observer.unobserve(entry.target);  
- 				} 
- 			}); 
- 		}, { threshold: 0.1 }); // Dispara quando 10% do elemento está visível 
-
- 		document.querySelectorAll('.fade-in-up').forEach(el => { 
- 			observer.observe(el); 
- 		}); 
-
- 		// --- NOVO: LÓGICA DO ACORDEÃO (FAQ) --- 
- 		document.querySelectorAll('.accordion-item').forEach(item => { 
- 			const title = item.querySelector('.accordion-title'); 
- 			title.addEventListener('click', () => { 
- 				// Fechar outros itens abertos 
- 				document.querySelectorAll('.accordion-item.active').forEach(activeItem => { 
- 					if (activeItem !== item) { 
- 						activeItem.classList.remove('active'); 
- 					} 
- 				}); 
- 				// Alternar o item clicado 
- 				item.classList.toggle('active'); 
- 			}); 
- 		}); 
-
-
- 		// --- LÓGICA DO VÍDEO (VSL) --- 
- 		const videoSection = document.getElementById('video-section'); 
- 		const video = document.getElementById('vsl'); 
- 		const playButton = document.getElementById('play-button'); 
- 		const playButtonContainer = document.getElementById('play-button-container'); 
- 		const progressBar = document.getElementById('custom-progress-bar'); 
- 		const hiddenContent = document.getElementById('hidden-content'); 
- 		const videoFeedback = document.getElementById('video-feedback'); 
- 		 
- 		// Tempo em segundos para revelar a oferta.  
- 		// ATENÇÃO: Ajuste isso para o tempo real do seu pitch no vídeo. (Ex: 900s = 15min) 
- 		const REVEAL_TIME = 900;  
- 		let offerRevealed = false; 
-
- 		const showOffer = (scrollToPrice = false) => { 
- 			if (offerRevealed) return; 
- 			offerRevealed = true; 
- 			localStorage.setItem('offerRevealed', 'true'); 
- 			 
- 			// Manter o vídeo na página, mas mostrar o conteúdo abaixo 
- 			hiddenContent.classList.remove('hidden'); 
- 			 
- 			// Rolar suavemente 
- 			if (scrollToPrice) { 
- 				document.getElementById('preco').scrollIntoView({ behavior: 'smooth', block: 'start' }); 
- 			} else { 
- 				document.getElementById('hidden-content').scrollIntoView({ behavior: 'smooth', block: 'start' }); 
- 			} 
- 		}; 
-
- 		// Verifica se o usuário já passou do ponto de revelação anteriormente 
- 		if (localStorage.getItem('offerRevealed') === 'true') { 
- 			showOffer(false); 
- 		} else if (video && playButton) { 
- 			playButton.addEventListener('click', () => { 
- 				video.muted = true; 	 
- 				const playPromise = video.play(); 
- 				if (playPromise !== undefined) { 
- 					playPromise.then(() => { 
- 						video.muted = false; 
- 						video.controls = true; // Mostrar controles nativos após o play 
- 						if(playButtonContainer) playButtonContainer.style.display = 'none'; 
- 						if(videoFeedback) videoFeedback.style.display = 'none'; 
- 					}).catch(error => console.error("Erro ao reproduzir vídeo:", error)); 
- 				} 
- 			}); 
- 			video.addEventListener('timeupdate', () => { 	 
- 				if (video.duration) { 
- 					progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`; 
- 				} 
- 				// Lógica de Revelação baseada no tempo 
- 				if (!offerRevealed && video.currentTime >= REVEAL_TIME) { 
- 					showOffer(true); // Rola para o preço no momento do reveal 
- 				} 
- 			}); 
- 			video.addEventListener('ended', () => { 	 
- 				showOffer(true); // Garante que a oferta seja mostrada e rola para o preço 
- 			}); 
- 		} 
-
- 		// --- LÓGICA DE PAGAMENTO (Integração Firebase) --- 
- 		// Verifique se o objeto firebase está inicializado antes de usá-lo 
- 		if (typeof firebase !== 'undefined' && firebase.app) { 
- 			// Configuração das Cloud Functions (ajuste a região se necessário) 
- 			const functions = firebase.app().functions('us-central1'); 
- 			const createPixPayment = functions.httpsCallable('createPixPayment'); 
- 			const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus'); 
-
- 			// Elementos do DOM para o checkout 
- 			const userInfoForm = document.getElementById('user-info-form'); 
- 			const generatePixButton = document.getElementById('generate-pix-button'); 
- 			const formMessage = document.getElementById('form-message'); 
- 			const pixCodeInput = document.getElementById('pix-code-input'); 
- 			const pixQrCodeImg = document.getElementById('pix-qrcode'); 
- 			const pixTitle = document.getElementById('pix-title'); 
- 			const pixSubtitle = document.getElementById('pix-subtitle'); 
- 			const checkPaymentButton = document.getElementById('check-payment-button'); 
- 			const checkPaymentMessage = document.getElementById('check-payment-message'); 
- 			const pixTimerEl = document.getElementById('pix-timer'); 
- 			const pixTimerContainer = document.getElementById('pix-timer-container'); 
- 			 
- 			// Variáveis de estado do pagamento 
- 			let currentPaymentId = null; 
- 			let currentProductId = null; 
- 			let currentUserName = null; 
- 			let countdownInterval; 
-
- 			// Evento dos botões de compra 
- 			document.querySelectorAll('[data-product-id]').forEach(button => { 
- 				button.addEventListener('click', () => { 
- 					currentProductId = button.dataset.productId; 
- 					if (!currentProductId) { 
- 						alert("Erro de configuração: O ID do produto não foi definido."); 
- 						return; 
- 					} 
- 					openModal('user-info-modal'); 
- 				}); 
- 			}); 
-
- 			// Evento de submissão do formulário de informações do usuário 
- 			if(userInfoForm) { 
- 				userInfoForm.addEventListener('submit', async (e) => { 
- 					e.preventDefault(); 
- 					 
- 					currentUserName = document.getElementById('firstName').value; 
- 					const userEmail = document.getElementById('email').value; 
-
- 					if (!currentUserName.trim() || !userEmail.trim()) { 
- 						formMessage.textContent = 'Erro: Nome e e-mail são obrigatórios.'; 
- 						return; 
- 					} 
-
- 					// Estado de carregamento do botão 
- 					generatePixButton.disabled = true; 
- 					generatePixButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> GERANDO...'; 
- 					formMessage.textContent = ''; 
-
- 					try { 
- 						const payload = { 
- 							firstName: currentUserName, 
- 							email: userEmail, 
- 							productId: currentProductId 
- 						}; 
- 						 
- 						// Chama a Cloud Function para criar o pagamento PIX 
- 						const result = await createPixPayment(payload); 
- 						 
- 						// Verifica se os dados necessários foram retornados 
- 						if (result.data && result.data.paymentId && result.data.qrCodeBase64 && result.data.qrCode) { 
- 							currentPaymentId = result.data.paymentId; 
- 							 
- 							// Atualiza o modal PIX com os dados recebidos 
- 							pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`; 
- 							pixCodeInput.value = result.data.qrCode; 
-
- 							closeModal('user-info-modal'); 
- 							openModal('pix-modal'); 
- 							startTimer(600); // Inicia o timer de 10 minutos 
-
- 							// NOVO: Iniciar verificação automática em segundo plano 
- 							startAutoCheck(); 
-
- 						} else { 
- 							throw new Error("Não foi possível gerar o PIX. Tente novamente."); 
- 						} 
-
- 					} catch (error) { 
- 						console.error("Erro ao chamar a função createPixPayment:", error); 
- 						formMessage.textContent = `Erro: ${error.message}`; 
- 					} finally { 
- 						// Reseta o estado do botão 
- 						generatePixButton.disabled = false; 
- 						generatePixButton.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Gerar PIX Agora'; 
- 					} 
- 				}); 
- 			} 
-
- 			// Lógica de verificação de pagamento (Manual e Automática) 
- 			let autoCheckInterval; 
-
- 			function startAutoCheck() { 
- 				clearInterval(autoCheckInterval); 
- 				checkPaymentMessage.textContent = "Aguardando pagamento..."; 
- 				autoCheckInterval = setInterval(() => verifyPayment(false), 5000); // Verificar a cada 5 segundos 
- 			} 
-
- 			async function verifyPayment(isManual = false) { 
- 				if (!currentPaymentId) return; 
-
- 				if (isManual) { 
- 					checkPaymentButton.disabled = true; 
- 					checkPaymentMessage.textContent = "Verificando manualmente..."; 
- 				} 
-
- 				try { 
- 					const result = await checkPaymentStatus({ paymentId: currentPaymentId }); 
- 					if (result.data.status === 'approved') { 
- 						clearInterval(autoCheckInterval); // Parar a verificação automática 
- 						redirectToSuccess(currentUserName, currentPaymentId); 
- 					} else if (isManual) { 
- 						checkPaymentMessage.textContent = "Pagamento ainda pendente."; 
- 					} 
- 				} catch (error) { 
- 					console.error("Erro ao verificar pagamento:", error); 
- 					if (isManual) { 
- 						checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente."; 
- 					} 
- 				} finally { 
- 					if (isManual) { 
- 						setTimeout(() => { 
- 							checkPaymentButton.disabled = false; 
- 							// Volta para a mensagem de espera se ainda não foi aprovado 
- 							if (checkPaymentMessage.textContent !== "Aguardando pagamento...") { 
- 								 checkPaymentMessage.textContent = "Aguardando pagamento..."; 
- 							} 
- 						}, 3000); 
- 					} 
- 				} 
- 			} 
-
- 			if(checkPaymentButton) { 
- 				// Evento para verificação manual 
- 				checkPaymentButton.addEventListener('click', () => verifyPayment(true)); 
- 			} 
- 			 
- 			// Função para iniciar o timer do PIX 
- 			function startTimer(duration) { 
- 				let timer = duration; 
- 				clearInterval(countdownInterval); 
- 				countdownInterval = setInterval(() => { 
- 					const minutes = Math.floor(timer / 60).toString().padStart(2, '0'); 
- 					const seconds = (timer % 60).toString().padStart(2, '0'); 
- 					pixTimerEl.textContent = `${minutes}:${seconds}`; 
- 					if (--timer < 0) { 
- 						clearInterval(countdownInterval); 
- 						clearInterval(autoCheckInterval); // Parar verificação se expirar 
-
- 						// Lógica de expiração do PIX 
- 						pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>'; 
- 						document.getElementById('pix-container').style.opacity = '0.2'; 
- 						document.getElementById('pix-copy-paste').style.display = 'none'; 
- 						checkPaymentMessage.textContent = ""; 
- 						checkPaymentButton.textContent = "Gerar Novo PIX (Recarregar)"; 
- 						checkPaymentButton.classList.remove('bg-green-600', 'hover:bg-green-700'); 
- 						checkPaymentButton.classList.add('bg-blue-600', 'hover:bg-blue-700'); 
- 						checkPaymentButton.onclick = () => window.location.reload(); // Recarrega a página para gerar novo PIX 
- 					} 
- 				}, 1000); 
- 			} 
- 			 
- 			// Função para redirecionar ou mostrar tela de sucesso 
- 			function redirectToSuccess(userName, paymentId) { 
- 				clearInterval(countdownInterval); 
- 				// Atualiza o modal para o estado de sucesso 
- 				pixTitle.textContent = "🎉 Pagamento Aprovado!"; 
- 				pixSubtitle.innerHTML = `  
- 					<p class="text-green-400 text-xl font-bold mt-4">Parabéns, ${userName}!</p>  
- 					<p class="mt-2">Sua compra foi confirmada.</p> 
- 					<p class="text-sm mt-4">As instruções de acesso foram enviadas para o seu e-mail. Verifique sua caixa de entrada e spam.</p>  
- 				`; 
- 				checkPaymentButton.style.display = 'none'; 
- 				document.getElementById('pix-container').innerHTML = '<i class="fas fa-check-circle text-green-500 text-8xl my-8"></i>'; 
- 				document.getElementById('pix-copy-paste').style.display = 'none'; 
- 				pixTimerContainer.style.display = 'none'; 
- 				checkPaymentMessage.textContent = ""; 
-
- 				// Opcional: Redirecionar para uma página de obrigado externa 
- 				// window.location.href = "/obrigado?paymentId=" + paymentId; 
- 			} 
- 		} else { 
- 			// Fallback caso o Firebase não seja inicializado 
- 			console.warn("Firebase não foi inicializado corretamente. A funcionalidade de pagamento estará desativada."); 
- 			document.querySelectorAll('[data-product-id]').forEach(button => { 
- 				button.disabled = true; 
- 				button.textContent = "Sistema de Pagamento Indisponível"; 
- 				button.className = "mt-10 w-full max-w-lg mx-auto block bg-gray-500 text-white font-bold text-xl py-5 px-10 rounded-full opacity-50 cursor-not-allowed"; 
- 			}); 
- 		} 
-
-
- 		// --- Funções Utilitárias (Modal e Cópia) --- 
- 		window.openModal = function(modalId) { 
- 			const modal = document.getElementById(modalId); 
- 			if(modal) { 
- 				modal.classList.add('flex'); 
- 				document.body.style.overflow = 'hidden'; // Impede o scroll do fundo 
- 				setTimeout(() => modal.classList.add('opacity-100'), 10); // Inicia a transição 
- 			} 
- 		} 
- 		window.closeModal = function(modalId) { 
- 			const modal = document.getElementById(modalId); 
- 			if(modal) { 
- 				modal.classList.remove('opacity-100'); 
- 				document.body.style.overflow = ''; // Restaura o scroll do fundo 
- 				setTimeout(() => modal.classList.remove('flex'), 300); // Remove após a transição 
- 			} 
- 		} 
-
- 		  // Fechar modal ao clicar fora dele 
- 		  document.querySelectorAll('.modal').forEach(modal => { 
- 			  modal.addEventListener('click', (e) => { 
- 				  if (e.target === modal) { 
- 					  closeModal(modal.id); 
- 				  } 
- 			  }); 
- 		}); 
-
- 		window.copyPixCode = function() { 
- 			const pixCodeInput = document.getElementById('pix-code-input'); 
- 			const copyMessage = document.getElementById('copy-message'); 
- 			 
- 			// Usando a API da área de transferência moderna 
- 			if (navigator.clipboard) { 
- 				navigator.clipboard.writeText(pixCodeInput.value).then(() => { 
- 					copyMessage.textContent = '✅ Código copiado!'; 
- 					setTimeout(() => { copyMessage.textContent = '' }, 2000); 
- 				}).catch(err => { 
- 					console.error('Não foi possível copiar o código:', err); 
- 					copyMessage.textContent = 'Erro ao copiar!'; 
- 				}); 
- 			} else { 
- 				// Fallback para navegadores antigos 
- 				pixCodeInput.select(); 
- 				try { 
- 					document.execCommand('copy'); 
- 					copyMessage.textContent = '✅ Código copiado!'; 
- 					setTimeout(() => { copyMessage.textContent = '' }, 2000); 
- 				} catch (err) { 
- 					console.error('Não foi possível copiar o código (fallback):', err); 
- 					copyMessage.textContent = 'Erro ao copiar!'; 
- 				} 
- 			} 
- 		} 
- 	}); 
- 	</script> 
- </body> 
- </html>
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método Orçamento IA - Propostas que Convertem</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Estilos Globais e Animações */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* slate-950 */
+            color: #e2e8f0; /* slate-200 */
+        }
+
+        /* Efeito Aurora no Fundo do Header */
+        .aurora-background {
+            position: relative;
+            overflow: hidden;
+            background-color: #0f172a; /* slate-900 */
+        }
+        .aurora-background::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background-image: radial-gradient(circle, rgba(29, 78, 216, 0.3) 0%, rgba(30, 64, 175, 0) 60%);
+            filter: blur(100px);
+            z-index: 0;
+            animation: pulse-aurora 10s infinite ease-in-out;
+        }
+        @keyframes pulse-aurora {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+        .content-z { position: relative; z-index: 1; }
+
+        /* Animação do Botão CTA Principal */
+        .cta-pulse {
+            animation: pulse-animation 2s infinite;
+            box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.7);
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(29, 78, 216, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0); }
+        }
+        
+        /* Barra de Progresso do Vídeo */
+        .progress-bar-container {
+            width: 100%; height: 8px; background-color: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 16px;
+        }
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, #3b82f6, #14b8a6); width: 0%; border-radius: 4px; transition: width 0.1s linear;
+        }
+
+        /* Animações de Entrada */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Estilos do Modal */
+        .modal { display: none; transition: opacity 0.3s ease; }
+        .modal-content { transform: scale(0.95); transition: transform 0.3s ease; background-color: #1e293b; color: #d1d5db; border: 1px solid #334155; }
+        .modal.flex { display: flex; }
+        .modal.opacity-100 .modal-content { transform: scale(1); }
+        .form-input { background-color: #334155; border: 1px solid #475569; color: #d1d5db; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); outline: none; }
+        
+        /* Estilos do Checkout PIX */
+        #pix-qrcode { border: 6px solid white; border-radius: 8px; }
+        #pix-code-input { background-color: #334155; user-select: all; }
+        .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .cta-button:hover:not(:disabled) { transform: translateY(-3px); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Seção Principal (Hero) -->
+    <header class="aurora-background">
+        <div class="content-z container mx-auto px-6 py-20 md:py-32 text-center">
+            <h1 class="text-4xl md:text-6xl font-black leading-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                O Fim dos Orçamentos Ignorados
+            </h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
+                Descubra o método de IA que transforma propostas chatas em máquinas de conversão e faça seus clientes implorarem para te pagar.
+            </p>
+            <a href="#video-section" class="inline-block bg-blue-600 text-white font-bold py-4 px-10 rounded-full text-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-600/30 cta-pulse">
+                QUERO PARAR DE SER IGNORADO
+            </a>
+        </div>
+    </header>
+
+    <!-- Seção do Vídeo de Vendas (VSL) -->
+    <section id="video-section" class="py-16 md:py-24 bg-slate-900">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="bg-black rounded-xl shadow-2xl shadow-blue-500/10 overflow-hidden border border-slate-700">
+                <div class="aspect-w-16 aspect-h-9">
+                    <video id="vsl" class="w-full h-full" playsinline>
+                        <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" type="video/mp4">
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+                </div>
+            </div>
+            <div class="progress-bar-container"><div id="custom-progress-bar" class="progress-bar"></div></div>
+            <p id="video-feedback" class="text-center text-sm text-slate-500 mt-3">O som será ativado ao clicar no play.</p>
+            <div id="play-button-container" class="text-center mt-6">
+                <button id="play-button" class="bg-slate-800 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg text-xl hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-play mr-2"></i>ASSISTIR APRESENTAÇÃO
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conteúdo Oculto - Revelado após o vídeo -->
+    <div id="hidden-content" class="hidden">
+        <main class="container mx-auto px-6 py-16 md:py-24">
+            
+            <!-- Seção de Problemas -->
+            <section class="text-center mb-20 md:mb-32 fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Sua realidade se parece com isso?</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto mb-12">Se você marcou 'sim' para qualquer um dos itens abaixo, você está no lugar certo.</p>
+                <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <!-- Card Problema 1 -->
+                    <div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 hover:border-red-500/50">
+                        <div class="w-16 h-16 mx-auto mb-5 flex items-center justify-center bg-red-500/10 text-red-500 rounded-full text-3xl">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Horas no Lixo</h3>
+                        <p class="text-slate-400">Você passa mais tempo criando propostas do que executando o trabalho que realmente te paga.</p>
+                    </div>
+                    <!-- Card Problema 2 -->
+                    <div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 hover:border-yellow-500/50">
+                        <div class="w-16 h-16 mx-auto mb-5 flex items-center justify-center bg-yellow-500/10 text-yellow-500 rounded-full text-3xl">
+                            <i class="fas fa-meh"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Propostas "Meh"</h3>
+                        <p class="text-slate-400">Seus orçamentos são uma lista de itens sem vida que não geram confiança nem desejo de compra.</p>
+                    </div>
+                    <!-- Card Problema 3 -->
+                    <div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700 transform transition-transform duration-300 hover:-translate-y-2 hover:border-blue-500/50">
+                        <div class="w-16 h-16 mx-auto mb-5 flex items-center justify-center bg-blue-500/10 text-blue-500 rounded-full text-3xl">
+                            <i class="fas fa-ghost"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Clientes Fantasmas</h3>
+                        <p class="text-slate-400">Você envia propostas e é respondido com o mais absoluto e frustrante silêncio.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Seção da Solução -->
+            <section class="mb-20 md:mb-32 bg-slate-900 p-8 md:p-12 rounded-2xl border border-slate-700 fade-in-up">
+                <div class="flex flex-col md:flex-row items-center gap-12">
+                    <div class="md:w-1/2">
+                        <span class="text-teal-400 font-semibold tracking-widest">A SOLUÇÃO</span>
+                        <h2 class="text-3xl md:text-4xl font-extrabold mt-2 mb-4 text-white">Apresentando: Método Orçamento IA</h2>
+                        <p class="text-slate-300 mb-6 leading-relaxed">
+                            Esqueça o bloqueio criativo. Com este método, você usará a Inteligência Artificial como sua assistente pessoal para criar propostas que <strong class="text-white">vendem sozinhas</strong>.
+                        </p>
+                        <ul class="space-y-4 text-slate-300">
+                            <li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Crie propostas <strong>10x mais rápido</strong>, sem sacrificar a qualidade.</span></li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Use gatilhos mentais e copywriting persuasivo <strong>gerados por IA</strong>.</span></li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-teal-400 mt-1 mr-3"></i><span>Transforme seu orçamento de uma simples cotação para uma <strong>oferta irrecusável</strong>.</span></li>
+                        </ul>
+                    </div>
+                    <div class="md:w-1/2">
+                        <img src="https://placehold.co/600x450/0f172a/14b8a6?text=Proposta+Magn%C3%A9tica" alt="Demonstração do método" class="rounded-lg shadow-2xl w-full shadow-teal-500/10">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção de Preço e CTA -->
+            <section id="preco" class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-blue-500/30 p-8 md:p-12 max-w-4xl mx-auto text-center fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-4 text-white">Sua Vaga com Acesso Imediato</h2>
+                <p class="text-slate-400 text-lg mb-8">Acesso vitalício a todo o método, prompts secretos e futuras atualizações. Sem mensalidades.</p>
+                <div class="bg-slate-950 p-8 rounded-xl border border-dashed border-slate-700 inline-block">
+                    <p class="text-lg text-slate-400">Pagamento único de:</p>
+                    <p class="text-5xl md:text-7xl font-bold my-2 text-white">
+                        <span class="text-teal-400">R$39,90</span>
+                    </p>
+                    <p class="font-semibold text-slate-300">Exclusivamente via PIX</p>
+                </div>
+                <button id="buy-button" data-product-id="AiFVVdXh6pYjz7I6flwi" class="mt-10 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-xl py-5 px-10 rounded-full shadow-lg shadow-blue-500/30 transform hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-bolt mr-2"></i>QUERO ACESSO IMEDIATO
+                </button>
+                <div class="mt-8 flex items-center justify-center gap-4">
+                    <i class="fas fa-shield-alt text-green-500 text-xl"></i>
+                    <p class="text-slate-400">Compra 100% segura com garantia de 7 dias.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para Dados do Utilizador -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-4 right-4 text-2xl text-slate-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-2 text-white">Estamos quase lá!</h3>
+            <p class="text-slate-400 mb-6">Preencha para gerar o PIX e garantir seu acesso.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-slate-300 mb-2">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX para Pagamento
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para o Pagamento PIX -->
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-4 right-4 text-2xl text-slate-500 hover:text-white">&times;</button>
+            <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p id="pix-subtitle" class="text-slate-400 mb-4">Escaneie o QR Code com o app do seu banco.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-blue-400">10:00</span></div>
+            <div id="pix-container" class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <div id="pix-copy-paste" class="mt-4">
+                <p class="text-slate-400 mb-2">Ou use o PIX Copia e Cola:</p>
+                <div class="relative">
+                    <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                    <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p id="copy-message" class="text-sm text-green-400 mt-2 h-4"></p>
+            </div>
+            <button id="check-payment-button" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar Agora!
+            </button>
+            <p id="check-payment-message" class="text-sm text-slate-400 mt-2 h-5"></p>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="bg-slate-900/50 border-t border-slate-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center text-slate-400">
+            <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
+            <p class="text-sm mt-2">Criado por <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">conectawebdigital.com.br</a></p>
+            <p class="text-xs text-slate-500 mt-4">Este site não é afiliado ao Facebook ou a qualquer entidade do Facebook.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Substitua 'firebase-config.js' pela sua configuração real ou insira aqui -->
+    <script>
+        // Cole sua configuração do Firebase aqui
+        // const firebaseConfig = { ... };
+        // firebase.initializeApp(firebaseConfig);
+    </script>
+     
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- LÓGICA DE ANIMAÇÃO DE SCROLL ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // --- LÓGICA DO VÍDEO ---
+        const videoSection = document.getElementById('video-section');
+        const video = document.getElementById('vsl');
+        const playButton = document.getElementById('play-button');
+        const playButtonContainer = document.getElementById('play-button-container');
+        const progressBar = document.getElementById('custom-progress-bar');
+        const hiddenContent = document.getElementById('hidden-content');
+        const videoFeedback = document.getElementById('video-feedback');
+        
+        const showOffer = () => {
+            videoSection.style.display = 'none';
+            hiddenContent.classList.remove('hidden');
+            // A animação agora é controlada pelo IntersectionObserver
+        };
+
+        if (localStorage.getItem('videoWatched') === 'true') {
+            showOffer();
+        } else if (video && playButton) {
+            playButton.addEventListener('click', () => {
+                video.muted = true;  
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        video.muted = false;
+                        if(playButtonContainer) playButtonContainer.style.display = 'none';
+                        if(videoFeedback) videoFeedback.style.display = 'none';
+                    }).catch(error => console.error("Erro ao reproduzir vídeo:", error));
+                }
+            });
+            video.addEventListener('timeupdate', () => {  
+                if (video.duration) {
+                    progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
+                }
+            });
+            video.addEventListener('ended', () => {  
+                localStorage.setItem('videoWatched', 'true');  
+                showOffer();  
+                document.getElementById('preco').scrollIntoView({ behavior: 'smooth' });  
+            });
+        }
+
+        // --- LÓGICA DE PAGAMENTO (SEM ALTERAÇÕES FUNCIONAIS) ---
+        // Verifique se o objeto firebase está inicializado antes de usá-lo
+        if (typeof firebase !== 'undefined' && firebase.app) {
+            const functions = firebase.app().functions('us-central1');
+            const createPixPayment = functions.httpsCallable('createPixPayment');
+            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+
+            const buyButton = document.getElementById('buy-button');
+            const userInfoForm = document.getElementById('user-info-form');
+            const generatePixButton = document.getElementById('generate-pix-button');
+            const formMessage = document.getElementById('form-message');
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            const pixQrCodeImg = document.getElementById('pix-qrcode');
+            const pixTitle = document.getElementById('pix-title');
+            const pixSubtitle = document.getElementById('pix-subtitle');
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            const checkPaymentMessage = document.getElementById('check-payment-message');
+            const pixTimerEl = document.getElementById('pix-timer');
+            const pixTimerContainer = document.getElementById('pix-timer-container');
+            
+            let currentPaymentId = null;
+            let currentProductId = null;
+            let currentUserName = null;
+            let countdownInterval;
+
+            if(buyButton) {
+                buyButton.addEventListener('click', () => {
+                    currentProductId = buyButton.dataset.productId;
+                    if (!currentProductId) {
+                        console.error("Erro de configuração: O ID do produto não foi definido no botão de compra.");
+                        return;
+                    }
+                    openModal('user-info-modal');
+                });
+            }
+
+            if(userInfoForm) {
+                userInfoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    currentUserName = document.getElementById('firstName').value;
+                    const userEmail = document.getElementById('email').value;
+
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
+                        formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
+                        return;
+                    }
+
+                    generatePixButton.disabled = true;
+                    generatePixButton.textContent = 'GERANDO...';
+                    formMessage.textContent = '';
+
+                    try {
+                        const payload = {
+                            firstName: currentUserName,
+                            email: userEmail,
+                            productId: currentProductId
+                        };
+                        
+                        const result = await createPixPayment(payload);
+                        currentPaymentId = result.data.paymentId;
+                        
+                        pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                        pixCodeInput.value = result.data.qrCode;
+
+                        closeModal('user-info-modal');
+                        openModal('pix-modal');
+                        startTimer(600); // 10 minutos
+
+                    } catch (error) {
+                        console.error("Erro ao chamar a função createPixPayment:", error);
+                        formMessage.textContent = `Erro: ${error.message}`;
+                    } finally {
+                        generatePixButton.disabled = false;
+                        generatePixButton.textContent = 'Gerar PIX para Pagamento';
+                    }
+                });
+            }
+
+            if(checkPaymentButton) {
+                checkPaymentButton.addEventListener('click', async () => {
+                    if (!currentPaymentId) return;
+
+                    checkPaymentButton.disabled = true;
+                    checkPaymentMessage.textContent = "Verificando...";
+
+                    try {
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToSuccess(currentUserName, currentPaymentId);
+                        } else {
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar pagamento:", error);
+                        checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                    } finally {
+                        setTimeout(() => {
+                            checkPaymentButton.disabled = false;
+                            if(checkPaymentMessage.textContent !== "") checkPaymentMessage.textContent = "";
+                        }, 3000);
+                    }
+                });
+            }
+            
+            function startTimer(duration) {
+                let timer = duration;
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                    const seconds = (timer % 60).toString().padStart(2, '0');
+                    pixTimerEl.textContent = `${minutes}:${seconds}`;
+                    if (--timer < 0) {
+                        clearInterval(countdownInterval);
+                        pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                        document.getElementById('pix-container').style.display = 'none';
+                        document.getElementById('pix-copy-paste').style.display = 'none';
+                        checkPaymentButton.textContent = "Gerar Novo PIX";
+                        checkPaymentButton.onclick = () => window.location.reload();
+                    }
+                }, 1000);
+            }
+            
+            function redirectToSuccess(userName, paymentId) {
+                clearInterval(countdownInterval);
+                pixTitle.textContent = "Pagamento Aprovado!";
+                pixSubtitle.innerHTML = ` 
+                    <p class="text-green-400 text-lg">Parabéns, ${userName}!</p> 
+                    <p>As instruções de acesso foram enviadas para o seu e-mail.</p> 
+                `;
+                checkPaymentButton.style.display = 'none';
+                document.getElementById('pix-container').style.display = 'none';
+                document.getElementById('pix-copy-paste').style.display = 'none';
+                pixTimerContainer.style.display = 'none';
+            }
+        } else {
+            console.warn("Firebase não foi inicializado. A funcionalidade de pagamento estará desativada.");
+            // Opcional: Desabilitar botões de compra se o Firebase não carregar
+            const buyButton = document.getElementById('buy-button');
+            if(buyButton) {
+                buyButton.disabled = true;
+                buyButton.textContent = "Erro de Configuração";
+                buyButton.style.background = 'gray';
+            }
+        }
+
+
+        // --- Funções do Modal ---
+        window.openModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            }
+        }
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.remove('flex'), 300);
+            }
+        }
+        window.copyPixCode = function() {
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            pixCodeInput.select();
+            try {
+                // Usando execCommand como fallback
+                document.execCommand('copy');
+                copyMessage.textContent = 'Código copiado!';
+                setTimeout(() => { copyMessage.textContent = '' }, 2000);
+            } catch (err) {
+                console.error('Não foi possível copiar o código:', err);
+                copyMessage.textContent = 'Erro ao copiar!';
+            }
+        }
+    });
+    </script>
+</body>
+</html>
