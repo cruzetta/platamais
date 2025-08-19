@@ -780,7 +780,7 @@
 
                     } catch (error) {
                         console.error("Erro ao chamar a função createPixPayment:", error);
-                        formMessage.textContent = `Erro: ${error.message}`;
+                        formMessage.textContent = 'Ocorreu um erro ao gerar o PIX. Por favor, tente novamente mais tarde.';
                     } finally {
                         // Reseta o estado do botão
                         generatePixButton.disabled = false;
