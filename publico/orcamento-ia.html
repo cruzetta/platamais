@@ -568,24 +568,35 @@
     </footer>
 
     <!-- Scripts do Firebase -->
-    <!-- ATENÇÃO: Certifique-se de inicializar o Firebase corretamente para o checkout funcionar -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <script>
-        // =====================================================
-        // INICIALIZAÇÃO DO FIREBASE (COLE SUA CONFIG AQUI)
-        // =====================================================
-        /*
-        const firebaseConfig = { ... };
-        // Descomente a linha abaixo após adicionar a config
-        // firebase.initializeApp(firebaseConfig); 
-        */
-        // =====================================================
+        // ===================================================================
+        // CORREÇÃO: INICIALIZAÇÃO DO FIREBASE - AÇÃO NECESSÁRIA
+        // ===================================================================
+        // ATENÇÃO: Cole a configuração do seu projeto Firebase aqui dentro.
+        // Você pode encontrar essa configuração no console do seu projeto
+        // em Configurações do projeto > Geral > Seus apps > App da Web.
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_AUTH_DOMAIN",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_STORAGE_BUCKET",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        // A linha abaixo é essencial para o funcionamento do pagamento.
+        // Verificamos se o Firebase já foi inicializado para evitar erros.
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        // ===================================================================
     </script>
-      
+     
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         
@@ -682,7 +693,7 @@
 
         // --- LÓGICA DE PAGAMENTO (Integração Firebase) ---
         // Verifique se o objeto firebase está inicializado antes de usá-lo
-        if (typeof firebase !== 'undefined' && firebase.app) {
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
             // Configuração das Cloud Functions (ajuste a região se necessário)
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
@@ -712,7 +723,8 @@
                 button.addEventListener('click', () => {
                     currentProductId = button.dataset.productId;
                     if (!currentProductId) {
-                        alert("Erro de configuração: O ID do produto não foi definido.");
+                        // Não use alert, mostre uma mensagem no modal ou console
+                        console.error("Erro de configuração: O ID do produto não foi definido.");
                         return;
                     }
                     openModal('user-info-modal');
@@ -759,7 +771,7 @@
                             openModal('pix-modal');
                             startTimer(600); // Inicia o timer de 10 minutos
 
-                            // NOVO: Iniciar verificação automática em segundo plano
+                            // Iniciar verificação automática em segundo plano
                             startAutoCheck();
 
                         } else {
@@ -900,11 +912,11 @@
 
          // Fechar modal ao clicar fora dele
          document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal(modal.id);
-                }
-            });
+             modal.addEventListener('click', (e) => {
+                 if (e.target === modal) {
+                     closeModal(modal.id);
+                 }
+             });
         });
 
         window.copyPixCode = function() {
