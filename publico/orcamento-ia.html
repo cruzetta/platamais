@@ -82,18 +82,6 @@
                 </div>
             </section>
 
-            <section class="text-center mb-20">
-                <h2 class="text-3xl md:text-4xl font-bold mb-10">O Que Você Terá Acesso Imediato</h2>
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 1: A Base da Proposta Vencedora</h3><p>Entenda a psicologia por trás de uma proposta de alto impacto.</p></div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 2: Engenharia de Prompts com IA</h3><p>Copie e cole meus prompts secretos para extrair textos persuasivos.</p></div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 3: Design Profissional e Rápido</h3><p>Use ferramentas para criar um visual limpo e profissional.</p></div>
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"><h3 class="text-xl font-bold mb-2 text-blue-600">Módulo 4: Automatizando o Processo</h3><p>Crie templates inteligentes para gerar propostas em minutos.</p></div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md md:col-span-2 lg:col-span-1"><h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #1: Planilha de Precificação</h3><p class="text-blue-700">Uma planilha para te ajudar a calcular seu preço de forma justa.</p></div>
-                    <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-md"><h3 class="text-xl font-bold mb-2 text-blue-800">BÔNUS #2: Grupo VIP de Alunos</h3><p class="text-blue-700">Acesso a uma comunidade exclusiva para networking e dúvidas.</p></div>
-                </div>
-            </section>
-
             <section id="preco" class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 md:p-12 max-w-4xl mx-auto text-center">
                 <h2 class="text-3xl md:text-4xl font-extrabold mb-4">Acesso Imediato por um Preço Especial</h2>
                 <p class="text-gray-600 text-lg mb-6">Acesso vitalício a todo o método e futuras atualizações.</p>
@@ -287,8 +275,8 @@
                 } finally {
                     generatePixButton.disabled = false;
                      if (formMessage.textContent === 'A gerar o seu PIX...') {
-                        formMessage.textContent = '';
-                    }
+                         formMessage.textContent = '';
+                     }
                 }
             });
         }
@@ -312,8 +300,8 @@
                     checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
                 } finally {
                     setTimeout(() => {
-                       checkPaymentButton.disabled = false;
-                       checkPaymentMessage.textContent = "";
+                        checkPaymentButton.disabled = false;
+                        checkPaymentMessage.textContent = "";
                     }, 3000);
                 }
             });
