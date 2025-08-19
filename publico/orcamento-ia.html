@@ -61,11 +61,10 @@
     <!-- Conteúdo Oculto - Revelado após o vídeo -->
     <div id="hidden-content" class="hidden">
         <main class="container mx-auto px-6 py-12 md:py-20">
-            <!-- Seção: Seus Problemas Acabaram -->
             <section class="text-center mb-20">
                 <h2 class="text-3xl md:text-4xl font-bold mb-6">Você se identifica com algum destes problemas?</h2>
                 <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-semibold mb-2">Perda de Tempo</h3><p class="text-gray-600">Você gasta horas, ou até dias, para montar uma única proposta comercial.</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-semibold mb-2">Perda de Tempo</h3><p class="text-gray-600">Você gasta horas para montar uma única proposta comercial.</p></div>
                     <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-semibold mb-2">Falta de Profissionalismo</h3><p class="text-gray-600">Suas propostas parecem amadoras e não transmitem confiança.</p></div>
                     <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200"><svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg><h3 class="text-xl font-semibold mb-2">Baixa Conversão</h3><p class="text-gray-600">Você envia dezenas de orçamentos e recebe poucas respostas.</p></div>
                 </div>
@@ -166,8 +165,8 @@
 
     <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> <!-- CORREÇÃO ADICIONADA -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
-    <!-- CORREÇÃO: Adicionada a biblioteca do Firestore que estava em falta -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
     
