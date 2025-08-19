@@ -10,16 +10,27 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .animated-gradient { background-size: 200% 200%; animation: gradient-animation 5s ease infinite; }
         @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .progress-bar-container { width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; margin-top: 10px; }
         .progress-bar { height: 100%; background-color: #2563eb; width: 0%; border-radius: 5px; transition: width 0.1s linear; }
-        .fade-in { animation: fadeInAnimation 1s ease-in forwards; }
+        .fade-in { animation: fadeInAnimation 1s ease-in forwards; opacity: 0; }
         @keyframes fadeInAnimation { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 2rem; border-radius: 0.75rem; max-width: 400px; width: 90%; text-align: center; }
+        
+        /* Estilos do Modal (como no ficheiro que funciona) */
+        .modal { display: none; transition: opacity 0.3s ease; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; background-color: #1f2937; color: #d1d5db; }
+        .modal.flex { display: flex; }
+        .modal.opacity-100 .modal-content { transform: scale(1); }
+        .form-input { background-color: #374151; border: 1px solid #4b5563; color: #d1d5db; }
+        #pix-qrcode { border: 6px solid white; border-radius: 8px; }
+        #pix-code-input { background-color: #374151; user-select: all; }
+        .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .cta-button:hover:not(:disabled) { transform: translateY(-4px); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -102,7 +113,8 @@
                     <p class="text-lg font-semibold">Exclusivamente via PIX</p>
                 </div>
                 
-                <button id="buy-button" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
+                <!-- BOTÃO DE COMPRA ATUALIZADO com data-product-id -->
+                <button id="buy-button" data-product-id="04dfrhvjotiX1esrjg4w" class="mt-8 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold text-xl py-4 px-10 rounded-full shadow-xl transform hover:scale-105 transition-transform duration-300 animated-gradient">QUERO ACESSO IMEDIATO POR PIX</button>
                 <div class="mt-6 flex items-center justify-center gap-4">
                     <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     <p class="text-gray-600">Compra segura e garantia de 7 dias.</p>
@@ -111,13 +123,53 @@
         </main>
     </div>
 
-    <!-- Modal de Pagamento PIX -->
-    <div id="pix-modal" class="modal-overlay hidden">
-        <div class="modal-content" id="modal-content-area">
-            <div id="user-form"><h2 class="text-2xl font-bold mb-4">Quase lá!</h2><p class="mb-4 text-gray-600">Preencha seus dados para gerar o PIX.</p><form id="payment-form"><input type="text" id="firstName" placeholder="Seu primeiro nome" class="w-full p-2 border border-gray-300 rounded-md mb-3" required><input type="email" id="email" placeholder="Seu melhor e-mail" class="w-full p-2 border border-gray-300 rounded-md mb-4" required><button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Gerar PIX</button></form></div>
-            <div id="loading-spinner" class="hidden justify-center items-center"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div></div>
-            <div id="pix-details" class="hidden"><h2 class="text-2xl font-bold mb-4">Pague com PIX para continuar</h2><p class="mb-4">Escaneie o QR Code abaixo com o app do seu banco:</p><img id="pix-qrcode" src="" alt="PIX QR Code" class="mx-auto border rounded-md"><p class="my-4 font-semibold">Ou use o PIX Copia e Cola:</p><div class="bg-gray-100 p-2 rounded-md break-words text-sm"><code id="pix-copia-cola"></code></div><button id="copy-button" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Copiar Código</button><p id="copy-feedback" class="text-green-600 text-sm mt-2 h-4"></p><p id="payment-status-feedback" class="text-blue-600 font-semibold mt-4">Aguardando pagamento...</p></div>
-            <div id="payment-success" class="hidden"><svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h2 class="text-2xl font-bold mb-2">Pagamento Aprovado!</h2><p class="text-gray-600">Parabéns! As instruções de acesso foram enviadas para o seu e-mail.</p></div>
+    <!-- Modal para Dados do Utilizador (Estilo do ficheiro que funciona) -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Falta Pouco!</h3>
+            <p class="text-gray-400 mb-6">Preencha seus dados para gerar o pagamento e receber o acesso.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para o Pagamento PIX (Estilo do ficheiro que funciona) -->
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p id="pix-subtitle" class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-blue-400">10:00</span></div>
+            <div id="pix-container" class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <div id="pix-copy-paste" class="mt-4">
+                <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
+                <div class="relative">
+                    <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                    <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p id="copy-message" class="text-sm text-green-400 mt-2 h-4"></p>
+            </div>
+            <button id="check-payment-button" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar Agora!
+            </button>
+            <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
         </div>
     </div>
 
@@ -126,7 +178,6 @@
 
     <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="firebase-config.js"></script>
     
@@ -139,23 +190,9 @@
         const progressBar = document.getElementById('custom-progress-bar');
         const hiddenContent = document.getElementById('hidden-content');
         const buyButton = document.getElementById('buy-button');
-        const pixModal = document.getElementById('pix-modal');
-        const modalContent = document.getElementById('modal-content-area');
         const videoFeedback = document.getElementById('video-feedback');
-        const userForm = document.getElementById('user-form');
-        const paymentForm = document.getElementById('payment-form');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const pixDetails = document.getElementById('pix-details');
-        const paymentSuccess = document.getElementById('payment-success');
-        const pixQrcode = document.getElementById('pix-qrcode');
-        const pixCopiaCola = document.getElementById('pix-copia-cola');
-        const copyButton = document.getElementById('copy-button');
-        const copyFeedback = document.getElementById('copy-feedback');
         
-        let paymentCheckInterval = null;
-        let functions;
-
-        // --- LÓGICA DO VÍDEO (Executa independentemente do Firebase) ---
+        // --- LÓGICA DO VÍDEO ---
         const showOffer = () => {
             videoSection.style.display = 'none';
             hiddenContent.classList.remove('hidden');
@@ -201,118 +238,169 @@
             });
         }
 
-        // --- LÓGICA DE PAGAMENTO (Tenta inicializar o Firebase) ---
-        const initializeFirebase = async () => {
+        // --- LÓGICA DE PAGAMENTO (MODELO CORRIGIDO) ---
+        const functions = firebase.app().functions('us-central1');
+        const createPixPayment = functions.httpsCallable('createPixPayment');
+        const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+
+        const userInfoForm = document.getElementById('user-info-form');
+        const generatePixButton = document.getElementById('generate-pix-button');
+        const formMessage = document.getElementById('form-message');
+        const pixCodeInput = document.getElementById('pix-code-input');
+        const copyMessage = document.getElementById('copy-message');
+        const pixQrCodeImg = document.getElementById('pix-qrcode');
+        const pixTitle = document.getElementById('pix-title');
+        const pixSubtitle = document.getElementById('pix-subtitle');
+        const checkPaymentButton = document.getElementById('check-payment-button');
+        const checkPaymentMessage = document.getElementById('check-payment-message');
+        const pixTimerEl = document.getElementById('pix-timer');
+        const pixTimerContainer = document.getElementById('pix-timer-container');
+        
+        let currentPaymentId = null;
+        let currentProductId = null;
+        let currentUserName = null;
+        let countdownInterval;
+
+        if(buyButton) {
+            buyButton.addEventListener('click', () => {
+                currentProductId = buyButton.dataset.productId;
+                if (!currentProductId) {
+                    alert("Erro de configuração: O ID do produto não foi definido no botão de compra.");
+                    return;
+                }
+                openModal('user-info-modal');
+            });
+        }
+
+        if(userInfoForm) {
+            userInfoForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                currentUserName = document.getElementById('firstName').value;
+                const userEmail = document.getElementById('email').value;
+
+                if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
+                    formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
+                    return;
+                }
+
+                generatePixButton.disabled = true;
+                formMessage.textContent = 'A gerar o seu PIX...';
+
+                try {
+                    const payload = {
+                        firstName: currentUserName,
+                        email: userEmail,
+                        productId: currentProductId
+                    };
+                    
+                    const result = await createPixPayment(payload);
+                    currentPaymentId = result.data.paymentId;
+                    
+                    pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                    pixCodeInput.value = result.data.qrCode;
+
+                    closeModal('user-info-modal');
+                    openModal('pix-modal');
+                    startTimer(600); // Inicia temporizador de 10 minutos
+
+                } catch (error) {
+                    console.error("Erro ao chamar a função createPixPayment:", error);
+                    formMessage.textContent = `Erro: ${error.message}`;
+                    // Mostra o erro completo no modal para depuração
+                    alert(`Ocorreu um Erro\nNão foi possível gerar o PIX. Por favor, tente novamente mais tarde.\n\nDetalhe: ${error.message}`);
+                } finally {
+                    generatePixButton.disabled = false;
+                     if (formMessage.textContent === 'A gerar o seu PIX...') {
+                        formMessage.textContent = '';
+                    }
+                }
+            });
+        }
+
+        if(checkPaymentButton) {
+            checkPaymentButton.addEventListener('click', async () => {
+                if (!currentPaymentId) return;
+
+                checkPaymentButton.disabled = true;
+                checkPaymentMessage.textContent = "A verificar...";
+
+                try {
+                    const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                    if (result.data.status === 'approved') {
+                        redirectToSuccess(currentUserName, currentPaymentId);
+                    } else {
+                        checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar pagamento:", error);
+                    checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                } finally {
+                    setTimeout(() => {
+                       checkPaymentButton.disabled = false;
+                       checkPaymentMessage.textContent = "";
+                    }, 3000);
+                }
+            });
+        }
+        
+        function startTimer(duration) {
+            let timer = duration;
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                const seconds = (timer % 60).toString().padStart(2, '0');
+                pixTimerEl.textContent = `${minutes}:${seconds}`;
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                    document.getElementById('pix-container').style.display = 'none';
+                    document.getElementById('pix-copy-paste').style.display = 'none';
+                    checkPaymentButton.textContent = "Gerar Novo PIX";
+                    checkPaymentButton.onclick = () => window.location.reload();
+                }
+            }, 1000);
+        }
+        
+        function redirectToSuccess(userName, paymentId) {
+            clearInterval(countdownInterval);
+            // Redireciona para uma página de sucesso ou mostra uma mensagem
+            pixTitle.textContent = "Pagamento Aprovado!";
+            pixSubtitle.textContent = "Parabéns! As instruções de acesso foram enviadas para o seu e-mail.";
+            checkPaymentButton.style.display = 'none';
+            document.getElementById('pix-container').style.display = 'none';
+            document.getElementById('pix-copy-paste').style.display = 'none';
+            pixTimerContainer.style.display = 'none';
+        }
+
+        // Funções de utilidade para o modal
+        window.openModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            }
+        }
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.remove('flex'), 300);
+            }
+        }
+        window.copyPixCode = function() {
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            pixCodeInput.select();
             try {
-                if (typeof firebaseConfig === 'undefined') {
-                    throw new Error("O arquivo 'firebase-config.js' não foi encontrado.");
-                }
-                
-                // A CORREÇÃO: Verifica se o Firebase já foi inicializado
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-
-                const auth = firebase.auth();
-                functions = firebase.app().functions('us-central1');
-                await auth.signInAnonymously();
-                
-                setupPaymentListeners();
-
-            } catch (error) {
-                console.error("FALHA CRÍTICA NO FIREBASE:", error);
-                
-                if (buyButton) {
-                    buyButton.textContent = 'PAGAMENTO INDISPONÍVEL';
-                    buyButton.disabled = true;
-                    buyButton.style.background = '#9ca3af';
-                    buyButton.style.cursor = 'not-allowed';
-                }
+                document.execCommand('copy');
+                copyMessage.textContent = 'Código copiado!';
+                setTimeout(() => { copyMessage.textContent = '' }, 2000);
+            } catch (err) {
+                console.error('Não foi possível copiar o código:', err);
+                copyMessage.textContent = 'Erro ao copiar!';
             }
-        };
-
-        const setupPaymentListeners = () => {
-            if (functions && buyButton && paymentForm) {
-                buyButton.addEventListener('click', () => pixModal.classList.remove('hidden'));
-
-                paymentForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    userForm.classList.add('hidden');
-                    loadingSpinner.classList.remove('hidden');
-                    loadingSpinner.style.display = 'flex';
-
-                    const createPixPayment = functions.httpsCallable('createPixPayment');
-                    try {
-                        const result = await createPixPayment({
-                            firstName: document.getElementById('firstName').value,
-                            email: document.getElementById('email').value,
-                            productId: '04dfrhvjotiX1esrjg4w'
-                        });
-
-                        const data = result.data;
-                        if (!data.qrCodeBase64 || !data.qrCode || !data.paymentId) {
-                            throw new Error("A resposta da API de pagamento está incompleta.");
-                        }
-                        
-                        pixQrcode.src = `data:image/png;base64,${data.qrCodeBase64}`;
-                        pixCopiaCola.textContent = data.qrCode;
-
-                        loadingSpinner.style.display = 'none';
-                        loadingSpinner.classList.add('hidden');
-                        pixDetails.classList.remove('hidden');
-                        
-                        startPaymentStatusCheck(data.paymentId);
-
-                    } catch (error) {
-                        console.error("Erro ao chamar a função createPixPayment:", error);
-                        modalContent.innerHTML = `<div class="text-center"><h3 class="text-xl font-bold text-red-600 mb-2">Ocorreu um Erro</h3><p class="text-gray-700">Não foi possível gerar o PIX. Por favor, tente novamente mais tarde.</p><p class="text-xs text-gray-500 mt-4">Detalhe: ${error.message}</p><button onclick="window.location.reload()" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Fechar</button></div>`;
-                    }
-                });
-
-                function startPaymentStatusCheck(paymentId) {
-                    if (paymentCheckInterval) clearInterval(paymentCheckInterval);
-                    const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
-                    paymentCheckInterval = setInterval(async () => {
-                        try {
-                            const result = await checkPaymentStatus({ paymentId: paymentId });
-                            if (result.data.status === 'approved') {
-                                clearInterval(paymentCheckInterval);
-                                pixDetails.classList.add('hidden');
-                                paymentSuccess.classList.remove('hidden');
-                            }
-                        } catch (error) {
-                            console.error("Erro ao verificar status do pagamento:", error);
-                        }
-                    }, 5000);
-                }
-
-                pixModal.addEventListener('click', (e) => {
-                    if (e.target === pixModal) {
-                        pixModal.classList.add('hidden');
-                        clearInterval(paymentCheckInterval);
-                        userForm.classList.remove('hidden');
-                        pixDetails.classList.add('hidden');
-                        paymentSuccess.classList.add('hidden');
-                        loadingSpinner.classList.add('hidden');
-                        loadingSpinner.style.display = 'none';
-                        paymentForm.reset();
-                    }
-                });
-
-                copyButton.addEventListener('click', () => {
-                    const textToCopy = pixCopiaCola.textContent;
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        copyFeedback.textContent = 'Copiado!';
-                    }).catch(() => {
-                        copyFeedback.textContent = 'Erro ao copiar.';
-                    });
-                    setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
-                });
-            }
-        };
-
-        // Inicia a tentativa de conexão com o Firebase
-        initializeFirebase();
+        }
     });
     </script>
 </body>
