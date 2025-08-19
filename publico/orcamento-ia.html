@@ -420,6 +420,7 @@
                     <p class="font-semibold text-slate-300">Pagamento único via PIX</p>
                 </div>
                 
+                <!-- O ID do botão foi alterado para corresponder ao script antigo -->
                 <button id="buy-button" data-product-id="AiFVVdXh6pYjz7I6flwi" class="mt-10 w-full max-w-lg mx-auto block bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-xl py-5 px-10 rounded-full shadow-lg shadow-blue-500/30 transform hover:scale-105 transition-all duration-300 cta-pulse">
                     <i class="fas fa-bolt mr-2"></i>SIM! QUERO ACESSO IMEDIATO
                 </button>
@@ -550,7 +551,7 @@
             <button id="check-payment-button" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg cta-button">
                 <i class="fas fa-check-circle mr-2"></i>Já Paguei, Verificar Manualmente
             </button>
-            <p id="check-payment-message" class="text-sm text-slate-400 mt-2 h-5">Aguardando pagamento...</p>
+            <p id="check-payment-message" class="text-sm text-slate-400 mt-2 h-5"></p>
         </div>
     </div>
 
@@ -575,11 +576,9 @@
     
     <script>
         // ===================================================================
-        // CORREÇÃO: INICIALIZAÇÃO DO FIREBASE - AÇÃO NECESSÁRIA
+        // INICIALIZAÇÃO DO FIREBASE - AÇÃO NECESSÁRIA
         // ===================================================================
         // ATENÇÃO: Cole a configuração do seu projeto Firebase aqui dentro.
-        // Você pode encontrar essa configuração no console do seu projeto
-        // em Configurações do projeto > Geral > Seus apps > App da Web.
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
             authDomain: "SEU_AUTH_DOMAIN",
@@ -589,8 +588,6 @@
             appId: "SEU_APP_ID"
         };
 
-        // A linha abaixo é essencial para o funcionamento do pagamento.
-        // Verificamos se o Firebase já foi inicializado para evitar erros.
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -605,34 +602,29 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    // Otimização: Parar de observar após a animação
                     observer.unobserve(entry.target); 
                 }
             });
-        }, { threshold: 0.1 }); // Dispara quando 10% do elemento está visível
+        }, { threshold: 0.1 });
 
         document.querySelectorAll('.fade-in-up').forEach(el => {
             observer.observe(el);
         });
 
-        // --- NOVO: LÓGICA DO ACORDEÃO (FAQ) ---
+        // --- LÓGICA DO ACORDEÃO (FAQ) ---
         document.querySelectorAll('.accordion-item').forEach(item => {
             const title = item.querySelector('.accordion-title');
             title.addEventListener('click', () => {
-                // Fechar outros itens abertos
                 document.querySelectorAll('.accordion-item.active').forEach(activeItem => {
                     if (activeItem !== item) {
                         activeItem.classList.remove('active');
                     }
                 });
-                // Alternar o item clicado
                 item.classList.toggle('active');
             });
         });
 
-
         // --- LÓGICA DO VÍDEO (VSL) ---
-        const videoSection = document.getElementById('video-section');
         const video = document.getElementById('vsl');
         const playButton = document.getElementById('play-button');
         const playButtonContainer = document.getElementById('play-button-container');
@@ -640,28 +632,18 @@
         const hiddenContent = document.getElementById('hidden-content');
         const videoFeedback = document.getElementById('video-feedback');
         
-        // Tempo em segundos para revelar a oferta. 
-        // ATENÇÃO: Ajuste isso para o tempo real do seu pitch no vídeo. (Ex: 900s = 15min)
-        const REVEAL_TIME = 900; 
+        const REVEAL_TIME = 5; // Tempo curto para teste, mude para o tempo real (ex: 900)
         let offerRevealed = false;
 
         const showOffer = (scrollToPrice = false) => {
             if (offerRevealed) return;
             offerRevealed = true;
             localStorage.setItem('offerRevealed', 'true');
-            
-            // Manter o vídeo na página, mas mostrar o conteúdo abaixo
             hiddenContent.classList.remove('hidden');
-            
-            // Rolar suavemente
-            if (scrollToPrice) {
-                document.getElementById('preco').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                document.getElementById('hidden-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            const targetElement = scrollToPrice ? document.getElementById('preco') : document.getElementById('hidden-content');
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
-        // Verifica se o usuário já passou do ponto de revelação anteriormente
         if (localStorage.getItem('offerRevealed') === 'true') {
             showOffer(false);
         } else if (video && playButton) {
@@ -671,7 +653,7 @@
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         video.muted = false;
-                        video.controls = true; // Mostrar controles nativos após o play
+                        video.controls = true;
                         if(playButtonContainer) playButtonContainer.style.display = 'none';
                         if(videoFeedback) videoFeedback.style.display = 'none';
                     }).catch(error => console.error("Erro ao reproduzir vídeo:", error));
@@ -681,25 +663,22 @@
                 if (video.duration) {
                     progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
                 }
-                // Lógica de Revelação baseada no tempo
                 if (!offerRevealed && video.currentTime >= REVEAL_TIME) {
-                    showOffer(true); // Rola para o preço no momento do reveal
+                    showOffer(true);
                 }
             });
             video.addEventListener('ended', () => {  
-                showOffer(true); // Garante que a oferta seja mostrada e rola para o preço
+                showOffer(true);
             });
         }
 
-        // --- LÓGICA DE PAGAMENTO (Integração Firebase) ---
-        // Verifique se o objeto firebase está inicializado antes de usá-lo
-        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-            // Configuração das Cloud Functions (ajuste a região se necessário)
+        // --- LÓGICA DE PAGAMENTO (BASEADA NO SEU CÓDIGO ANTIGO E FUNCIONAL) ---
+        if (typeof firebase !== 'undefined' && firebase.app) {
             const functions = firebase.app().functions('us-central1');
             const createPixPayment = functions.httpsCallable('createPixPayment');
             const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
 
-            // Elementos do DOM para o checkout
+            const buyButton = document.getElementById('buy-button');
             const userInfoForm = document.getElementById('user-info-form');
             const generatePixButton = document.getElementById('generate-pix-button');
             const formMessage = document.getElementById('form-message');
@@ -712,26 +691,22 @@
             const pixTimerEl = document.getElementById('pix-timer');
             const pixTimerContainer = document.getElementById('pix-timer-container');
             
-            // Variáveis de estado do pagamento
             let currentPaymentId = null;
             let currentProductId = null;
             let currentUserName = null;
             let countdownInterval;
 
-            // Evento dos botões de compra
-            document.querySelectorAll('[data-product-id]').forEach(button => {
-                button.addEventListener('click', () => {
-                    currentProductId = button.dataset.productId;
+            if(buyButton) {
+                buyButton.addEventListener('click', () => {
+                    currentProductId = buyButton.dataset.productId;
                     if (!currentProductId) {
-                        // Não use alert, mostre uma mensagem no modal ou console
-                        console.error("Erro de configuração: O ID do produto não foi definido.");
+                        console.error("Erro de configuração: O ID do produto não foi definido no botão de compra.");
                         return;
                     }
                     openModal('user-info-modal');
                 });
-            });
+            }
 
-            // Evento de submissão do formulário de informações do usuário
             if(userInfoForm) {
                 userInfoForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -739,12 +714,11 @@
                     currentUserName = document.getElementById('firstName').value;
                     const userEmail = document.getElementById('email').value;
 
-                    if (!currentUserName.trim() || !userEmail.trim()) {
-                        formMessage.textContent = 'Erro: Nome e e-mail são obrigatórios.';
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
+                        formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
                         return;
                     }
 
-                    // Estado de carregamento do botão
                     generatePixButton.disabled = true;
                     generatePixButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> GERANDO...';
                     formMessage.textContent = '';
@@ -756,88 +730,56 @@
                             productId: currentProductId
                         };
                         
-                        // Chama a Cloud Function para criar o pagamento PIX
                         const result = await createPixPayment(payload);
                         
-                        // Verifica se os dados necessários foram retornados
-                        if (result.data && result.data.paymentId && result.data.qrCodeBase64 && result.data.qrCode) {
+                        if (result.data && result.data.paymentId) {
                             currentPaymentId = result.data.paymentId;
-                            
-                            // Atualiza o modal PIX com os dados recebidos
                             pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
                             pixCodeInput.value = result.data.qrCode;
 
                             closeModal('user-info-modal');
                             openModal('pix-modal');
-                            startTimer(600); // Inicia o timer de 10 minutos
-
-                            // Iniciar verificação automática em segundo plano
-                            startAutoCheck();
-
+                            startTimer(600); // 10 minutos
                         } else {
-                            throw new Error("Não foi possível gerar o PIX. Tente novamente.");
+                           throw new Error("Resposta inesperada do servidor.");
                         }
 
                     } catch (error) {
                         console.error("Erro ao chamar a função createPixPayment:", error);
-                        formMessage.textContent = 'Ocorreu um erro ao gerar o PIX. Por favor, tente novamente mais tarde.';
+                        formMessage.textContent = `Ocorreu um erro. Tente novamente.`;
                     } finally {
-                        // Reseta o estado do botão
                         generatePixButton.disabled = false;
                         generatePixButton.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Gerar PIX Agora';
                     }
                 });
             }
 
-            // Lógica de verificação de pagamento (Manual e Automática)
-            let autoCheckInterval;
+            if(checkPaymentButton) {
+                checkPaymentButton.addEventListener('click', async () => {
+                    if (!currentPaymentId) return;
 
-            function startAutoCheck() {
-                clearInterval(autoCheckInterval);
-                checkPaymentMessage.textContent = "Aguardando pagamento...";
-                autoCheckInterval = setInterval(() => verifyPayment(false), 5000); // Verificar a cada 5 segundos
-            }
-
-            async function verifyPayment(isManual = false) {
-                if (!currentPaymentId) return;
-
-                if (isManual) {
                     checkPaymentButton.disabled = true;
-                    checkPaymentMessage.textContent = "Verificando manualmente...";
-                }
+                    checkPaymentMessage.textContent = "Verificando...";
 
-                try {
-                    const result = await checkPaymentStatus({ paymentId: currentPaymentId });
-                    if (result.data.status === 'approved') {
-                        clearInterval(autoCheckInterval); // Parar a verificação automática
-                        redirectToSuccess(currentUserName, currentPaymentId);
-                    } else if (isManual) {
-                        checkPaymentMessage.textContent = "Pagamento ainda pendente.";
-                    }
-                } catch (error) {
-                    console.error("Erro ao verificar pagamento:", error);
-                    if (isManual) {
+                    try {
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToSuccess(currentUserName, currentPaymentId);
+                        } else {
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar pagamento:", error);
                         checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
-                    }
-                } finally {
-                    if (isManual) {
+                    } finally {
                         setTimeout(() => {
                             checkPaymentButton.disabled = false;
-                            // Volta para a mensagem de espera se ainda não foi aprovado
-                            if (checkPaymentMessage.textContent !== "Aguardando pagamento...") {
-                                 checkPaymentMessage.textContent = "Aguardando pagamento...";
-                            }
+                            if(checkPaymentMessage.textContent !== "") checkPaymentMessage.textContent = "";
                         }, 3000);
                     }
-                }
-            }
-
-            if(checkPaymentButton) {
-                // Evento para verificação manual
-                checkPaymentButton.addEventListener('click', () => verifyPayment(true));
+                });
             }
             
-            // Função para iniciar o timer do PIX
             function startTimer(duration) {
                 let timer = duration;
                 clearInterval(countdownInterval);
@@ -847,25 +789,18 @@
                     pixTimerEl.textContent = `${minutes}:${seconds}`;
                     if (--timer < 0) {
                         clearInterval(countdownInterval);
-                        clearInterval(autoCheckInterval); // Parar verificação se expirar
-
-                        // Lógica de expiração do PIX
                         pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
                         document.getElementById('pix-container').style.opacity = '0.2';
                         document.getElementById('pix-copy-paste').style.display = 'none';
                         checkPaymentMessage.textContent = "";
                         checkPaymentButton.textContent = "Gerar Novo PIX (Recarregar)";
-                        checkPaymentButton.classList.remove('bg-green-600', 'hover:bg-green-700');
-                        checkPaymentButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                        checkPaymentButton.onclick = () => window.location.reload(); // Recarrega a página para gerar novo PIX
+                        checkPaymentButton.onclick = () => window.location.reload();
                     }
                 }, 1000);
             }
             
-            // Função para redirecionar ou mostrar tela de sucesso
             function redirectToSuccess(userName, paymentId) {
                 clearInterval(countdownInterval);
-                // Atualiza o modal para o estado de sucesso
                 pixTitle.textContent = "🎉 Pagamento Aprovado!";
                 pixSubtitle.innerHTML = ` 
                     <p class="text-green-400 text-xl font-bold mt-4">Parabéns, ${userName}!</p> 
@@ -877,13 +812,9 @@
                 document.getElementById('pix-copy-paste').style.display = 'none';
                 pixTimerContainer.style.display = 'none';
                 checkPaymentMessage.textContent = "";
-
-                // Opcional: Redirecionar para uma página de obrigado externa
-                // window.location.href = "/obrigado?paymentId=" + paymentId;
             }
         } else {
-            // Fallback caso o Firebase não seja inicializado
-            console.warn("Firebase não foi inicializado corretamente. A funcionalidade de pagamento estará desativada.");
+            console.warn("Firebase não foi inicializado. A funcionalidade de pagamento estará desativada.");
             document.querySelectorAll('[data-product-id]').forEach(button => {
                 button.disabled = true;
                 button.textContent = "Sistema de Pagamento Indisponível";
@@ -891,27 +822,25 @@
             });
         }
 
-
         // --- Funções Utilitárias (Modal e Cópia) ---
         window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if(modal) {
                 modal.classList.add('flex');
-                document.body.style.overflow = 'hidden'; // Impede o scroll do fundo
-                setTimeout(() => modal.classList.add('opacity-100'), 10); // Inicia a transição
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
             }
         }
         window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if(modal) {
                 modal.classList.remove('opacity-100');
-                document.body.style.overflow = ''; // Restaura o scroll do fundo
-                setTimeout(() => modal.classList.remove('flex'), 300); // Remove após a transição
+                document.body.style.overflow = '';
+                setTimeout(() => modal.classList.remove('flex'), 300);
             }
         }
 
-         // Fechar modal ao clicar fora dele
-         document.querySelectorAll('.modal').forEach(modal => {
+        document.querySelectorAll('.modal').forEach(modal => {
              modal.addEventListener('click', (e) => {
                  if (e.target === modal) {
                      closeModal(modal.id);
@@ -923,7 +852,6 @@
             const pixCodeInput = document.getElementById('pix-code-input');
             const copyMessage = document.getElementById('copy-message');
             
-            // Usando a API da área de transferência moderna
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(pixCodeInput.value).then(() => {
                     copyMessage.textContent = '✅ Código copiado!';
@@ -933,7 +861,6 @@
                     copyMessage.textContent = 'Erro ao copiar!';
                 });
             } else {
-                // Fallback para navegadores antigos
                 pixCodeInput.select();
                 try {
                     document.execCommand('copy');
