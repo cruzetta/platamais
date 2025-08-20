@@ -39,18 +39,15 @@
         body {
             background-color: #020617; /* slate-950 */
             color: #e2e8f0; /* slate-200 */
-            /* Refinamento do Padrão de fundo: Pontos sutis */
             background-image:
             radial-gradient(circle at center center, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 100%);
             background-size: 30px 30px;
         }
 
-        /* Efeito Aurora Aprimorado e mais Moderno */
         .aurora-background {
             position: relative;
             overflow: hidden;
         }
-        /* Overlay para garantir contraste */
         .aurora-background::after {
             content: '';
             position: absolute;
@@ -66,7 +63,6 @@
             left: 50%;
             width: 200%;
             height: 1000px;
-            /* Modern gradient mix: Teal and Blue */
             background-image: radial-gradient(ellipse closest-side at center, rgba(59, 130, 246, 0.3) 0%, rgba(20, 184, 166, 0.2) 50%, rgba(15, 23, 42, 0) 100%);
             filter: blur(150px);
             z-index: 0;
@@ -80,7 +76,6 @@
         }
         .content-z { position: relative; z-index: 10; }
 
-        /* Animação do Botão CTA Principal - Efeito Neon Pulse */
         .cta-pulse {
             animation: pulse-neon 2s infinite;
         }
@@ -96,7 +91,6 @@
             }
         }
         
-        /* Animações de Entrada (Mais suaves) */
         .fade-in-up {
             opacity: 0;
             transform: translateY(20px);
@@ -107,7 +101,6 @@
             transform: translateY(0);
         }
 
-        /* Estilo Glassmorphism para Cards */
         .glass-card {
             background: rgba(15, 23, 42, 0.5); /* slate-900/50 */
             border-radius: 1rem;
@@ -122,13 +115,12 @@
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
 
-        /* Estilos para o Bloco de Prompt (Estilo Terminal Moderno) */
         #prompt-container {
             background-color: #0f172a; /* slate-900 */
             border: 1px solid #334155; /* slate-700 */
             border-radius: 0.75rem;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            overflow: hidden; /* Para conter o header */
+            overflow: hidden;
         }
         #prompt-text {
             white-space: pre-wrap;
@@ -138,7 +130,6 @@
             line-height: 1.6;
             padding: 1.5rem;
         }
-        /* Header do Terminal */
         .terminal-header {
             display: flex;
             align-items: center;
@@ -157,7 +148,6 @@
         }
 
         #copy-prompt-button {
-            /* Botão agora fica no header */
             background-color: #334155; /* slate-700 */
             color: #94a3b8; /* slate-400 */
             border: none;
@@ -172,13 +162,11 @@
             color: #e2e8f0; /* slate-200 */
         }
 
-        /* Pricing Card Highlight (Borda Animada) */
         .pricing-highlight {
             position: relative;
             overflow: hidden;
             z-index: 1;
         }
-        /* Elemento que gira para criar a animação da borda */
         .pricing-highlight::before {
             content: '';
             position: absolute;
@@ -186,18 +174,16 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            /* Conic gradient cria o efeito de cores em círculo */
             background: conic-gradient(from 180deg at 50% 50%, #14b8a6 0deg, #3b82f6 180deg, #14b8a6 360deg);
             animation: rotate-border 4s linear infinite;
             z-index: -2;
         }
-        /* Elemento que "corta" o fundo, deixando apenas a borda visível */
         .pricing-highlight::after {
             content: '';
             position: absolute;
-            inset: 3px; /* Espessura da borda animada */
+            inset: 3px;
             background: #0f172a; /* slate-900 (Cor de fundo do card) */
-            border-radius: 1.3rem; /* Raio ligeiramente menor que o do card */
+            border-radius: 1.3rem;
             z-index: -1;
         }
         @keyframes rotate-border {
@@ -205,6 +191,17 @@
                 transform: rotate(360deg);
             }
         }
+        
+        /* Estilos do Modal (do ficheiro que funciona) */
+        .modal { display: none; transition: opacity 0.3s ease; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; background-color: #1f2937; color: #d1d5db; }
+        .modal.flex { display: flex; }
+        .modal.opacity-100 .modal-content { transform: scale(1); }
+        .form-input { background-color: #374151; border: 1px solid #4b5563; color: #d1d5db; }
+        #pix-qrcode { border: 6px solid white; border-radius: 8px; }
+        #pix-code-input { background-color: #374151; user-select: all; }
+        .cta-button { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .cta-button:hover:not(:disabled) { transform: translateY(-4px); }
 
     </style>
 </head>
@@ -426,7 +423,7 @@ Você deve incorporar absolutamente todos os detalhes do documento PDF na págin
                             <p class="text-slate-300">Pagamento único, sem mensalidades.</p>
                         </div>
 
-                        <button id="buy-button" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg shadow-xl transform hover:scale-105 transition-all duration-300 cta-pulse">
+                        <button id="buy-button" data-product-id="AiFVVdXh6pYjz7I6flwi" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg shadow-xl transform hover:scale-105 transition-all duration-300 cta-pulse">
                             <i class="fas fa-bolt mr-3"></i>QUERO O MINICURSO AGORA
                         </button>
                     </div>
@@ -455,93 +452,365 @@ Você deve incorporar absolutamente todos os detalhes do documento PDF na págin
             <div class="flex flex-col md:flex-row items-center bg-slate-900 border-2 border-green-500 p-10 rounded-2xl shadow-2xl shadow-green-500/30">
                 <div class="md:w-1/4 text-center mb-8 md:mb-0">
                     <!-- SVG de Selo de Garantia (Sem Imagem) -->
-```svg
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-24 h-24 mx-auto fill-current text-green-500">
                         <path d="M12 2L4 7v10l8 5 8-5V7L12 2zm0 2.5L18.6 8 12 11.5 5.4 8 12 4.5zm0 16.3l-6.6-4.1V9.8l6.6 4.1 6.6-4.1v7.9l-6.6 4.1z"/>
                         <path d="M12 11a3 3 0 100-6 3 3 0 000 6zm0-4a1 1 0 110 2 1 1 0 010-2z" fill="#ffffff"/>
                     </svg>
-                     <p class="text-2xl font-black text-white mt-4">RISCO ZERO</p>
+                   <p class="text-2xl font-black text-white mt-4">RISCO ZERO</p>
+                </div>
+                <div class="md:w-3/4 md:pl-10">
+                    <h2 class="text-3xl font-bold mb-4 text-white">Garantia Incondicional de 7 Dias</h2>
+                    <p class="text-slate-200 leading-relaxed text-lg">
+                        Sua satisfação é minha prioridade. Se por qualquer motivo você não ficar impressionado com o potencial do minicurso nos próximos 7 dias, basta me enviar um único e-mail e devolverei 100% do seu investimento. Sem perguntas, sem burocracia.
+                    </p>
+                </div>
             </div>
-            <div class="md:w-3/4 md:pl-10">
-                <h2 class="text-3xl font-bold mb-4 text-white">Garantia Incondicional de 7 Dias</h2>
-                <p class="text-slate-200 leading-relaxed text-lg">
-                    Sua satisfação é minha prioridade. Se por qualquer motivo você não ficar impressionado com o potencial do minicurso nos próximos 7 dias, basta me enviar um único e-mail e devolverei 100% do seu investimento. Sem perguntas, sem burocracia.
-                </p>
+        </section>
+    </main>
+
+    <!-- Rodapé (Limpo e Profissional) -->
+    <footer class="bg-slate-950 border-t border-slate-800 text-white py-12 mt-16">
+        <div class="container mx-auto px-6 text-center text-slate-400">
+            <div class="mb-6">
+                <p class="text-xl font-bold text-white">Conecta Web Digital</p>
             </div>
+            <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
+            
+            <div class="mt-6 text-sm space-x-6">
+                <a href="#" class="hover:text-teal-400 transition-colors">Termos de Uso</a>
+                <a href="#" class="hover:text-teal-400 transition-colors">Política de Privacidade</a>
+                <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="hover:text-teal-400 transition-colors">Site Oficial</a>
+            </div>
+            <p class="text-xs text-slate-500 mt-8 max-w-4xl mx-auto">
+                AVISO LEGAL: Este site não é afiliado ao Facebook, Google ou a qualquer entidade relacionada. Fazemos todos os esforços para indicar claramente e mostrar todas as provas do produto e usamos resultados reais. Os resultados podem variar de acordo com a aplicação individual do método.
+            </p>
         </div>
-    </section>
-</main>
-
-<!-- Rodapé (Limpo e Profissional) -->
-<footer class="bg-slate-950 border-t border-slate-800 text-white py-12 mt-16">
-    <div class="container mx-auto px-6 text-center text-slate-400">
-        <div class="mb-6">
-            <p class="text-xl font-bold text-white">Conecta Web Digital</p>
-        </div>
-        <p>&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
-        
-        <div class="mt-6 text-sm space-x-6">
-            <a href="#" class="hover:text-teal-400 transition-colors">Termos de Uso</a>
-            <a href="#" class="hover:text-teal-400 transition-colors">Política de Privacidade</a>
-            <a href="https://conectawebdigital.com.br" target="_blank" rel="noopener noreferrer" class="hover:text-teal-400 transition-colors">Site Oficial</a>
-        </div>
-        <p class="text-xs text-slate-500 mt-8 max-w-4xl mx-auto">
-            AVISO LEGAL: Este site não é afiliado ao Facebook, Google ou a qualquer entidade relacionada. Fazemos todos os esforços para indicar claramente e mostrar todas as provas do produto e usamos resultados reais. Os resultados podem variar de acordo com a aplicação individual do método.
-        </p>
-    </div>
-</footer>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+    </footer>
     
-    // --- LÓGICA PARA COPIAR O PROMPT ---
-    const copyButton = document.getElementById('copy-prompt-button');
-    const promptText = document.getElementById('prompt-text').textContent;
-    const copyIcon = document.getElementById('copy-icon');
-    const copyTextSpan = document.getElementById('copy-text');
+    <!-- Modal para Dados do Utilizador -->
+    <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">Falta Pouco!</h3>
+            <p class="text-gray-400 mb-6">Preencha seus dados para gerar o pagamento e receber o acesso.</p>
+            <form id="user-info-form">
+                <div class="mb-4 text-left">
+                    <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">Primeiro Nome</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <div class="mb-6 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Seu melhor e-mail</label>
+                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" required>
+                </div>
+                <button type="submit" id="generate-pix-button" class="cta-button w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg uppercase py-3 rounded-lg">
+                    Gerar PIX
+                </button>
+                <p id="form-message" class="text-sm text-red-400 mt-3 h-5"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para o Pagamento PIX -->
+    <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
+        <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-blue-500 relative">
+            <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
+            <h3 id="pix-title" class="text-2xl font-bold mb-2 text-white">Pague com PIX para finalizar</h3>
+            <p id="pix-subtitle" class="text-gray-400 mb-4">Abra o app do seu banco e escaneie o código abaixo.</p>
+            <div id="pix-timer-container" class="text-lg mb-4">Este código expira em: <span id="pix-timer" class="font-bold text-blue-400">10:00</span></div>
+            <div id="pix-container" class="flex justify-center">
+                 <img id="pix-qrcode" src="" alt="PIX QR Code" class="w-64 h-64 mx-auto mb-4 bg-white p-1">
+            </div>
+            <div id="pix-copy-paste" class="mt-4">
+                <p class="text-gray-400 mb-2">Ou use o PIX Copia e Cola:</p>
+                <div class="relative">
+                    <input id="pix-code-input" type="text" class="w-full p-3 text-center text-sm rounded-lg" readonly>
+                    <button onclick="copyPixCode()" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p id="copy-message" class="text-sm text-green-400 mt-2 h-4"></p>
+            </div>
+            <button id="check-payment-button" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg cta-button">
+                Já Paguei, Verificar Agora!
+            </button>
+            <p id="check-payment-message" class="text-sm text-gray-400 mt-2 h-5"></p>
+        </div>
+    </div>
 
-    copyButton.addEventListener('click', () => {
-        navigator.clipboard.writeText(promptText).then(() => {
-            // Sucesso
-            copyIcon.className = 'fas fa-check mr-2';
-            copyTextSpan.textContent = 'Copiado!';
-            copyButton.style.backgroundColor = '#14b8a6'; // teal-500
-            copyButton.style.color = 'white';
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- LÓGICA PARA COPIAR O PROMPT ---
+        const copyButton = document.getElementById('copy-prompt-button');
+        const promptText = document.getElementById('prompt-text').textContent;
+        const copyIcon = document.getElementById('copy-icon');
+        const copyTextSpan = document.getElementById('copy-text');
 
-            setTimeout(() => {
-                copyIcon.className = 'fas fa-copy mr-2';
-                copyTextSpan.textContent = 'Copiar Prompt';
-                copyButton.style.backgroundColor = '';
-                copyButton.style.color = '';
-            }, 2500);
-        }).catch(err => {
-            // Erro
-            copyTextSpan.textContent = 'Erro ao copiar';
-            console.error('Erro ao copiar texto: ', err);
+        if (copyButton) {
+            copyButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(promptText).then(() => {
+                    copyIcon.className = 'fas fa-check mr-2';
+                    copyTextSpan.textContent = 'Copiado!';
+                    copyButton.style.backgroundColor = '#14b8a6'; // teal-500
+                    copyButton.style.color = 'white';
+
+                    setTimeout(() => {
+                        copyIcon.className = 'fas fa-copy mr-2';
+                        copyTextSpan.textContent = 'Copiar Prompt';
+                        copyButton.style.backgroundColor = '';
+                        copyButton.style.color = '';
+                    }, 2500);
+                }).catch(err => {
+                    copyTextSpan.textContent = 'Erro ao copiar';
+                    console.error('Erro ao copiar texto: ', err);
+                });
+            });
+        }
+
+        // --- LÓGICA DE ANIMAÇÃO DE SCROLL ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
         });
-    });
 
-    // --- LÓGICA DE ANIMAÇÃO DE SCROLL ---
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
+        // --- LÓGICA DE PAGAMENTO (MODELO CORRIGIDO E MAIS ROBUSTO) ---
+        try {
+            // --- CONFIGURAÇÃO DO FIREBASE ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyBuB3dTMtejuuVMekhUVmzX343IG8zIzYg",
+                authDomain: "platamais.firebaseapp.com",
+                projectId: "platamais",
+                storageBucket: "platamais.appspot.com",
+                messagingSenderId: "1014260724484",
+                appId: "1:1014260724484:web:b6c3216ea4641714291651",
+                measurementId: "G-0GLM073GEG"
+            };
+
+            // Inicializa o Firebase se ainda não foi inicializado
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
             }
-        });
-    }, { threshold: 0.1 }); // Ajustado o threshold para disparar um pouco antes
 
-    document.querySelectorAll('.fade-in-up').forEach(el => {
-        observer.observe(el);
+            // Garanta que a região aqui é a MESMA onde a função foi publicada no Firebase
+            const functions = firebase.app().functions('us-central1');
+            const createPixPayment = functions.httpsCallable('createPixPayment');
+            const checkPaymentStatus = functions.httpsCallable('checkPaymentStatus');
+
+            const buyButton = document.getElementById('buy-button');
+            const userInfoForm = document.getElementById('user-info-form');
+            const generatePixButton = document.getElementById('generate-pix-button');
+            const formMessage = document.getElementById('form-message');
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            const pixQrCodeImg = document.getElementById('pix-qrcode');
+            const pixTitle = document.getElementById('pix-title');
+            const pixSubtitle = document.getElementById('pix-subtitle');
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            const checkPaymentMessage = document.getElementById('check-payment-message');
+            const pixTimerEl = document.getElementById('pix-timer');
+            const pixTimerContainer = document.getElementById('pix-timer-container');
+            
+            let currentPaymentId = null;
+            let currentProductId = null;
+            let currentUserName = null;
+            let countdownInterval;
+
+            if(buyButton) {
+                buyButton.addEventListener('click', () => {
+                    currentProductId = buyButton.dataset.productId;
+                    if (!currentProductId) {
+                        console.error("Erro de configuração: O ID do produto não foi definido no botão de compra.");
+                        return;
+                    }
+                    openModal('user-info-modal');
+                });
+            }
+
+            if(userInfoForm) {
+                userInfoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    currentUserName = document.getElementById('firstName').value;
+                    const userEmail = document.getElementById('email').value;
+
+                    if (!currentUserName.trim() || !userEmail.trim() || !currentProductId) {
+                        formMessage.textContent = 'Erro: Todos os campos são obrigatórios.';
+                        return;
+                    }
+
+                    generatePixButton.disabled = true;
+                    formMessage.textContent = 'A gerar o seu PIX...';
+
+                    try {
+                        const payload = {
+                            firstName: currentUserName,
+                            email: userEmail,
+                            productId: currentProductId
+                        };
+                        
+                        const result = await createPixPayment(payload);
+                        currentPaymentId = result.data.paymentId;
+                        
+                        pixQrCodeImg.src = `data:image/jpeg;base64,${result.data.qrCodeBase64}`;
+                        pixCodeInput.value = result.data.qrCode;
+
+                        closeModal('user-info-modal');
+                        openModal('pix-modal');
+                        startTimer(600);
+
+                    } catch (error) {
+                        // --- TRATAMENTO DE ERRO MELHORADO ---
+                        console.error("====== ERRO DETALHADO DO FIREBASE FUNCTIONS ======");
+                        console.error("CÓDIGO:", error.code);
+                        console.error("MENSAGEM:", error.message);
+                        console.error("DETALHES:", error.details);
+                        console.error("================================================");
+                        
+                        if (error.code === 'internal') {
+                            formMessage.textContent = 'Erro no servidor. Verifique os logs da sua Cloud Function.';
+                        } else {
+                            formMessage.textContent = `Erro: ${error.message}`;
+                        }
+                    } finally {
+                        generatePixButton.disabled = false;
+                         if (formMessage.textContent === 'A gerar o seu PIX...') {
+                             formMessage.textContent = '';
+                         }
+                    }
+                });
+            }
+
+            if(checkPaymentButton) {
+                checkPaymentButton.addEventListener('click', async () => {
+                    if (!currentPaymentId) return;
+
+                    checkPaymentButton.disabled = true;
+                    checkPaymentMessage.textContent = "A verificar...";
+
+                    try {
+                        const result = await checkPaymentStatus({ paymentId: currentPaymentId });
+                        if (result.data.status === 'approved') {
+                            redirectToSuccess(currentUserName, currentPaymentId);
+                        } else {
+                            checkPaymentMessage.textContent = "Pagamento ainda pendente. Tente novamente em segundos.";
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar pagamento:", error);
+                        checkPaymentMessage.textContent = "Erro ao verificar. Tente novamente.";
+                    } finally {
+                        setTimeout(() => {
+                           checkPaymentButton.disabled = false;
+                           checkPaymentMessage.textContent = "";
+                        }, 3000);
+                    }
+                });
+            }
+        
+        } catch (error) {
+            console.error("ERRO GRAVE: Falha ao inicializar ou configurar o Firebase. A funcionalidade de pagamento está desativada.", error);
+            const buyButton = document.getElementById('buy-button');
+            if (buyButton) {
+                buyButton.disabled = true;
+                buyButton.innerHTML = 'PAGAMENTO INDISPONÍVEL';
+                buyButton.style.background = 'grey';
+                buyButton.classList.remove('cta-pulse', 'hover:scale-105');
+            }
+        }
+        
+        // Funções do Modal e Pagamento
+        function startTimer(duration) {
+            let timer = duration;
+            let countdownInterval = setInterval(() => {
+                const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                const seconds = (timer % 60).toString().padStart(2, '0');
+                const pixTimerEl = document.getElementById('pix-timer');
+                if(pixTimerEl) pixTimerEl.textContent = `${minutes}:${seconds}`;
+                
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    const pixTimerContainer = document.getElementById('pix-timer-container');
+                    if(pixTimerContainer) pixTimerContainer.innerHTML = '<span class="font-bold text-red-500">PIX Expirado!</span>';
+                    
+                    const pixContainer = document.getElementById('pix-container');
+                    if(pixContainer) pixContainer.style.display = 'none';
+
+                    const pixCopyPaste = document.getElementById('pix-copy-paste');
+                    if(pixCopyPaste) pixCopyPaste.style.display = 'none';
+                    
+                    const checkPaymentButton = document.getElementById('check-payment-button');
+                    if(checkPaymentButton) {
+                        checkPaymentButton.textContent = "Gerar Novo PIX";
+                        checkPaymentButton.onclick = () => window.location.reload();
+                    }
+                }
+            }, 1000);
+        }
+        
+        function redirectToSuccess(userName, paymentId) {
+            const pixTitle = document.getElementById('pix-title');
+            if(pixTitle) pixTitle.textContent = "Pagamento Aprovado!";
+
+            const pixSubtitle = document.getElementById('pix-subtitle');
+            if(pixSubtitle) pixSubtitle.innerHTML = `
+                <p class="text-green-400">Parabéns!</p>
+                <p>As instruções de acesso foram enviadas para o seu e-mail.</p>
+            `;
+
+            const checkPaymentButton = document.getElementById('check-payment-button');
+            if(checkPaymentButton) checkPaymentButton.style.display = 'none';
+            
+            const pixContainer = document.getElementById('pix-container');
+            if(pixContainer) pixContainer.style.display = 'none';
+
+            const pixCopyPaste = document.getElementById('pix-copy-paste');
+            if(pixCopyPaste) pixCopyPaste.style.display = 'none';
+
+            const pixTimerContainer = document.getElementById('pix-timer-container');
+            if(pixTimerContainer) pixTimerContainer.style.display = 'none';
+        }
+
+        window.openModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.add('opacity-100'), 10);
+            }
+        }
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.classList.remove('flex'), 300);
+            }
+        }
+        window.copyPixCode = function() {
+            const pixCodeInput = document.getElementById('pix-code-input');
+            const copyMessage = document.getElementById('copy-message');
+            pixCodeInput.select();
+            try {
+                document.execCommand('copy');
+                copyMessage.textContent = 'Código copiado!';
+                setTimeout(() => { copyMessage.textContent = '' }, 2000);
+            } catch (err) {
+                console.error('Não foi possível copiar o código:', err);
+                copyMessage.textContent = 'Erro ao copiar!';
+            }
+        }
     });
-
-    // --- LÓGICA DE PAGAMENTO (Mantida como placeholder) ---
-    const buyButton = document.getElementById('buy-button');
-    if(buyButton) {
-        buyButton.addEventListener('click', () => {
-            // A lógica real de checkout seria integrada aqui.
-            alert('Integração com o gateway de pagamento (ex: Stripe, Mercado Pago, Hotmart) seria feita aqui!');
-        });
-    }
-});
-</script>
+    </script>
+</body>
+</html>
