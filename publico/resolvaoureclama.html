@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resolve ou Reclama? por Victor Cruzetta</title>
 
-    <!-- Tags para Pré-visualização (Open Graph) para WhatsApp, Facebook, etc. -->
     <meta property="og:title" content="Resolve ou Reclama? por Victor Cruzetta">
     <meta property="og:description" content="O manual prático para parar de reagir com base na emoção e começar a agir com base na resolução.">
     <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/WhatsApp%20Image%202025-07-15%20at%2019.49.51.jpeg?alt=media&token=582e0595-d6e7-4039-9ef2-74f2ed6a0dfe">
     <meta property="og:url" content="https://platamais.web.app/resolvaoureclama.html">
     <meta property="og:type" content="book">
 
-    <!-- Tags para Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Resolve ou Reclama? por Victor Cruzetta">
     <meta name="twitter:description" content="O manual prático para parar de reagir com base na emoção e começar a agir com base na resolução.">
@@ -23,7 +21,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <!-- Font Awesome para o ícone do PIX e WhatsApp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -60,23 +57,67 @@
         #pix-qrcode { border: 6px solid white; border-radius: 8px; }
         #pix-code-input { background-color: #374151; user-select: all; }
         .form-input { background-color: #374151; border: 1px solid #4b5563; color: #d1d5db; }
+
+        /* ===== NOVOS ESTILOS PARA CONTROLES DE VELOCIDADE ===== */
+        .speed-btn {
+            background-color: #374151; /* gray-700 */
+            color: #d1d5db; /* gray-300 */
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .speed-btn:hover {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .speed-btn.active-speed {
+            background-color: #facc15; /* yellow-400 */
+            color: #111827; /* gray-900 */
+        }
     </style>
 </head>
 <body class="bg-gray-900">
 
-    <!-- Hero Section -->
     <section class="bg-gray-900 pt-20 pb-16 text-center">
         <div class="container mx-auto px-4">
             <h1 class="text-4xl md:text-6xl font-black uppercase tracking-wider text-white">A Sua Vida Parece Bloqueada?</h1>
             <h2 class="mt-4 text-2xl md:text-4xl font-bold text-yellow-400 text-glow-yellow">Existe um caminho para sair do caos. E a escolha é sua.</h2>
             <p class="mt-6 max-w-3xl mx-auto text-lg text-gray-300">Descubra o método para parar de reagir com base na emoção e começar a agir com base na resolução. Abandone o ciclo de frustração e retome o controlo.</p>
-            <a href="#comprar" class="cta-button mt-10 inline-block bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg">
+            
+            <div class="audio-player-container max-w-2xl mx-auto mt-12 p-6 rounded-xl shadow-lg">
+                <div class="flex items-center space-x-4">
+                    <button id="play-pause-btn" class="w-16 h-16 bg-yellow-500 text-gray-900 rounded-full flex items-center justify-center text-3xl cta-button flex-shrink-0">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div class="w-full">
+                        <div class="text-left">
+                            <p class="font-bold text-lg text-white">Ouça um resumo do livro</p>
+                            <p id="audio-status" class="text-sm text-gray-400">Descubra os principais conceitos em minutos.</p>
+                        </div>
+                        <div class="flex items-center space-x-3 mt-2">
+                            <span id="current-time" class="text-xs text-gray-400">0:00</span>
+                            <input type="range" id="progress-bar" value="0" class="w-full">
+                            <span id="duration" class="text-xs text-gray-400">0:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="speed-controls" class="flex justify-center items-center space-x-2 mt-4">
+                    <button data-speed="1.0" class="speed-btn active-speed">1x</button>
+                    <button data-speed="1.25" class="speed-btn">1.25x</button>
+                    <button data-speed="1.5" class="speed-btn">1.5x</button>
+                    <button data-speed="1.75" class="speed-btn">1.75x</button>
+                    <button data-speed="2.0" class="speed-btn">2x</button>
+                </div>
+            </div>
+            <audio id="podcast-audio" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/Resolve%20ou%20Reclama_%20Como%20Treinar%20Suas%20Emo%C3%A7%C3%B5es%20e%20Agir%20Diante%20da%20Adversidade.mp3?alt=media&token=0001fa53-d1d8-428a-ad77-95c32a4714aa" preload="metadata"></audio>
+
+            <a href="#comprar" class="cta-button mt-12 inline-block bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg">
                 Quero Mudar a Minha Vida Agora
             </a>
         </div>
     </section>
 
-    <!-- Problem Section -->
     <section class="py-16 bg-gray-800/40">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
@@ -105,7 +146,6 @@
     
     <div class="section-divider"></div>
 
-    <!-- Solution Intro -->
     <section class="py-16">
         <div class="container mx-auto px-4 flex flex-col lg:flex-row items-center gap-12">
             <div class="lg:w-1/2 flex justify-center">
@@ -119,43 +159,12 @@
         </div>
     </section>
     
-    <!-- Podcast Player Section -->
-    <section class="py-12 bg-gray-800/40">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-3xl font-bold text-white">Ouça um resumo do livro</h3>
-            <p class="text-gray-400 mt-2">Dê o play e descubra em poucos minutos o poder transformador desta leitura.</p>
-            
-            <div class="audio-player-container max-w-2xl mx-auto mt-8 p-6 rounded-xl shadow-lg">
-                <div class="flex items-center space-x-4">
-                    <button id="play-pause-btn" class="w-16 h-16 bg-yellow-500 text-gray-900 rounded-full flex items-center justify-center text-3xl cta-button flex-shrink-0">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <div class="w-full">
-                        <div class="text-left">
-                            <p class="font-bold text-lg text-white">Resumo em Áudio do Livro</p>
-                            <p id="audio-status" class="text-sm text-gray-400">Ouça os principais conceitos de "Resolve ou Reclama?".</p>
-                        </div>
-                        <div class="flex items-center space-x-3 mt-2">
-                            <span id="current-time" class="text-xs text-gray-400">0:00</span>
-                            <input type="range" id="progress-bar" value="0" class="w-full">
-                            <span id="duration" class="text-xs text-gray-400">0:00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <audio id="podcast-audio" src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/Resolve%20ou%20Reclama_%20Como%20Treinar%20Suas%20Emo%C3%A7%C3%B5es%20e%20Agir%20Diante%20da%20Adversidade.mp3?alt=media&token=0001fa53-d1d8-428a-ad77-95c32a4714aa" preload="metadata"></audio>
-        </div>
-    </section>
-
-    <!-- About the Author Section -->
     <section id="autor" class="py-16">
         <div class="container mx-auto px-4">
             <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-                <!-- Author Photo -->
                 <div class="lg:w-1/3 flex justify-center flex-shrink-0">
                     <img src="https://firebasestorage.googleapis.com/v0/b/platamais.firebasestorage.app/o/livro%20resolve%20ou%20reclama%2FWhatsApp%20Image%202025-07-15%20at%2020.25.31.jpeg?alt=media&token=fba4e6d0-7b23-4997-9fdb-04f18e3219d7" alt="Foto de Victor Cruzetta" class="rounded-full w-52 h-52 md:w-60 md:h-60 object-cover border-4 border-yellow-400 shadow-2xl">
                 </div>
-                <!-- Author Bio -->
                 <div class="lg:w-2/3 text-center lg:text-left">
                     <h2 class="text-4xl font-black text-white">Sobre o Autor</h2>
                     <h3 class="text-2xl font-bold text-yellow-400 mt-2">Victor Cruzetta</h3>
@@ -173,13 +182,11 @@
 
     <div class="section-divider"></div>
 
-    <!-- Infographic Section -->
     <section class="container mx-auto px-4 py-16 text-center">
         <h2 class="text-4xl md:text-5xl font-black uppercase tracking-wider">A Sua Vida numa <span class="text-yellow-400 text-glow-yellow">Encruzilhada</span></h2>
         <p class="mt-4 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">O livro mostra-lhe dois caminhos. A escolha de qual seguir define o seu futuro. Clique nos ícones para explorar as consequências de cada decisão.</p>
     
         <div class="mt-12 max-w-7xl mx-auto flex flex-col md:flex-row justify-center gap-8 md:gap-16">
-            <!-- Caminho da Reclamação -->
             <div class="w-full md:w-2/5 px-4 z-10">
                 <h3 class="text-3xl md:text-4xl font-bold text-center text-red-500 text-glow-red mb-8">O CAMINHO DA RECLAMAÇÃO</h3>
                 <div class="space-y-8">
@@ -202,7 +209,6 @@
                 </div>
             </div>
 
-            <!-- Caminho da Resolução -->
             <div class="w-full md:w-2/5 px-4 z-10">
                 <h3 class="text-3xl md:text-4xl font-bold text-center text-emerald-400 text-glow-emerald mb-8">O CAMINHO DA RESOLUÇÃO</h3>
                 <div class="space-y-8">
@@ -229,7 +235,6 @@
 
     <div class="section-divider"></div>
 
-    <!-- Testimonials Section -->
     <section class="py-16">
         <div class="container mx-auto px-4">
             <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12">O que os leitores dizem</h2>
@@ -248,7 +253,6 @@
         </div>
     </section>
 
-    <!-- Final CTA & Guarantee Section -->
     <section id="comprar" class="bg-gradient-to-t from-gray-900 to-gray-800 py-20">
         <div class="container mx-auto px-4 text-center">
             <h2 class="text-4xl font-black text-white">Pronto para escolher o caminho da resolução?</h2>
@@ -256,7 +260,7 @@
             
             <div class="bg-gray-900 border-2 border-yellow-400 max-w-md mx-auto p-8 rounded-xl shadow-2xl">
                 <p class="text-xl text-white">Acesso imediato ao eBook completo por apenas:</p>
-                <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 19,00</p>
+                <p class="text-7xl font-black text-yellow-400 my-4 text-glow-yellow">R$ 9,97</p>
                 <button id="buy-button" data-product-id="hSZxb7PkKEVigk5C3jyA" class="cta-button w-full bg-yellow-500 text-gray-900 font-bold text-xl uppercase px-12 py-4 rounded-lg shadow-lg flex items-center justify-center">
                     <i class="fa-brands fa-pix mr-3"></i> Pagar com PIX
                 </button>
@@ -272,13 +276,11 @@
         </div>
     </section>
     
-    <!-- Footer -->
     <footer class="bg-black text-center py-8">
         <p class="text-gray-500">&copy; 2025 Victor Cruzetta. Todos os direitos reservados.</p>
         <p class="text-gray-500 text-sm mt-2">Dúvidas ou problemas? Clique no ícone do WhatsApp nesta página.</p>
     </footer>
 
-    <!-- Modal Informativo -->
     <div id="info-modal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center p-4 z-50">
         <div id="info-modal-content" class="modal-content bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-t-4">
             <h3 id="info-modal-title" class="text-3xl font-bold mb-4"></h3>
@@ -287,7 +289,6 @@
         </div>
     </div>
     
-    <!-- Modal para Dados do Utilizador -->
     <div id="user-info-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
             <button onclick="closeModal('user-info-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -310,7 +311,6 @@
         </div>
     </div>
     
-    <!-- Modal para o PIX -->
     <div id="pix-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-yellow-400 relative">
             <button onclick="closeModal('pix-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -337,12 +337,10 @@
         </div>
     </div>
 
-    <!-- NOVO: Botão Flutuante do WhatsApp -->
     <button id="whatsapp-support-button" class="fixed bottom-5 right-5 bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg z-40 cta-button hover:bg-green-600">
         <i class="fab fa-whatsapp text-4xl"></i>
     </button>
 
-    <!-- NOVO: Modal de Suporte WhatsApp -->
     <div id="whatsapp-modal" class="modal fixed inset-0 bg-black bg-opacity-80 items-center justify-center p-4 z-50">
         <div class="modal-content rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-t-4 border-green-500 relative">
             <button onclick="closeModal('whatsapp-modal')" class="absolute top-2 right-4 text-2xl text-gray-500 hover:text-white">&times;</button>
@@ -360,7 +358,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -379,6 +376,8 @@
                 const currentTimeEl = document.getElementById('current-time');
                 const durationEl = document.getElementById('duration');
                 const audioStatus = document.getElementById('audio-status');
+                // NOVO: Seleciona os controles de velocidade
+                const speedControls = document.getElementById('speed-controls');
 
                 playPauseBtn.addEventListener('click', () => {
                     if (audio.paused) {
@@ -412,6 +411,20 @@
                     progressBar.value = 0;
                     audio.currentTime = 0;
                 });
+
+                // NOVO: Lógica para os botões de velocidade
+                if (speedControls) {
+                    const speedButtons = speedControls.querySelectorAll('.speed-btn');
+                    speedButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            const speed = parseFloat(button.dataset.speed);
+                            audio.playbackRate = speed;
+                            speedButtons.forEach(btn => btn.classList.remove('active-speed'));
+                            button.classList.add('active-speed');
+                        });
+                    });
+                }
+                
                 function formatTime(seconds) {
                     if (isNaN(seconds) || seconds < 0) return "0:00";
                     const minutes = Math.floor(seconds / 60);
@@ -533,8 +546,8 @@
                     } finally {
                         generatePixButton.disabled = false;
                          if (formMessage.textContent === 'A gerar o seu PIX...') {
-                            formMessage.textContent = '';
-                        }
+                             formMessage.textContent = '';
+                         }
                     }
                 });
             }
